@@ -1,5 +1,6 @@
 import numpy
 import matplotlib.pyplot as plt
+from mpl_toolkits.basemap import Basemap
 
 
 if __name__ == "__main__":
@@ -9,10 +10,29 @@ if __name__ == "__main__":
     # dtype='>f4' for 	4 byte “float” binary data with “big endian” byte order.
     data_DN = numpy.fromfile(bin_filename, dtype='>f4')
     data_DN = data_DN.reshape(3000, 3000)
-    plt.imshow(data_DN, vmin=0, vmax=90, extent=(85, 205, -60, 60), interpolation="None", origin="upper")
+
+    # # image
+    # plt.imshow(data_DN, vmin=0, vmax=90, extent=(85, 205, -60, 60), interpolation="None", origin="upper")
+    # plt.title('VZA DN value: 202201010000')
+    # plt.colorbar().set_label('DN', size=15)
+    # plt.xlabel("longitude", size=15)
+    # plt.ylabel("latitude", size=15)
+    # # plt.grid(True)
+    # plt.show()
+
+    # map
+    m = Basemap(
+        projection='cyl',
+        resolution='c',
+        llcrnrlon=85,
+        llcrnrlat=-60,
+        urcrnrlon=205,
+        urcrnrlat=60
+    )
+    m.imshow(data_DN, vmin=0, vmax=90, extent=(85, 205, -60, 60), interpolation="None", origin="upper", cmap='jet')
+    m.drawcoastlines(color='k', linewidth=0.5)
+    m.drawparallels(numpy.arange(-60, 60.1, 30), labels=[1, 0, 0, 0], linewidth=0.1)  # draw parallels
+    m.drawmeridians(numpy.arange(85, 205.1, 30), labels=[0, 0, 0, 1], linewidth=0.1)  # draw meridians
     plt.title('VZA DN value: 202201010000')
     plt.colorbar().set_label('DN', size=15)
-    plt.xlabel("longitude", size=15)
-    plt.ylabel("latitude", size=15)
-    # plt.grid(True)
     plt.show()
