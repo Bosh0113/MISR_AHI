@@ -27,7 +27,7 @@ def BRF_TrueValue(o_BRF, scale, offset):
 
 
 if __name__ == "__main__":
-    BRF_npy_path = r'D:\Work_PhD\MISR_AHI_WS\211204\SRF_62\b_3_c_8.npy'
+    BRF_npy_path = r'D:\Work_PhD\MISR_AHI_WS\211228\SRF_62\b_3_c_8.npy'
     BRF_data = numpy.load(BRF_npy_path)
     
     # # original values
@@ -41,7 +41,7 @@ if __name__ == "__main__":
     offset_landBRF = 0.0
     BRF_tv = BRF_TrueValue(BRF_data, scale_landBRF, offset_landBRF)
     plt.imshow(BRF_tv, cmap=plt.cm.jet, vmin=0.0, vmax=1.0)
-    plt.title('True values in LandBRF 2016-01-15 Band 4 Camera 9')
+    plt.title('True values in LandBRF 2016-05-12 Band 4 Camera 9')
     plt.colorbar()
     plt.show()
             
