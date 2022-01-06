@@ -23,6 +23,8 @@ def BRF_TrueValue(o_BRF, scale, offset):
                 y = x*scale + offset
                 t_BRF_item.append(y)
         t_BRF.append(t_BRF_item)
+    # t_BRF = numpy.array(t_BRF)
+    # t_BRF[t_BRF==0.]=numpy.NaN
     return t_BRF
 
 
