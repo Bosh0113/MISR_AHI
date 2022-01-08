@@ -1,42 +1,31 @@
 import numpy
 import matplotlib.pyplot as plt
-# import global_land_mask as globe
-
-
-# def AHI_pixel_is_land(x_index, y_index, m_size=3000):
-#     offset = 120. / m_size
-#     lon = 85. + (offset * (x_index + 1 / 2))
-#     if lon > 180:
-#         lon = lon - 360.
-#     lat = 60. - offset * (y_index + 1 / 2)
-#     return globe.is_land(lat, lon)
-
-
-def x2dgree(x_index, y_index, m_size=3000):
-    offset = 120. / m_size
-    lon = 85. + (offset * (x_index + 1 / 2))
-    if lon > 180:
-        lon = lon - 360.
-    lat = 60. - offset * (y_index + 1 / 2)
-    return lat, lon
+from mpl_toolkits.basemap import Basemap
 
 
 if __name__ == "__main__":
-    a = numpy.zeros((3000, 3000))
-    lats = []
-    lons = []
-    for i in range(len(a)):
-        for j in range(len(a[0])):
-            lat, lon = x2dgree(j, i)
-            lats.append(lat)
-            lons.append(lon)
-    lats = numpy.array(lats)
-    lats = lats.reshape(3000, 3000)
-    lons = numpy.array(lons)
-    lons = lons.reshape(3000, 3000)
-    plt.imshow(lats)
-    plt.colorbar()
-    plt.show()
-    plt.imshow(lons)
-    plt.colorbar()
+    region_filename = r'D:\Work_PhD\MISR_AHI_WS\220108\region4intercom.npy'
+    onland_vza = numpy.load(region_filename)
+    onland_vza = onland_vza * 1.
+    onland_vza[onland_vza == 0.] = numpy.NaN
+
+    m = Basemap(projection='cyl',
+                resolution='c',
+                llcrnrlon=85,
+                llcrnrlat=-60,
+                urcrnrlon=205,
+                urcrnrlat=60)
+    m.imshow(onland_vza,
+             extent=(85, 205, -60, 60),
+             interpolation="None",
+             origin="upper",
+             cmap=plt.cm.cool)
+    m.drawcoastlines(color='k', linewidth=0.5)
+    m.drawparallels(numpy.arange(-60, 60.1, 30),
+                    labels=[1, 0, 0, 0],
+                    linewidth=0.1)  # draw parallels
+    m.drawmeridians(numpy.arange(85, 205.1, 30),
+                    labels=[0, 0, 0, 1],
+                    linewidth=0.1)  # draw meridians
+    plt.title("Region for data inter-comparison")
     plt.show()
