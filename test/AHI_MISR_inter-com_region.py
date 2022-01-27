@@ -60,7 +60,7 @@ def mapping_notMargin(storage, data4map, vza):
 
 if __name__ == "__main__":
     # storage_path = r'D:\Work_PhD\MISR_AHI_WS\220107'
-    storage_path = r'D:\Work_PhD\MISR_AHI_WS\220108'
+    storage_path = r'D:\Work_PhD\MISR_AHI_WS\220127'
     region_onland_filename = storage_path + '/region4intercom.npy'
     re_onland = numpy.load(region_onland_filename)
     # MISR_vza = [26.1, 45.6, 60.0, 70.5]

@@ -72,6 +72,7 @@ def mapping_notMargin(data4map, vza):
     plt.show()
 
 
+# MISR与AHI的VZA包括海洋的匹配范围
 if __name__ == "__main__":
     workspace = r'D:\Work_PhD\MISR_AHI_WS\220103'
     bin_filename = workspace + '/202201010000.sat.zth.fld.4km.bin'
@@ -80,16 +81,17 @@ if __name__ == "__main__":
     data_DN = numpy.fromfile(bin_filename, dtype='>f4')
     data_DN = data_DN.reshape(3000, 3000)
     # MISR_vza = [26.1, 45.6, 60.0, 70.5]
-    minVZAs = [0, 26.1, 45.6, 60.0, 70.5]
+    MISR_vza = [0, 26.1, 45.6, 60.0, 70.5]
+    minVZAs = [0, 25.6, 45.1, 59.5, 70.0]
     maxVZAs = [21.78, 32.30, 47.64, 60.64, 70.68]
     # storage_path = r'D:\Work_PhD\MISR_AHI_WS\220107'
-    storage_path = r'D:\Work_PhD\MISR_AHI_WS\220108'
+    storage_path = r'D:\Work_PhD\MISR_AHI_WS\220127'
     # for vza in MISR_vza:
     for index in range(len(minVZAs)):
         # data_scr = screening_AHI_VZA_margin(data_DN, vza, 1.0)
         # vza_filename = storage_path + '/AHI_vza_1margin_' + str(vza) + '.npy'
         data_scr = screening_AHI_minmaxVZA(data_DN, minVZAs[index], maxVZAs[index])
-        vza_filename = storage_path + '/AHI_vza_MISR_' + str(minVZAs[index]) + '.npy'
+        vza_filename = storage_path + '/AHI_vza_MISR_' + str(MISR_vza[index]) + '.npy'
         numpy.save(vza_filename, data_scr)
         data_scr[data_scr == 0.] = numpy.NaN
         # mapping(data_scr, vza)

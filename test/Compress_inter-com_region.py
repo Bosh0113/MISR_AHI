@@ -3,7 +3,7 @@ import numpy
 
 def compress_onland_npy():
     MISRVZAs = [0, 26.1, 45.6, 60.0, 70.5]
-    storage_path = r'D:\Work_PhD\MISR_AHI_WS\220108'
+    storage_path = r'D:\Work_PhD\MISR_AHI_WS\220127'
     for vza in MISRVZAs:
         vza_onland_filename = storage_path + '/AHI_MISR_inter-com_region_degree_' + str(vza) + '.npy'
         vza_onland = numpy.load(vza_onland_filename)

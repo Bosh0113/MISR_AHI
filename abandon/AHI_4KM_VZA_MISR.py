@@ -14,6 +14,7 @@ def screening_AHI_VZA_similar_MISR(o_data, margin):
     return a_data
 
 
+# MISR和AHI的VZA匹配，用1°缓冲区，（此代码已舍弃）
 if __name__ == "__main__":
     workspace = r'D:\Work_PhD\MISR_AHI_WS\220103'
     bin_filename = workspace + '/202201010000.sat.zth.fld.4km.bin'

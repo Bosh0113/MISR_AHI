@@ -26,17 +26,19 @@ def screening_AHI_VZA_similar_MISR(o_data, margin):
 
 
 def screening_AHI_VZA_with_MISR_swath_scale(o_data):
-    # minVZAs = [0, 26.1, 45.6, 60.0, 70.5]
+    # MISRVZAs = [0, 26.1, 45.6, 60.0, 70.5]
+    # minVZAs = [0, 25.6, 45.1, 59.5, 70.0]
     # maxVZAs = [21.78, 32.30, 47.64, 60.64, 70.68]
     a_data = numpy.copy(o_data)
-    a_data[((21.78 <= a_data) & (a_data < 26.1)) |
-           ((32.30 < a_data) & (a_data < 45.6)) | ((47.64 < a_data) &
-                                                   (a_data < 60.0)) |
-           ((60.64 < a_data) & (a_data < 70.5)) | ((70.68 < a_data) &
+    a_data[((21.78 <= a_data) & (a_data < 25.6)) |
+           ((32.30 < a_data) & (a_data < 45.1)) | ((47.64 < a_data) &
+                                                   (a_data < 59.5)) |
+           ((60.64 < a_data) & (a_data < 70.0)) | ((70.68 < a_data) &
                                                    (a_data < 90.0))] = 0.
     return a_data
 
 
+# MISR与AHI的VZA陆上匹配区域
 if __name__ == "__main__":
     workspace = r'D:\Work_PhD\MISR_AHI_WS\220103'
     bin_filename = workspace + '/202201010000.sat.zth.fld.4km.bin'
@@ -64,7 +66,7 @@ if __name__ == "__main__":
     onland_vza = onland_vza.reshape(3000, 3000)
 
     # region_filename = r'D:\Work_PhD\MISR_AHI_WS\220107\region4intercom.npy'
-    # region_filename = r'D:\Work_PhD\MISR_AHI_WS\220108\region4intercom.npy'
+    # region_filename = r'D:\Work_PhD\MISR_AHI_WS\220127\region4intercom.npy'
     # numpy.save(region_filename, numpy.array(onland_vza))
     # onland_vza = numpy.load(region_filename)
     onland_vza = onland_vza * 1.
