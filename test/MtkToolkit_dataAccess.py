@@ -4,6 +4,10 @@ import re
 import time
 import os
 import urllib.request
+import ssl
+
+ssl._create_default_https_context = ssl._create_unverified_context
+
 
 def download_MISR_MIL2ASLS02_HDF(folder, path, orbit):
     time_range = orbit_to_time_range(orbit)
@@ -36,7 +40,8 @@ def download_MISR_MIL2ASLS02_HDF(folder, path, orbit):
 
 if __name__ == "__main__":
     start = time.perf_counter()
-    storage_folder = r'E:\Data_PhD\MISR4AHI'
+    # storage_folder = r'E:\Data_PhD\MISR4AHI'
+    storage_folder = '/data/beichen/data/MISR4AHI'
     ahi_r = MtkRegion(60, 85, -60, -155)
     start_t = '2016-01-01T00:00:00Z'
     end_t = '2016-12-31T23:59:59Z'
