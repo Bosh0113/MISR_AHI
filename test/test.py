@@ -1,31 +1,40 @@
-import numpy
-import matplotlib.pyplot as plt
-from mpl_toolkits.basemap import Basemap
+import os
+import json
+
+
+def get_extent(polygon_points):
+    ullat = polygon_points[0][1]
+    ullon = polygon_points[0][0]
+    lrlat = polygon_points[0][1]
+    lrlon = polygon_points[0][0]
+
+    for pt in polygon_points:
+        lat = pt[1]
+        lon = pt[0]
+        if ullat < lat:
+            ullat = lat
+        if lrlat > lat:
+            lrlat = lat
+        # all polygon in eastern Earth
+        if ullon > lon:
+            ullon = lon
+        if lrlon < lon:
+            lrlon = lon
+    # upper left corner, lower right corner (ullat, ullon, lrlat, lrlon)
+    return [ullat, ullon, lrlat, lrlon]
 
 
 if __name__ == "__main__":
-    region_filename = r'D:\Work_PhD\MISR_AHI_WS\220108\region4intercom.npy'
-    onland_vza = numpy.load(region_filename)
-    onland_vza = onland_vza * 1.
-    onland_vza[onland_vza == 0.] = numpy.NaN
+    ws = r'D:\Work_PhD\MISR_AHI_WS\220211'
+    MISR_vza = [0.0, 26.1, 45.6, 60.0, 70.5]
 
-    m = Basemap(projection='cyl',
-                resolution='c',
-                llcrnrlon=85,
-                llcrnrlat=-60,
-                urcrnrlon=205,
-                urcrnrlat=60)
-    m.imshow(onland_vza,
-             extent=(85, 205, -60, 60),
-             interpolation="None",
-             origin="upper",
-             cmap=plt.cm.cool)
-    m.drawcoastlines(color='k', linewidth=0.5)
-    m.drawparallels(numpy.arange(-60, 60.1, 30),
-                    labels=[1, 0, 0, 0],
-                    linewidth=0.1)  # draw parallels
-    m.drawmeridians(numpy.arange(85, 205.1, 30),
-                    labels=[0, 0, 0, 1],
-                    linewidth=0.1)  # draw meridians
-    plt.title("Region for data inter-comparison")
-    plt.show()
+    for vza in MISR_vza:
+        folder = ws + '/' + str(vza)
+        file_list = os.listdir(folder)
+        for file in file_list:
+            if file.split('.')[1] == 'json':
+                filename = folder + '/' + file
+                with open(filename, 'r', encoding='utf-8') as f:
+                    geoobj = json.load(f)
+                    polygon_pts = geoobj['features'][0]['geometry']['coordinates'][0]
+                    roi_extent = get_extent(polygon_pts)
