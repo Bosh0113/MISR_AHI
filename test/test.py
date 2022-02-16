@@ -1,5 +1,6 @@
 import os
 import json
+import math
 
 
 def get_extent(polygon_points):
@@ -25,16 +26,17 @@ def get_extent(polygon_points):
 
 
 if __name__ == "__main__":
-    ws = r'D:\Work_PhD\MISR_AHI_WS\220211'
-    MISR_vza = [0.0, 26.1, 45.6, 60.0, 70.5]
+    # ws = r'D:\Work_PhD\MISR_AHI_WS\220211'
+    # MISR_vza = [0.0, 26.1, 45.6, 60.0, 70.5]
 
-    for vza in MISR_vza:
-        folder = ws + '/' + str(vza)
-        file_list = os.listdir(folder)
-        for file in file_list:
-            if file.split('.')[1] == 'json':
-                filename = folder + '/' + file
-                with open(filename, 'r', encoding='utf-8') as f:
-                    geoobj = json.load(f)
-                    polygon_pts = geoobj['features'][0]['geometry']['coordinates'][0]
-                    roi_extent = get_extent(polygon_pts)
+    # for vza in MISR_vza:
+    #     folder = ws + '/' + str(vza)
+    #     file_list = os.listdir(folder)
+    #     for file in file_list:
+    #         if file.split('.')[1] == 'json':
+    #             filename = folder + '/' + file
+    #             with open(filename, 'r', encoding='utf-8') as f:
+    #                 geoobj = json.load(f)
+    #                 polygon_pts = geoobj['features'][0]['geometry']['coordinates'][0]
+    #                 roi_extent = get_extent(polygon_pts)
+    print(math.cos(math.radians(180)))

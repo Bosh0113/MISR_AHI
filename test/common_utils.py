@@ -19,9 +19,9 @@ if __name__ == "__main__":
     # shp = ws + '/AHI_view.shp'
     # geojson_to_shp(geoj, shp)
     
-    ws = r'D:\Work_PhD\MISR_AHI_WS\220211'
-    geoj = ws + '/0.0/0_10_ll.json'
-    # shp = ws + '/0.0/0_10_ll.shp'
+    ws = r'D:\Work_PhD\MISR_AHI_WS\220213\update6'
+    geoj = ws + '/0.0/0_60_ll.json'
+    # shp = ws + '/0.0/0_60_ll.shp'
     # shp_to_geojson(shp, geoj)
-    shp = ws + '/0.0/0_10_roi.shp'
+    shp = ws + '/0.0/0_60_roi.shp'
     geojson_to_shp(geoj, shp)
