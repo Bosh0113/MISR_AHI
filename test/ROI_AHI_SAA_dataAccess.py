@@ -2,6 +2,7 @@
 from MisrToolkit import *
 import math
 from datetime import *
+from ftplib import FTP
 # from timezonefinder import TimezoneFinder
 # from tzwhere import tzwhere
 # from pytz import timezone
@@ -15,6 +16,8 @@ ahi_localtime_end = '15:59:59Z'
 ahi_vza_bin = r'D:\Work_PhD\MISR_AHI_WS\220103\202201010000.sat.zth.fld.4km.bin'
 misr_folder = r'D:\Work_PhD\MISR_AHI_WS\220213\MISR'
 
+ahi_saa_folder = r''
+
 
 # get time offset to UTC, by lontitude not timezone
 def ahi_lon_timeoffset(lon):
@@ -27,6 +30,10 @@ def ahi_lon_timeoffset(lon):
 
 
 if __name__ == "__main__":
+    ftp = FTP()
+    ftp.connect('hmwr829gr.cr.chiba-u.ac.jp', 21)
+    ftp.login()
+
     roi_extent = [43.625, 90.772, 43.495, 90.952]
     center_pt = [(roi_extent[0] + roi_extent[2])/2, (roi_extent[1] + roi_extent[3])/2]
     # tz = tzwhere.tzwhere()
@@ -44,10 +51,11 @@ if __name__ == "__main__":
     diff_date = misr_end_date - misr_start_date
     misr_mean_date = misr_start_date + diff_date / 2
     misr_mean_date_str = misr_mean_date.strftime("%Y-%m-%dT%H:%M:%SZ")
-    print(misr_mean_date_str)
+    # print(misr_mean_date_str)
+
     # days of required AHI data (3 day)
-    utc_date = datetime.strptime(misr_mean_date_str, "%Y-%m-%dT%H:%M:%SZ")
-    local_date2 = utc_date + timedelta(hours=time_offset)
+    # misr_mean_date = datetime.strptime(misr_mean_date_str, "%Y-%m-%dT%H:%M:%SZ")
+    local_date2 = misr_mean_date + timedelta(hours=time_offset)
     local_date1 = local_date2 + timedelta(days=-1)
     local_date3 = local_date2 + timedelta(days=1)
     # UTC time range of required AHI data
@@ -65,7 +73,30 @@ if __name__ == "__main__":
         utc_date_end = local_date_end - timedelta(hours=time_offset)
         utc_date_end_str = utc_date_end.strftime("%Y-%m-%dT%H:%M:%SZ")
 
-        utc_date_range = (utc_date_start_str, utc_date_end_str)
-
-        print(utc_date_range)
+        ahi_saa_date_range = (utc_date_start_str, utc_date_end_str)
+        # print(ahi_saa_date_range)
+        # utc_date_start = datetime.strptime(ahi_saa_date_range[0], "%Y-%m-%dT%H:%M:%SZ")
+        # utc_date_end = datetime.strptime(ahi_saa_date_range[1], "%Y-%m-%dT%H:%M:%SZ")
+        date_interval = timedelta(minutes=10)
+        date_ahi = utc_date_start
+        while date_ahi < utc_date_end:
+            ahi_data_time = date_ahi.strftime("%Y%m%d%H%M")
+            ahi_data_folder1 = date_ahi.strftime("%Y%m")
+            ahi_data_folder2 = date_ahi.strftime("%Y%m%d")
+            ahi_saa_filename = ahi_data_time + '.sun.azm.fld.4km.bin.bz2'
+            ahi_saa_path = '/gridded/FD/V20190123/' + ahi_data_folder1 + '/4KM/' + ahi_data_folder2 + '/' + ahi_saa_filename
+            # ftp_dl_url = 'ftp://hmwr829gr.cr.chiba-u.ac.jp' + ahi_saa_path
+            # print(ftp_dl_url)
+            local_file = ahi_saa_folder + '/' + ahi_saa_filename
+            if os.path.exists(local_file):
+                pass
+            else:
+                try:
+                    with open(local_file, 'wb') as f:
+                        ftp.retrbinary('RETR ' + ahi_saa_path, f.write, 1024*1024)
+                except Exception as e:
+                    print('Error: ' + ahi_saa_path)
+                    print(e)
+            date_ahi = date_ahi + date_interval
     
+    ftp.close()

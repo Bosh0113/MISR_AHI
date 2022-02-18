@@ -1,33 +1,20 @@
-from datetime import *
-
-
-ahi_localtime_start = '08:00:00Z'
-ahi_localtime_end = '15:59:59Z'
-
+from ftplib import FTP
 
 if __name__ == "__main__":
-    misr_time_str = '2016-06-20T04:18:26Z'
-    time_offset = 6
+    ws = r'D:\Work_PhD\MISR_AHI_WS\220218'
+    
+    ahi_data_time = '201606210950'
+    ahi_data_folder1 = '201606'
+    ahi_data_folder2 = '20160621'
+    ahi_saa_filename = ahi_data_time + '.sun.azm.fld.4km.bin.bz2'
+    ahi_saa_path = '/gridded/FD/V20190123/' + ahi_data_folder1 + '/4KM/' + ahi_data_folder2 + '/' + ahi_saa_filename
+    ftp_dl_url = 'ftp://hmwr829gr.cr.chiba-u.ac.jp' + ahi_saa_path
+    print(ftp_dl_url)
 
-    utc_date = datetime.strptime(misr_time_str, "%Y-%m-%dT%H:%M:%SZ")
-    local_date2 = utc_date + timedelta(hours=time_offset)
-    local_date1 = local_date2 + timedelta(days=-1)
-    local_date3 = local_date2 + timedelta(days=1)
-
-    local_dates = [local_date1, local_date2, local_date3]
-    for local_date in local_dates:
-        local_day_str = local_date.strftime("%Y-%m-%dT")
-
-        local_time_start_str = local_day_str + ahi_localtime_start
-        local_date_start = datetime.strptime(local_time_start_str, "%Y-%m-%dT%H:%M:%SZ")
-        utc_date_start = local_date_start - timedelta(hours=time_offset)
-        utc_date_start_str = utc_date_start.strftime("%Y-%m-%dT%H:%M:%SZ")
-
-        local_time_end_str = local_day_str + ahi_localtime_end
-        local_date_end = datetime.strptime(local_time_end_str, "%Y-%m-%dT%H:%M:%SZ")
-        utc_date_end = local_date_end - timedelta(hours=time_offset)
-        utc_date_end_str = utc_date_end.strftime("%Y-%m-%dT%H:%M:%SZ")
-
-        utc_date_range = (utc_date_start_str, utc_date_end_str)
-
-        print(utc_date_range)
+    ftp = FTP()
+    ftp.connect('hmwr829gr.cr.chiba-u.ac.jp', 21)
+    ftp.login()
+    local_file = ws + '/' + ahi_saa_filename
+    with open(local_file, 'wb') as f:
+        ftp.retrbinary('RETR ' + ahi_saa_path, f.write, 1024*1024)
+    ftp.close()
