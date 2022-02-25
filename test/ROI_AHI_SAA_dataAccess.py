@@ -79,15 +79,15 @@ if __name__ == "__main__":
     MISR_vza = [0.0, 26.1, 45.6, 60.0, 70.5]
 
     for vza in MISR_vza:
-        # build roi folder
-        roi_raa_folder = roi_raa_ws + '/' + str(vza)
-        if not os.path.exists(roi_raa_folder):
-            os.makedirs(roi_raa_folder)
         # read roi geoinfo
         folder = roi_folder + '/' + str(vza)
         file_list = os.listdir(folder)
         for file in file_list:
             if file.split('.')[1] == 'json':
+                # build roi folder
+                roi_raa_folder = roi_raa_ws + '/' + str(vza) + '_' + file.split('.')[0]
+                if not os.path.exists(roi_raa_folder):
+                    os.makedirs(roi_raa_folder)
                 filename = folder + '/' + file
                 with open(filename, 'r', encoding='utf-8') as f:
                     geoobj = json.load(f)
@@ -136,13 +136,9 @@ if __name__ == "__main__":
                                         differ_cos = abs(math.cos(math.radians(ahi_vza_mean)) - math.cos(math.radians(max_vza)))
                                         if differ_cos < 0.01:
                                             # print(hdf_filename)
-                                            print('-- path:', path, '--', 'orbit:', orbit)
+                                            print('-- path:', path, '--', 'orbit:', orbit, '--', 'camera:', camera)
                                             # build folder for MISR-AHI data
-                                            misr_ws_folder = roi_raa_folder + '/' + str(P) + '_' + str(O)
-                                            if not os.path.exists(misr_ws_folder):
-                                                os.makedirs(misr_ws_folder)
-                                            camera_index = camera + 1
-                                            misr_ws_c_folder = misr_ws_folder + '/' + str(camera_index)
+                                            misr_ws_c_folder = roi_raa_folder + '/' + str(P) + '_' + str(O) + '_' + str(camera)
                                             if not os.path.exists(misr_ws_c_folder):
                                                 os.makedirs(misr_ws_c_folder)
                                             misr_ws_data_filename = misr_ws_c_folder + '/' + hdf_file
@@ -154,7 +150,7 @@ if __name__ == "__main__":
 
                                             misr_time = orbit_to_time_range(orbit)
                                             print('   ', misr_time)
-                                            # print('   camera ' + str(camera_index) + ' vza in MISR data:', max_vza)
+                                            # print('   camera ' + str(camera + 1) + ' vza in MISR data:', max_vza)
                                             # print('   differ of cos:', differ_cos)
                                             
                                             ### to screening AHI data ###

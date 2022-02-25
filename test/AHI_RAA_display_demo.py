@@ -37,7 +37,7 @@ def display_ahi_raa(vaa_ahi, saa_ahi):
     plt.show()
 
 
-def roi_ahi_raa(lon, lat, ahi_vaa, ahi_saa):
+def get_location_ahi_raa(lon, lat, ahi_vaa, ahi_saa):
     ahi_vaa = ahi_vaa.reshape(3000, 3000)
     ahi_saa = ahi_saa.reshape(3000, 3000)
     p_size = 120 / 3000
@@ -45,9 +45,35 @@ def roi_ahi_raa(lon, lat, ahi_vaa, ahi_saa):
     ullat_ahi = 60
     y_index = round(((lat - ullat_ahi) * -1 ) / p_size)
     x_index = round((lon - ullon_ahi) / p_size)
-    roi_vaa = ahi_vaa[y_index][x_index]
-    roi_saa = ahi_saa[y_index][x_index]
-    roi_raa = get_ahi_raa(roi_vaa, roi_saa)
+    loc_vaa = ahi_vaa[y_index][x_index]
+    loc_saa = ahi_saa[y_index][x_index]
+    loc_raa = get_ahi_raa(loc_vaa, loc_saa)
+
+    return loc_raa
+
+
+def get_region_ahi_raa(region_extent, ahi_vaa, ahi_saa):
+    p_size = 120 / 3000
+    ullon_ahi = 85
+    ullat_ahi = 60
+    ymin_index = round(((region_extent[0] - ullat_ahi) * -1 ) / p_size)
+    xmin_index = round((region_extent[1] - ullon_ahi) / p_size)
+    ymax_index = round(((region_extent[2] - ullat_ahi) * -1 ) / p_size)
+    xmax_index = round((region_extent[3] - ullon_ahi) / p_size)
+    # print(ymin_index, xmin_index, ymax_index, xmax_index)
+
+    ahi_vaa = ahi_vaa.reshape(3000, 3000)
+    ahi_saa = ahi_saa.reshape(3000, 3000)
+    roi_vaa = ahi_vaa[ymin_index:ymax_index, xmin_index:xmax_index]
+    roi_saa = ahi_saa[ymin_index:ymax_index, xmin_index:xmax_index]
+    
+    roi_raa = numpy.zeros_like(roi_vaa)
+    for y in range(len(roi_vaa)):
+        for x in range(len(roi_vaa[0])):
+            vaa = roi_vaa[y][x]
+            saa = roi_saa[y][x]
+            raa = get_ahi_raa(vaa, saa)
+            roi_raa[y][x] = raa
 
     return roi_raa
 
@@ -62,10 +88,17 @@ if __name__ == "__main__":
     ahi_vaa_dn = numpy.fromfile(ahi_vaa_bin, dtype='>f4')
     ahi_saa_dn = numpy.fromfile(ahi_saa_bin, dtype='>f4')
     
-    roi_pt = (140.098, 35.630)
-    print('location:', roi_pt)
-    roi_ahi_raa = roi_ahi_raa(roi_pt[0], roi_pt[1], ahi_vaa_dn, ahi_saa_dn)
-    print('AHI RAA:', str(roi_ahi_raa) + '°')
+    # roi_pt = (140.098, 35.630)
+    # print('location:', roi_pt)
+    # loc_ahi_raa = get_location_ahi_raa(roi_pt[0], roi_pt[1], ahi_vaa_dn, ahi_saa_dn)
+    # print('AHI RAA:', str(loc_ahi_raa) + '°')
+
+    roi_region = [43.625, 90.772, 43.495, 90.952]
+    print('ROI extent:', roi_region)
+    roi_ahi_raa = get_region_ahi_raa(roi_region, ahi_vaa_dn, ahi_saa_dn)
+    print('AHI RAA at ROI:')
+    print(roi_ahi_raa)
+    print('mean AHI RAA at ROI:', str(roi_ahi_raa.mean()) + '°')
     
     end = time.perf_counter()
     print("Run time: ", end - start, 's')
