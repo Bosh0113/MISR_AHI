@@ -112,7 +112,7 @@ if __name__ == "__main__":
             camera_folder_path = os.path.join(roi_folder_path, misr_ws_folder)
             VZA_record_files = os.listdir(camera_folder_path)
             # for record RAA
-            RAA_misr_ahi_npy = camera_folder_path + '/AHI_saa_ftp_paths.npy'
+            RAA_misr_ahi_npy = camera_folder_path + '/RAA_MISR_AHITime_AHI.npy'
             raa_records = []
             misr_filename = ''
             ahi_saa_record_filename = ''
