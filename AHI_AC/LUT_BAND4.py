@@ -18,7 +18,7 @@ raa = np.linspace(0, 180, 19)
 
 def ac_band4(In_water, In_AOT, In_AL, In_sza, In_vza, In_raa):
 
-    wl_band = "/data/Projects/sixs_band4.csv"
+    wl_band = "./AHI_SF/sixs_band4.csv"
     band = np.loadtxt(wl_band, delimiter=",")
 
     s = SixS()

@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
+
 import numpy as np
 from Py6S import SixS, AtmosProfile, AeroProfile, Geometry, Wavelength, AtmosCorr
 import time
@@ -17,7 +18,7 @@ raa = np.linspace(0, 180, 19)
 
 def ac_band3(In_water, In_ozone, In_AOT, In_AL, In_sza, In_vza, In_raa):
 
-    wl_band = "H:/PhD 2021-2024/Research Record/Atmosphere correction/shared_LW_test/data/sixs_band3.csv"
+    wl_band = "./AHI_SF/sixs_band3.csv"
     band = np.loadtxt(wl_band, delimiter=",")
 
     s = SixS()
@@ -45,15 +46,15 @@ def ac_band3(In_water, In_ozone, In_AOT, In_AL, In_sza, In_vza, In_raa):
 
 
 start = time.time()
-AC_output = Parallel(n_jobs=6)(delayed(ac_band3)(In_water, In_ozone, In_AOT,
-                                                 In_AL, In_sza, In_vza, In_raa)
-                               for In_water in range(len(water))
-                               for In_ozone in range(len(ozone))
-                               for In_AOT in range(len(AOT))
-                               for In_AL in range(len(AL))
-                               for In_sza in range(len(sza))
-                               for In_vza in range(len(vza))
-                               for In_raa in range(len(raa)))
+AC_output = Parallel(n_jobs=32)(delayed(ac_band3)(
+    In_water, In_ozone, In_AOT, In_AL, In_sza, In_vza, In_raa)
+                                for In_water in range(len(water))
+                                for In_ozone in range(len(ozone))
+                                for In_AOT in range(len(AOT))
+                                for In_AL in range(len(AL))
+                                for In_sza in range(len(sza))
+                                for In_vza in range(len(vza))
+                                for In_raa in range(len(raa)))
 end = time.time()
 
 T = end - start

@@ -42,15 +42,15 @@ def get_ahi_raa(vaa, saa):
     else:
         raa = 360 - diff
     return raa
-    
+
 
 def get_region_ahi_raa(region_extent, ahi_vaa, ahi_saa):
     p_size = 120 / 3000
     ullon_ahi = 85
     ullat_ahi = 60
-    ymin_index = round(((region_extent[0] - ullat_ahi) * -1 ) / p_size)
+    ymin_index = round(((region_extent[0] - ullat_ahi) * -1) / p_size)
     xmin_index = round((region_extent[1] - ullon_ahi) / p_size)
-    ymax_index = round(((region_extent[2] - ullat_ahi) * -1 ) / p_size)
+    ymax_index = round(((region_extent[2] - ullat_ahi) * -1) / p_size)
     xmax_index = round((region_extent[3] - ullon_ahi) / p_size)
     # print(ymin_index, xmin_index, ymax_index, xmax_index)
 
@@ -58,7 +58,7 @@ def get_region_ahi_raa(region_extent, ahi_vaa, ahi_saa):
     ahi_saa = ahi_saa.reshape(3000, 3000)
     roi_vaa = ahi_vaa[ymin_index:ymax_index, xmin_index:xmax_index]
     roi_saa = ahi_saa[ymin_index:ymax_index, xmin_index:xmax_index]
-    
+
     roi_raa = numpy.zeros_like(roi_vaa)
     for y in range(len(roi_vaa)):
         for x in range(len(roi_vaa[0])):
@@ -70,13 +70,15 @@ def get_region_ahi_raa(region_extent, ahi_vaa, ahi_saa):
     return roi_raa
 
 
-def misr_ahi_raa_matching(roi_geoj_file, misr_ls_file, ahi_vaa_file, ahi_saa_file, camera_index):
+def misr_ahi_raa_matching(roi_geoj_file, misr_ls_file, ahi_vaa_file,
+                          ahi_saa_file, camera_index):
     with open(roi_geoj_file, 'r', encoding='utf-8') as f:
         geoobj = json.load(f)
         polygon_pts = geoobj['features'][0]['geometry']['coordinates'][0]
         roi_extent = get_extent(polygon_pts)
         # MISR RAA
-        roi_r = MtkRegion(roi_extent[0], roi_extent[1], roi_extent[2], roi_extent[3])
+        roi_r = MtkRegion(roi_extent[0], roi_extent[1], roi_extent[2],
+                          roi_extent[3])
         m_file = MtkFile(misr_ls_file)
         m_grid = m_file.grid('RegParamsLnd')
         m_field = m_grid.field('RelViewCamAziAng[' + camera_index + ']')
@@ -87,7 +89,8 @@ def misr_ahi_raa_matching(roi_geoj_file, misr_ls_file, ahi_vaa_file, ahi_saa_fil
             # AHI RAA
             ahi_vaa_dn = numpy.fromfile(ahi_vaa_bin, dtype='>f4')
             ahi_saa_dn = numpy.fromfile(ahi_saa_bin, dtype='>f4')
-            roi_ahi_all_raa = get_region_ahi_raa(roi_extent, ahi_vaa_dn, ahi_saa_dn)
+            roi_ahi_all_raa = get_region_ahi_raa(roi_extent, ahi_vaa_dn,
+                                                 ahi_saa_dn)
             roi_ahi_raa = roi_ahi_all_raa.mean()
             # show raa diff
             raa_diff = abs(roi_misr_raa - roi_ahi_raa)
@@ -118,9 +121,11 @@ if __name__ == "__main__":
             ahi_saa_record_filename = ''
             for record_file in VZA_record_files:
                 if record_file.split('.')[1] == 'hdf':
-                    misr_filename = os.path.join(camera_folder_path, record_file)
+                    misr_filename = os.path.join(camera_folder_path,
+                                                 record_file)
                 if record_file.split('.')[1] == 'npy':
-                    ahi_saa_record_filename = os.path.join(camera_folder_path, record_file)
+                    ahi_saa_record_filename = os.path.join(
+                        camera_folder_path, record_file)
             ahi_saa_data_ftps = numpy.load(ahi_saa_record_filename)
             for ahi_saa_data_ftp in ahi_saa_data_ftps:
                 temp_ws = os.path.join(camera_folder_path, 'temp')
@@ -132,7 +137,8 @@ if __name__ == "__main__":
                 ahi_saa_bin = ''
                 try:
                     with open(ahi_saa_bin_bz2, 'wb') as f:
-                        ftp.retrbinary('RETR ' + ahi_saa_data_ftp, f.write, 1024*1024)
+                        ftp.retrbinary('RETR ' + ahi_saa_data_ftp, f.write,
+                                       1024 * 1024)
                     zipfile = bz2.BZ2File(ahi_saa_bin_bz2)
                     data = zipfile.read()
                     ahi_saa_bin = ahi_saa_bin_bz2[:-4]
@@ -143,15 +149,18 @@ if __name__ == "__main__":
                     # print('Error: ' + ahi_saa_data_ftp)
                     # print(e)
                 if os.path.exists(ahi_saa_bin_bz2):
-                    roi_geoj_filename = roi_geoj_folder + '/' + roi_folder.split('_')[0] + '/' + roi_folder.split('_')[1] + '.json'
+                    roi_geoj_filename = roi_geoj_folder + '/' + roi_folder.split(
+                        '_')[0] + '/' + roi_folder.split('_')[1] + '.json'
                     camera = misr_ws_folder.split('_')[2]
-                    m_raa, ahi_raa, diff_raa = misr_ahi_raa_matching(roi_geoj_filename, misr_filename, ahi_vaa_bin, ahi_saa_bin, camera)
+                    m_raa, ahi_raa, diff_raa = misr_ahi_raa_matching(
+                        roi_geoj_filename, misr_filename, ahi_vaa_bin,
+                        ahi_saa_bin, camera)
                     if diff_raa > 0:
                         ahi_obs_time = ahi_saa_file.split('.')[0]
                         raa_records.append([m_raa, ahi_obs_time, ahi_raa])
                         raa_diffs.append(diff_raa)
                 shutil.rmtree(temp_ws)
-            
+
             numpy.save(RAA_misr_ahi_npy, numpy.array(raa_records))
             raa_diffs.sort()
             print(raa_diffs[:5])
