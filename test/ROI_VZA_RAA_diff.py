@@ -56,8 +56,8 @@ def get_region_ahi_raa(region_extent, ahi_vaa, ahi_saa):
 
     ahi_vaa = ahi_vaa.reshape(3000, 3000)
     ahi_saa = ahi_saa.reshape(3000, 3000)
-    roi_vaa = ahi_vaa[ymin_index:ymax_index, xmin_index:xmax_index]
-    roi_saa = ahi_saa[ymin_index:ymax_index, xmin_index:xmax_index]
+    roi_vaa = ahi_vaa[ymin_index:ymax_index + 1, xmin_index:xmax_index + 1]
+    roi_saa = ahi_saa[ymin_index:ymax_index + 1, xmin_index:xmax_index + 1]
 
     roi_raa = numpy.zeros_like(roi_vaa)
     for y in range(len(roi_vaa)):

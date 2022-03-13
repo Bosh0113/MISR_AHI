@@ -69,7 +69,7 @@ def region_altitude(a_array, a_lulon, a_lulat, r_extent):
     max_x = round((lrlon - a_lulon) / dem_pixel_size)
     min_y = round((a_lulat - ullat) / dem_pixel_size)
     max_y = round((a_lulat - lrlat) / dem_pixel_size)
-    r_altitude = a_array[min_y:max_y, min_x:max_x]
+    r_altitude = a_array[min_y:max_y+1, min_x:max_x+1]
     print('ROI altitude (meter):', r_altitude.shape)
     print(r_altitude)
     mean_r_altitude = r_altitude.mean()
