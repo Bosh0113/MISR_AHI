@@ -8,7 +8,7 @@ misr_ahi_matching_folder = '/data/beichen/data/MISR_AHI_ROIs_RAA'
 # degree
 RAA_threshold = 3.
 # second
-SZA_time_threshold = 28800  # total daytime (unused now)
+SZA_time_threshold = 8*60*60  # total daytime (unused now)
 
 max_sza_count = 5
 vza_raa_sza_record_file = 'VZA001_RAA3_SZAt_c5.npy'
@@ -118,8 +118,7 @@ def record_VZA_RAA_SZA_matched():
 
     ###############################################
     # demo: [{
-    #     "roi_name":
-    #     "0.0_120",
+    #     "roi_name": "0.0_120",
     #     "misr_ahi": [{
     #         "path_orbit_camera": "P099_O088273_4",
     #         "ahi_matched": [{
