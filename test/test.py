@@ -2,5 +2,5 @@ import numpy
 
 
 if __name__ == "__main__":
-    ahi_count = numpy.zeros(4)
-    print(ahi_count)
+    ahi_time = 's' + str(3)
+    print(ahi_time)
