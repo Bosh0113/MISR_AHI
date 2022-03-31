@@ -2,5 +2,5 @@ import numpy
 
 
 if __name__ == "__main__":
-    ahi_time = 's' + str(3)
-    print(ahi_time)
+    array = numpy.load(r'D:\Work_PhD\MISR_AHI_WS\220331\SAA_AHITime_AHI.npy')
+    print(array)
