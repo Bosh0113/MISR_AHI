@@ -247,11 +247,7 @@ if __name__ == "__main__":
                                                     ahi_saa_file = ahi_data_time + '.sun.azm.fld.4km.bin.bz2'
                                                     ahi_saa_path = '/gridded/FD/V20190123/' + ahi_data_folder1 + '/4KM/' + ahi_data_folder2 + '/' + ahi_saa_file
                                                     # no download, just record
-                                                    AHI_saa_filenames.append(
-                                                        ahi_saa_path)
-                                                    numpy.save(
-                                                        AHI_saa_filenames_npy,
-                                                        numpy.array(
-                                                            AHI_saa_filenames))
+                                                    AHI_saa_filenames.append(ahi_saa_path)
 
                                                     date_ahi = date_ahi + date_interval
+                                            numpy.save(AHI_saa_filenames_npy,  numpy.array(AHI_saa_filenames))

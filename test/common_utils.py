@@ -1,4 +1,5 @@
 import geopandas
+import os
 
 
 # shapefile转geojson: shapefile路径 geojson路径
@@ -19,9 +20,21 @@ if __name__ == "__main__":
     # shp = ws + '/AHI_view.shp'
     # geojson_to_shp(geoj, shp)
     
-    ws = r'D:\Work_PhD\MISR_AHI_WS\220223\update4\0.0'
-    geoj = ws + '/0_50_ll.json'
-    shp = ws + '/0_50_ll.shp'
-    shp_to_geojson(shp, geoj)
-    # shp = ws + '/0_50_roi.shp'
-    # geojson_to_shp(geoj, shp)
+    # ws = r'D:\Work_PhD\MISR_AHI_WS\220223\update4\0.0'
+    # geoj = ws + '/0_50_ll.json'
+    # shp = ws + '/0_50_ll.shp'
+    # shp_to_geojson(shp, geoj)
+    # # shp = ws + '/0_50_roi.shp'
+    # # geojson_to_shp(geoj, shp)
+
+    ws_folder = r'D:\Work_PhD\MISR_AHI_WS\220331'
+    geoj_folder = os.path.join(ws_folder, 'ROI')
+    shp_folder = os.path.join(ws_folder, 'ROI_shp')
+    if not os.path.exists(shp_folder):
+        os.makedirs(shp_folder)
+    geojs = os.listdir(geoj_folder)
+    for geoj_file in geojs:
+        roi_name = geoj_file.split('.')[0] + '.' + geoj_file.split('.')[1]
+        geoj_filename = os.path.join(geoj_folder, geoj_file)
+        shp_filename = os.path.join(shp_folder, roi_name + '.shp')
+        geojson_to_shp(geoj_filename, shp_filename)

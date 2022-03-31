@@ -1,7 +1,7 @@
 import numpy
 
 if __name__ == "__main__":
-    ws = r'D:\Work_PhD\MISR_AHI_WS\220331'
+    ws = r'D:\Work_PhD\MISR_AHI_WS\220401\VZA001_RAA3_SZA1h_c5'
     matched_record_npy = ws + '/VZA001_RAA3_SZA1h_c5.npy'
     matched_records = numpy.load(matched_record_npy, allow_pickle=True)
     roi_matched_info = []

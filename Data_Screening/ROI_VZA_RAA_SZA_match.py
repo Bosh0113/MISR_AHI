@@ -1,10 +1,12 @@
 import numpy
 import re
 import os
-from MisrToolkit import orbit_to_time_range
+from MisrToolkit import MtkRegion, MtkFile
 from datetime import datetime
+import json
 
 misr_ahi_matching_folder = '/data/beichen/data/MISR_AHI_ROIs_inter-com'
+roi_geoj_folder = '/data/beichen/data/MISR_AHI_ROIs'
 # # cos diff
 # VZA_cos_threshold = 0.01
 # degree
@@ -16,26 +18,41 @@ max_sza_count = 5
 vza_raa_sza_record_file = 'VZA001_RAA3_SZA1h_c5.npy'
 
 
-def get_time_diff_MISR_AHI(misr_time_range, ahi_time):
-    # MISR mean time of scan
-    misr_start_time_str = misr_time_range[0]
-    misr_end_time_str = misr_time_range[1]
-    misr_start_date = datetime.strptime(misr_start_time_str,
-                                        "%Y-%m-%dT%H:%M:%SZ")
-    misr_end_date = datetime.strptime(misr_end_time_str, "%Y-%m-%dT%H:%M:%SZ")
-    diff_date = misr_end_date - misr_start_date
-    misr_mean_date = misr_start_date + diff_date / 2
-    # AHI time of scan
+def get_extent(polygon_points):
+    ullat = polygon_points[0][1]
+    ullon = polygon_points[0][0]
+    lrlat = polygon_points[0][1]
+    lrlon = polygon_points[0][0]
+
+    for pt in polygon_points:
+        lat = pt[1]
+        lon = pt[0]
+        if ullat < lat:
+            ullat = lat
+        if lrlat > lat:
+            lrlat = lat
+        # all polygon in eastern Earth
+        if ullon > lon:
+            ullon = lon
+        if lrlon < lon:
+            lrlon = lon
+    # upper left corner, lower right corner (ullat, ullon, lrlat, lrlon)
+    return [ullat, ullon, lrlat, lrlon]
+
+
+def get_time_diff_MISR_AHI(misr_time, ahi_time):
+    misr_time_str = misr_time.split('.')[0] + 'Z'
+    misr_date = datetime.strptime(misr_time_str, "%Y-%m-%dT%H:%M:%SZ")
     ahi_date = datetime.strptime(ahi_time, "%Y%m%d%H%M")
     # time diff (hours and minutes)
-    datetime_diff = misr_mean_date - ahi_date
+    datetime_diff = misr_date - ahi_date
     datetime_diff_s = abs(datetime_diff.total_seconds())
     if datetime_diff_s > 12 * 60 * 60:
         return abs(datetime_diff_s - 24 * 60 * 60)
     return datetime_diff_s
 
 
-def vza_raa_sza_time(misr_hdf_filename, raa_record_filename):
+def vza_raa_sza_time(roi_extent, misr_hdf_filename, raa_record_filename):
     raa_record = numpy.load(raa_record_filename)
     raa_diff_records = []
     for raa_item in raa_record:
@@ -55,13 +72,17 @@ def vza_raa_sza_time(misr_hdf_filename, raa_record_filename):
         if record['raa_diff'] <= RAA_threshold:
             raa_diff_r3.append(record)
     # sort by time_diff
-    matchObj = re.search(r'O(\d+)_F', misr_hdf_filename)
-    orbit_str = matchObj.group(1)
-    misr_time_range_str = orbit_to_time_range(int(orbit_str))
+    matchObj = re.search(r'P(\d+)_O', misr_hdf_filename)
+    path_str = matchObj.group(1)
+    roi_r = MtkRegion(roi_extent[0], roi_extent[1], roi_extent[2], roi_extent[3])
+    roi_blocks = roi_r.block_range(int(path_str))
+    m_file = MtkFile(misr_hdf_filename)
+    blocks_time_list = m_file.block_metadata_field_read('PerBlockMetadataTime', 'BlockCenterTime')
+    roi_misr_time = blocks_time_list[roi_blocks[0]-1]
     time_diff_record = []
     for raa_diff3 in raa_diff_r3:
         ahi_time_str = raa_diff3['ahi_time']
-        time_diff_s = get_time_diff_MISR_AHI(misr_time_range_str, ahi_time_str)
+        time_diff_s = get_time_diff_MISR_AHI(roi_misr_time, ahi_time_str)
         if time_diff_s < SZA_time_threshold:
             raa_diff_record = {}
             raa_diff_record['ahi_time'] = ahi_time_str
@@ -86,6 +107,13 @@ def record_VZA_RAA_SZA_matched():
         roi_folder_path = os.path.join(misr_ahi_matching_folder, roi_folder)
         misr_ws_folders = os.listdir(roi_folder_path)
         misr_records = []
+        roi_geoj_filename = roi_geoj_folder + '/' + roi_folder.split('_')[0] + '/' + roi_folder.split('_')[1] + '.json'
+        f = open(roi_geoj_filename, 'r', encoding='utf-8')
+        geoobj = json.load(f)
+        polygon_pts = geoobj['features'][0]['geometry']['coordinates'][0]
+        roi_extent = get_extent(polygon_pts)
+        f.close()
+
         for misr_ws_folder in misr_ws_folders:
             # print('-->', misr_ws_folder)
             # misr
@@ -102,7 +130,7 @@ def record_VZA_RAA_SZA_matched():
             misr_hdf_file = os.path.join(misr_folder_path, misr_file)
             raa_record_file = os.path.join(misr_folder_path, 'RAA_MISR_AHITime_AHI_diff.npy')
 
-            ahi_time_diff_array = vza_raa_sza_time(misr_hdf_file, raa_record_file)
+            ahi_time_diff_array = vza_raa_sza_time(roi_extent, misr_hdf_file, raa_record_file)
             misr_ahi_count = max_sza_count
             if len(ahi_time_diff_array) < misr_ahi_count:
                 misr_ahi_count = len(ahi_time_diff_array)

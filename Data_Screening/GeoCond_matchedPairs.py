@@ -9,7 +9,7 @@ import shutil
 
 roi_data_path = '/data/beichen/data/MISR_AHI_ROIs'
 sat_data_path = '/data/beichen/data/MISR_AHI_ROIs_inter-com'
-matched_record_path = '/data/beichen/workspace/20220331/VZA001_RAA3_SZA1h_c5/VZA001_RAA3_SZA1h_c5.npy'
+matched_record_path = '/data/beichen/workspace/20220331/VZA001_RAA5_SZA30min_c5/VZA001_RAA5_SZA30min_c5.npy'
 
 workspace = current_dir = os.getcwd()
 
@@ -166,7 +166,7 @@ if __name__ == "__main__":
         roi_extent = get_roi_extent(roi_geojson_path)
         roi_folder_path = os.path.join(sat_data_path, roi_name)
         geocond_record_str += '\n'
-        tab_str = 'misr_midtime ahi_time misr_vza ahi_vza misr_raa ahi_raa misr_sza ahi_sza'
+        tab_str = 'misr_time ahi_time misr_vza ahi_vza misr_raa ahi_raa misr_sza ahi_sza'
         print(tab_str)
         geocond_record_str += tab_str + '\n'
 
@@ -221,7 +221,7 @@ if __name__ == "__main__":
                     print(record_item)
                     geocond_record_str += record_item + '\n'
     
-    with open(os.path.join(current_dir, 'geo_condition_matched_pairs.txt'), 'w') as f:
+    with open(os.path.join(current_dir, 'geo-obs_condition_matched.txt'), 'w') as f:
         f.write(geocond_record_str)
 
     # disconnect ftp server
