@@ -324,7 +324,7 @@ if __name__ == "__main__":
                                             # sort by time diff
                                             AHI_saa_filename_diffs = sorted(AHI_saa_filename_diffs, key=(lambda x: x[1]))
                                             # for raa match
-                                            matched_flag = True
+                                            matched_flag = False
                                             for AHI_saa_filename_diff in AHI_saa_filename_diffs:
                                                 if not matched_flag:
                                                     ahi_saa_data_ftp = AHI_saa_filename_diff[0]

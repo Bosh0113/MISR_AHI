@@ -15,7 +15,7 @@ RAA_threshold = 5.
 SZA_time_threshold = 30*60
 
 max_sza_count = 5
-vza_raa_sza_record_file = 'VZA001_RAA3_SZA1h_c5.npy'
+vza_raa_sza_record_file = 'VZA001_RAA5_SZA30min_c5.npy'
 
 
 def get_extent(polygon_points):
