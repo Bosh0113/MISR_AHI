@@ -132,14 +132,13 @@ if __name__ == "__main__":
                                     m_field = m_grid.field('ViewZenAng[' +
                                                            str(camera) + ']')
                                     f_vza_data = m_field.read(roi_r).data()
-                                    max_vza = f_vza_data.max()
+                                    # in single array
+                                    roi_misr_vza_list = f_vza_data.flatten()
+                                    roi_misr_vza_list = numpy.setdiff1d(roi_misr_vza_list, [-9999])
                                     # has available values?
-                                    if max_vza > -9999:
+                                    if len(roi_misr_vza_list) > 0:
                                         # vza matching
-                                        differ_cos = abs(
-                                            math.cos(math.radians(
-                                                ahi_vza_mean)) -
-                                            math.cos(math.radians(max_vza)))
+                                        differ_cos = abs(math.cos(math.radians(ahi_vza_mean)) - math.cos(math.radians(roi_misr_vza_list.mean())))
                                         if differ_cos < VZA_cos_threshold:
                                             # print(hdf_filename)
                                             print('-- path:', path, '--',

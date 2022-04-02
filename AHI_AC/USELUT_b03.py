@@ -259,7 +259,7 @@ fn3 = RegularGridInterpolator((water, ozone, AOT, raa, sza_new, vza_new),
                               bounds_error=False,
                               fill_value=np.nan)
 
-lat_x = np.linspace(20, 50, 6000)
+lat_x = np.linspace(50, 20, 6000)
 lon_y = np.linspace(120, 150, 6000)
 
 BAND = Hi8_band()

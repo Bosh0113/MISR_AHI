@@ -56,26 +56,32 @@ def get_region_mean_ahi_vza(region_extent):
     return roi_vza.mean()
 
 
-def get_region_max_misr_vza(roi_extent, camera):
+def get_region_mean_misr_vza(roi_extent, camera):
     m_file = MtkFile(misr_hdf_filename)
     m_grid = m_file.grid('RegParamsLnd')
     roi_r = MtkRegion(roi_extent[0], roi_extent[1], roi_extent[2],
                       roi_extent[3])
     m_field = m_grid.field('ViewZenAng[' + str(camera) + ']')
     f_vza_data = m_field.read(roi_r).data()
-    misr_vza = f_vza_data.max()
-    return misr_vza
+    # in single array
+    roi_misr_vza_list = f_vza_data.flatten()
+    roi_misr_vza_list = numpy.setdiff1d(roi_misr_vza_list, [-9999])
+    roi_misr_vza = roi_misr_vza_list.mean()
+    return roi_misr_vza
 
 
-def get_region_max_misr_sza(roi_extent):
+def get_region_mean_misr_sza(roi_extent):
     m_file = MtkFile(misr_hdf_filename)
     m_grid = m_file.grid('RegParamsLnd')
     roi_r = MtkRegion(roi_extent[0], roi_extent[1], roi_extent[2],
                       roi_extent[3])
     m_field = m_grid.field('SolZenAng')
     f_sza_data = m_field.read(roi_r).data()
-    misr_sza = f_sza_data.max()
-    return misr_sza
+    # in single array
+    roi_misr_sza_list = f_sza_data.flatten()
+    roi_misr_sza_list = numpy.setdiff1d(roi_misr_sza_list, [-9999])
+    roi_misr_sza = roi_misr_sza_list.mean()
+    return roi_misr_sza
 
 
 def get_orbit_midtime(orbit):
@@ -187,11 +193,11 @@ if __name__ == "__main__":
             misr_midtime = get_orbit_midtime(
                 int(path_orbit_camera.split('_')[1][1:]))
 
-            roi_misr_vza = get_region_max_misr_vza(
+            roi_misr_vza = get_region_mean_misr_vza(
                 roi_extent,
                 path_orbit_camera.split('_')[2])
             roi_misr_vza = '%.3f' % roi_misr_vza
-            roi_misr_sza = get_region_max_misr_sza(
+            roi_misr_sza = get_region_mean_misr_sza(
                 roi_extent)
             roi_misr_sza = '%.3f' % roi_misr_sza
 

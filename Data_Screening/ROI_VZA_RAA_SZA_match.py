@@ -10,9 +10,9 @@ roi_geoj_folder = '/data/beichen/data/MISR_AHI_ROIs'
 # # cos diff
 # VZA_cos_threshold = 0.01
 # degree
-RAA_threshold = 3.
+RAA_threshold = 5.
 # second
-SZA_time_threshold = 1*60*60
+SZA_time_threshold = 30*60
 
 max_sza_count = 5
 vza_raa_sza_record_file = 'VZA001_RAA3_SZA1h_c5.npy'
