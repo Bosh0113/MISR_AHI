@@ -1,5 +1,5 @@
 # python 3.6
-from MisrToolkit import *
+from MisrToolkit import MtkRegion, orbit_to_time_range, path_time_range_to_orbit_list
 import re
 import time
 import os
@@ -41,10 +41,10 @@ def download_MISR_MIL2ASLS02_HDF(folder, path, orbit):
 if __name__ == "__main__":
     start = time.perf_counter()
     # storage_folder = r'E:\Data_PhD\MISR4AHI'
-    storage_folder = '/data/beichen/data/MISR4AHI'
+    storage_folder = '/home/beichen/disk1/data/MISR4AHI2015070120170601'
     ahi_r = MtkRegion(60, 85, -60, -155)
-    start_t = '2016-01-01T00:00:00Z'
-    end_t = '2016-12-31T23:59:59Z'
+    start_t = '2015-07-01T00:00:00Z'
+    end_t = '2017-06-01T23:59:59Z'
     pathList = ahi_r.path_list
     for path in pathList:
         orbits = path_time_range_to_orbit_list(path, start_t, end_t)

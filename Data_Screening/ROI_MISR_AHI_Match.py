@@ -16,10 +16,10 @@ end_t = '2016-12-31T23:59:59Z'
 ahi_localtime_start = '08:00:00Z'
 ahi_localtime_end = '15:59:59Z'
 # data path
-ahi_vza_bin = '/data/beichen/data/AHI/VZA/202201010000.sat.zth.fld.4km.bin'
-ahi_vaa_bin = '/data/beichen/data/AHI/VAA/202201010000.sat.azm.fld.4km.bin'
-misr_folder = '/data/beichen/data/MISR4AHI'
-roi_folder = '/data/beichen/data/MISR_AHI_ROIs'
+ahi_vza_bin = '/home/beichen/disk1/data/AHI/VZA/202201010000.sat.zth.fld.4km.bin'
+ahi_vaa_bin = '/home/beichen/disk1/data/AHI/VAA/202201010000.sat.azm.fld.4km.bin'
+misr_folder = '/home/beichen/disk1/data/MISR4AHI'
+roi_folder = '/home/beichen/disk1/data/MISR_AHI_ROIs'
 # storage path
 WORK_SPACE = os.getcwd()
 
@@ -228,7 +228,7 @@ if __name__ == "__main__":
                     geoobj = json.load(f)
                     polygon_pts = geoobj['features'][0]['geometry']['coordinates'][0]
                     roi_extent = get_extent(polygon_pts)
-                    roi_name = str(vza) + '-' + file.split('.')[0]
+                    roi_name = str(vza) + '_' + file.split('.')[0]
                     print('***ROI:', roi_name)
                     geocond_record_str += '\n' + roi_name
                     geocond_record_str += '\n'
@@ -347,11 +347,11 @@ if __name__ == "__main__":
                                                         os.remove(ahi_saa_bin_bz2)
                                                         # print('Error: ' + ahi_saa_data_ftp)
                                                         # print(e)
-                                                    print('ahi_saa', os.path.exists(ahi_saa_bin_bz2))
+                                                    # print('ahi_saa', os.path.exists(ahi_saa_bin_bz2))
                                                     if os.path.exists(ahi_saa_bin_bz2):
                                                         m_raa, ahi_raa, diff_raa = misr_ahi_raa_matching(roi_geoj_filename, hdf_filename, ahi_vaa_bin, ahi_saa_bin, camera)
                                                         # ## RAA match ###
-                                                        print(diff_raa < RAA_DEGREE_THRESHOLD)
+                                                        # print(diff_raa < RAA_DEGREE_THRESHOLD)
                                                         if diff_raa > 0 and diff_raa < RAA_DEGREE_THRESHOLD:
                                                             matched_flag = True
                                                             # geo-obs condition
@@ -373,7 +373,8 @@ if __name__ == "__main__":
                                                             geocond_record_str += record_item + '\n'
                                                             print('-- path:', path, '--', 'orbit:', orbit, '--', 'camera:', camera)
                                                             # build folder for MISR-AHI data
-                                                            misr_ws_c_folder = roi_matched_folder + '/' + str(P) + '_' + str(O_) + '_' + str(camera)
+                                                            misr_path_orbit_camera = str(P) + '_' + str(O_) + '_' + str(camera)
+                                                            misr_ws_c_folder = roi_matched_folder + '/' + misr_path_orbit_camera
                                                             if not os.path.exists(misr_ws_c_folder):
                                                                 os.makedirs(misr_ws_c_folder)
                                                             misr_ws_data_filename = misr_ws_c_folder + '/' + hdf_file
@@ -381,7 +382,7 @@ if __name__ == "__main__":
                                                             # record matched info
                                                             matched_roi_misr = {}
                                                             matched_roi_misr['misr_path_orbit_camera'] = misr_ws_c_folder
-                                                            matched_roi_misr['mathed_info'] = [misr_orbit, misr_camera, int(misr_roi_block_time), int(ahi_obs_time), misr_roi_vza, ahi_roi_vza, misr_roi_raa, ahi_roi_raa, misr_roi_sza, ahi_roi_sza]
+                                                            matched_roi_misr['matched_info'] = [misr_orbit, misr_camera, int(misr_roi_block_time), int(ahi_obs_time), misr_roi_vza, ahi_roi_vza, misr_roi_raa, ahi_roi_raa, misr_roi_sza, ahi_roi_sza]
                                                             matched_roi_misr_infos.append(matched_roi_misr)
 
                                                     shutil.rmtree(temp_ws)
@@ -392,7 +393,7 @@ if __name__ == "__main__":
     #     "roi_name": "0.0_120",
     #     "roi_misr_infos": [{
     #         "misr_path_orbit_camera": "P099_O088273_4",
-    #         "mathed_info": [...]
+    #         "matched_info": [...]
     #     },
     #     ...]
     # },
