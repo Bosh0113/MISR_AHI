@@ -279,7 +279,15 @@ if __name__ == "__main__":
                                     if len(roi_misr_vza_list) > 0:
                                         roi_misr_vza = roi_misr_vza_list.mean()
                                         # ## VZA match ###
-                                        differ_cos = abs(math.cos(math.radians(ahi_vza_mean)) - math.cos(math.radians(roi_misr_vza)))
+                                        a1 = 0
+                                        a2 = 0
+                                        if ahi_vza_mean > roi_misr_vza:
+                                            a1 = ahi_vza_mean
+                                            a2 = roi_misr_vza
+                                        else:
+                                            a1 = roi_misr_vza
+                                            a2 = ahi_vza_mean
+                                        differ_cos = 1 - (math.cos(math.radians(a1)) / math.cos(math.radians(a2)))
                                         if differ_cos <= VZA_COS_THRESHOLD:
                                             print('-- path:', path, '--', 'orbit:', orbit, '--', 'camera:', camera)
 
