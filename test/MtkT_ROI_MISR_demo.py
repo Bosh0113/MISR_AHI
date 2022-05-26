@@ -1,11 +1,11 @@
 # python 3.6
-from MisrToolkit import *
+from MisrToolkit import MtkRegion, path_time_range_to_orbit_list, orbit_to_time_range
 import os
 import json
 
 
-start_t = '2016-05-01T00:00:00Z'
-end_t = '2016-05-31T23:59:59Z'
+start_t = '2015-07-01T00:00:00Z'
+end_t = '2017-06-01T23:59:59Z'
 
 
 def get_extent(polygon_points):
@@ -31,9 +31,10 @@ def get_extent(polygon_points):
 
 
 if __name__ == "__main__":
-    ws = r'D:\Work_PhD\MISR_AHI_WS\220211'
+    ws = r'D:\Work_PhD\MISR_AHI_WS\220526\MISR_AHI_ROIs'
     MISR_vza = [0.0, 26.1, 45.6, 60.0, 70.5]
 
+    all_paths = []
     for vza in MISR_vza:
         folder = ws + '/' + str(vza)
         file_list = os.listdir(folder)
@@ -49,8 +50,12 @@ if __name__ == "__main__":
                     pathList = roi_r.path_list
                     orbit_t = []
                     for path in pathList:
+                        if path not in all_paths:
+                            all_paths.append(path)
                         orbits = path_time_range_to_orbit_list(path, start_t, end_t)
                         for orbit in orbits:
-                            print(orbit_to_time_range(orbit))
+                            # print(orbit_to_time_range(orbit))
                             orbit_t.append(orbit)
-                    print('--->', vza, file.split('_')[1], ':', len(orbit_t))
+                    print('--->', vza, file.split('.')[0], ':', len(orbit_t))
+    all_paths.sort()
+    print(all_paths)
