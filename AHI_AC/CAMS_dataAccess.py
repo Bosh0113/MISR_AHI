@@ -1,5 +1,11 @@
 import cdsapi
 import os
+from datetime import datetime, timedelta
+
+DATA_TYPE = ['total_column_ozone', 'total_column_water_vapour']
+TIME_RANGE = ['00:00', '03:00', '06:00', '09:00', '12:00', '15:00', '18:00', '21:00']
+
+STORAGE_FOLDER = '/disk1/Data/CAMS1521_O_W'
 
 
 def CAMS_download(v_type, d_range, t_range, nc_path):
@@ -21,11 +27,20 @@ def CAMS_download(v_type, d_range, t_range, nc_path):
 
 if __name__ == "__main__":
     # data_types = ['total_column_ozone', 'total_column_water_vapour']
-    # date_start = '2016-01-01'
-    # date_end = '2016-12-31'
+    # date_start = '2015-01-01'
+    # date_end = '2021-12-31'
     # date_range = date_start + '/' + date_end
     # time_range = [ '00:00', '03:00', '06:00', '09:00', '12:00', '15:00', '18:00', '21:00']
 
-    ws = '/data/beichen/data/CAMS4AHI2016/Ozone'
-    file_path = 'ozone_201601010000.nc'
-    CAMS_download(['total_column_ozone'], '2016-01-01/2016-01-01', ['00:00'], os.path.join(ws, file_path))
+    date_start = '2015-01-01'
+    date_end = '2021-12-31'
+    date_s = datetime.strptime(date_start, "%Y-%m-%d")
+    date_t = timedelta(days=1)
+    date_e = datetime.strptime(date_end, "%Y-%m-%d")
+    date_dl = date_s
+    while date_dl <= date_e:
+        date_dl_str = date_dl.strftime("%Y-%m-%d")
+        data_range = date_dl_str + '/' + date_dl_str
+        file_path = date_dl.strftime("%Y%m%d") + '.nc'
+        CAMS_download(DATA_TYPE, data_range, TIME_RANGE, os.path.join(STORAGE_FOLDER, file_path))
+        date_dl = date_dl + date_t

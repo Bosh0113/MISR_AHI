@@ -10,30 +10,30 @@ import shutil
 from ftplib import FTP
 
 # time range for our study
-start_t = '2016-01-01T00:00:00Z'
-end_t = '2016-12-31T23:59:59Z'
+start_t = '2015-07-01T00:00:00Z'
+end_t = '2017-06-01T23:59:59Z'
 # daytime range
 ahi_localtime_start = '08:00:00Z'
 ahi_localtime_end = '15:59:59Z'
 # data path
-ahi_vza_bin = '/home/beichen/disk1/data/AHI/VZA/202201010000.sat.zth.fld.4km.bin'
-ahi_vaa_bin = '/home/beichen/disk1/data/AHI/VAA/202201010000.sat.azm.fld.4km.bin'
-misr_folder = '/home/beichen/disk1/data/MISR4AHI'
-roi_folder = '/home/beichen/disk1/data/MISR_AHI_ROIs'
+ahi_vza_bin = '/disk1/Data/AHI/VZA/202201010000.sat.zth.fld.4km.bin'
+ahi_vaa_bin = '/disk1/Data/AHI/VAA/202201010000.sat.azm.fld.4km.bin'
+misr_folder = '/disk1/Data/MISR4AHI2015070120170601'
+roi_folder = '/disk1/Data/MISR_AHI_ROIs'
 # storage path
 WORK_SPACE = os.getcwd()
 
 # cos diff
-VZA_COS_THRESHOLD = 0.01
+VZA_COS_THRESHOLD = 0.02
 
 # time diff
 SZA_TIME_THRESHOLD = 30*60  # seconds
 
 # degree diff
-RAA_DEGREE_THRESHOLD = 5.
+RAA_DEGREE_THRESHOLD = 10.
 
 # record files
-condition = 'vza001raa5sza30min'
+condition = 'vza002raa10sza30min'
 GRO_OBS_COND_TXT = 'geo-obs_cond_' + condition + '.txt'
 MATCHED_INFO_NPY = 'MISR_AHI_matched_info_' + condition + '.npy'
 

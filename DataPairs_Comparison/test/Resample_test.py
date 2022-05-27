@@ -90,13 +90,16 @@ if __name__ == "__main__":
 
         # get latlon of pixels of AHI
         roi_ahi_latlon = get_ahi_latlon(roi_extent)
-        lat_ahi = roi_ahi_latlon[0][0][0]
-        lon_ahi = roi_ahi_latlon[0][0][1]
-        line_sample = misr_roi_mapinfo.latlon_to_ls(lat_ahi, lon_ahi)
-        line_misr = round(line_sample[0])
-        sample_misr = round(line_sample[1])
-        misr_value = brf_roi_dataArray[line_misr][sample_misr]
-        print(misr_value)
+        for y in range(len(roi_ahi_latlon)):
+            for x in range(len(roi_ahi_latlon[0])):
+                lat_ahi = roi_ahi_latlon[y][x][0]
+                lon_ahi = roi_ahi_latlon[y][x][1]
+                line_sample = misr_roi_mapinfo.latlon_to_ls(lat_ahi, lon_ahi)
+                line_misr = round(line_sample[0])
+                sample_misr = round(line_sample[1])
+                misr_value = brf_roi_dataArray[line_misr][sample_misr]
+                print(misr_value, end=', ')
+            print('')
 
         # # Create tiff
         # misr_roi_latlon = misr_roi_mapinfo.create_latlon()

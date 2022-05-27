@@ -2,24 +2,45 @@
 # coding: utf-8
 
 import numpy as np
+# from Py6S import *
 import time as T
 from joblib import Parallel, delayed
 from scipy.interpolate import griddata, RegularGridInterpolator
+# import math
 import os
+# import datetime
 import cv2
 # from H8utils import *
 from ftplib import FTP
 import xarray as xr
+# import multiprocessing
 import paramiko
 from scp import SCPClient
 
-YYYY = '2018'
-MM = ['05']
-DD = ['06']
+# Before using this, you need to set some input path.
+# set your account at def download_AOT
+# Set input Viewer zenith angle data path
+# Set input Solar zenith angle data path
+# Set input LUT path
+# Set input Atmosphere data path
+# Set date and target(save path)
+# Atmospheric correction block is used for calculate SR
+# Angle date and Atmosphere data will be upload to server later
 
-HH = ['23']
-MIN = ['40']
-MIN = ['00', '10', '20', '30', '40', '50']
+# Set date and path
+YYYY = '2018'
+MM = ['01']
+DD = ['07', '08']
+MIN = ['20', '30']
+HH = ['06']
+
+target = '/media/liwei/Data/AHI_AC_RESULT/'
+SZA_path = '/media/liwei/Data/Solar_zenith_angle/'
+SAZ_path = '/media/liwei/Data/Solar_azimuth_angle/'
+VZA_path = 'view_zM_JAPAN_05.dat'
+VAZ_path = 'view_aM_JAPAN_05.dat'
+LUT_path = ''
+ATMOS_path = '/home/liwei/Downloads/CAMS/'
 
 sza = np.linspace(0, 80, 17)
 vza = np.linspace(0, 80, 17)
@@ -105,7 +126,7 @@ def remove_original_file(path):
 def download_AOT(YYYY, MM, DD, HH, folder):
     ftp_addr = 'ftp.ptree.jaxa.jp'
     f = FTP(ftp_addr)
-    f.login('liwei1997_chiba-u.jp', 'SP+wari8')
+    f.login('zbc0113_outlook.com', 'SP+wari8')
     # print(f.getwelcome())
     remote_filepath = '/pub/model/ARP/MS/bet/' + YYYY + MM + '/' + DD + '/'
     f.cwd(remote_filepath)
@@ -205,17 +226,20 @@ def calculate_6s_band3(i):
     return SR
 
 
-with open('view_zM_JAPAN_05.dat', 'rb') as fp:
+# Viewer_zenith_angle
+with open(VZA_path, 'rb') as fp:
     view_zM = np.fromstring(fp.read()).reshape(6000, 6000)
-with open('view_aM_JAPAN_05.dat', 'rb') as fp:
+with open(VAZ_path, 'rb') as fp:
     view_aM = np.fromstring(fp.read()).reshape(6000, 6000)
+view_zM = np.flip(view_zM, axis=0)
+view_aM = np.flip(view_aM, axis=0)
 
 ###########################################################
 
 # read LUT
-outfile1 = "01_band3.csv"
-outfile2 = "02_band3.csv"
-outfile3 = "03_band3.csv"
+outfile1 = LUT_path + '01_band3.csv'
+outfile2 = LUT_path + '02_band3.csv'
+outfile3 = LUT_path + '03_band3.csv'
 X1 = np.loadtxt(outfile1, delimiter=",")
 X2 = np.loadtxt(outfile2, delimiter=",")
 X3 = np.loadtxt(outfile3, delimiter=",")
@@ -264,37 +288,35 @@ lon_y = np.linspace(120, 150, 6000)
 
 BAND = Hi8_band()
 
-# 大气校正部分？
-
+# Atmospheric correction
+# Loop in input date
 for k in range(len(MM)):
     for m in range(len(DD)):
         for i in range(len(HH)):
             for j in range(len(MIN)):
                 start_time = T.time()
-                make_folder_time_s = T.time()
+                # make_folder_time_s = T.time()
                 date = YYYY + MM[k] + DD[m] + HH[i] + MIN[j]
                 time = date[-4:]
                 print("start processing {}".format(date))
                 # make dir
-                folder_original = os.getcwd() + '/' + date + '_original'
-                folder_AC = '/media/liwei/Data/AHI_AC_RESULT/' + date + '_AC'
-
+                folder_original = target + date + '_original'
+                folder_AC = target + date + '_AC'
                 mkdir(folder_original)
                 mkdir(folder_AC)
-                make_folder_time_e = T.time()
-                make_folder_time = make_folder_time_e - make_folder_time_s
+                # make_folder_time_e = T.time()
+                # make_folder_time = make_folder_time_e - make_folder_time_s
 
-                download_AOT_time_s = T.time()
-                download_AOT(YYYY, MM[k], DD[m], HH[i], folder_original)
-                download_AOT_time_e = T.time()
-                download_AOT_time = download_AOT_time_e - download_AOT_time_s
+                # download_AOT_time_s = T.time()
+                # download_AOT(YYYY, MM[k], DD[m], HH[i], folder_original)
+                # download_AOT_time_e = T.time()
+                # download_AOT_time = download_AOT_time_e - download_AOT_time_s
 
-                # 读取大气条件数据
-                ATMOS_data_s = T.time()
+                # # 读取大气条件数据
+                # ATMOS_data_s = T.time()
 
-                ds_oz_wv = xr.open_dataset(YYYY + MM[k] + ATMO_time(HH[i]) +
-                                           '.nc')
-
+                ds_oz_wv = xr.open_dataset(ATMOS_path + YYYY + MM[k] +
+                                           ATMO_time(HH[i]) + '.nc')
                 oz = ds_oz_wv['gtco3'][int(DD[m]) - 1, :, :]
                 OZ = oz.interp(longitude=lon_y,
                                latitude=lat_x,
@@ -305,63 +327,67 @@ for k in range(len(MM)):
                                latitude=lat_x,
                                method="nearest")
                 WV = WV.values
-                ds = xr.open_dataset('{}_original'.format(date) + '/H08_' +
-                                     YYYY + MM[k] + DD[m] + '_' + HH[i] +
+                # download AOT and read AOT
+                download_AOT(YYYY, MM[k], DD[m], HH[i], folder_original)
+                ATMOS_data_s = T.time()
+                ds = xr.open_dataset(folder_original + '/H08_' + YYYY + MM[k] +
+                                     DD[m] + '_' + HH[i] +
                                      '00_MSARPbet_ANL.00960_00480.nc')
                 aot550 = ds['od550aer']
                 AOT550 = aot550.interp(lon=lon_y, lat=lat_x, method="nearest")
                 AOT550 = AOT550.values
                 del oz, wv, aot550, ds_oz_wv, ds
-                ATMOS_data_e = T.time()
-                ATMOS_data_time = ATMOS_data_e - ATMOS_data_s
+                # ATMOS_data_e = T.time()
+                # ATMOS_data_time = ATMOS_data_e - ATMOS_data_s
                 print("OZ,AOT,WV finish")
 
-                Hi_download_s = T.time()
+                # Hi_download_s = T.time()
                 download_H8data(date)
-                Hi_download_e = T.time()
-                Hi_download_time = Hi_download_e - Hi_download_s
+                # Hi_download_e = T.time()
+                # Hi_download_time = Hi_download_e - Hi_download_s
 
                 print("data download finsih")
 
-                if os.path.exists('{}_original'.format(date) + '/' + date +
+                # If file exist do atmosperic correction , else pass
+                if os.path.exists(folder_original + '/' + date +
                                   '.ext.01.fld.geoss'):
-                    Hi_open_convert_s = T.time()
+                    # Hi_open_convert_s = T.time()
                     with open(
-                            '{}_original'.format(date) + '/' + date +
-                            '.ext.01.fld.geoss', 'rb') as fp:
+                            folder_original + '/' + date + '.ext.01.fld.geoss',
+                            'rb') as fp:
                         data = np.fromstring(fp.read(), dtype='>u2').reshape(
                             24000, 24000)
                         data = data[2000:8000, 7000:13000]
                         data = DN2tbb(data)
                         data = data / 100
-                    Hi_open_convert_e = T.time()
-                    Hi_open_convert_time = Hi_open_convert_e - Hi_open_convert_s
+                    # Hi_open_convert_e = T.time()
+                    # Hi_open_convert_time = Hi_open_convert_e - Hi_open_convert_s
                     print("data reading finish")
 
-                    solar_s = T.time()
-
-                    with open(
-                            '/media/liwei/Data/Solar_zenith_angle/solar_zM_' +
-                            date + '.dat', 'rb') as fp:
+                    # Solar angle
+                    # solar_s = T.time()
+                    with open(SZA_path + 'solar_zM_' + date + '.dat',
+                              'rb') as fp:
                         Solar_zM = np.fromstring(fp.read()).reshape(3000, 3000)
-                    with open(
-                            '/media/liwei/Data/Solar_azimuth_angle/solar_aM_' +
-                            date + '.dat', 'rb') as fp:
+                    with open(SAZ_path + 'solar_aM_' + date + '.dat',
+                              'rb') as fp:
                         Solar_aM = np.fromstring(fp.read()).reshape(3000, 3000)
 
+                    # Solar angle down sampling
                     Solar_aM = cv2.resize(np.array(Solar_aM), (6000, 6000),
                                           interpolation=cv2.INTER_NEAREST)
                     Solar_zM = cv2.resize(np.array(Solar_zM), (6000, 6000),
                                           interpolation=cv2.INTER_NEAREST)
 
+                    # Calculate RAA
                     RAA = abs(Solar_aM - view_aM)
                     RAA[RAA > 180] = 360 - RAA[RAA > 180]
-                    solar_e = T.time()
-                    solar_time = solar_e - solar_s
+                    # solar_e = T.time()
+                    # solar_time = solar_e - solar_s
                     print("SZA,SAZ finish")
                     # 开始大气校正
                     # Atmosphere data Unit conversion
-                    ATMOS_unit_s = T.time()
+                    # ATMOS_unit_s = T.time()
                     WV = WV / 10
                     OZ = OZ * 46.6975764  # 单位转换
 
@@ -372,22 +398,26 @@ for k in range(len(MM)):
                     WV[WV <= min(water)] = min(water) + (1 / 10000)
                     AOT550[AOT550 >= max(AOT)] = max(AOT) - (1 / 10000)
                     AOT550[AOT550 <= min(AOT)] = min(AOT) + (1 / 10000)
-                    ATMOS_unit_e = T.time()
-                    ATMOS_unit_time = ATMOS_unit_e - ATMOS_unit_s
-                    LUT_s = T.time()
+                    # ATMOS_unit_e = T.time()
+                    # ATMOS_unit_time = ATMOS_unit_e - ATMOS_unit_s
+                    # LUT_s = T.time()
                     SR = Parallel(n_jobs=-1)(delayed(calculate_6s_band3)(i)
                                              for i in range(6000))
-                    LUT_e = T.time()
-                    LUT_time = LUT_e - LUT_s
-                    end_time = T.time()
-                    TIME = end_time - start_time
-                    print('time: {:.1f} secs, {:.1f} mins,{:.1f} hours'.format(
-                        TIME, TIME / 60, TIME / 3600))
+                    # LUT_e = T.time()
+                    # LUT_time = LUT_e - LUT_s
+                    # end_time = T.time()
+                    # TIME = end_time - start_time
+                    # print('time: {:.1f} secs, {:.1f} mins,{:.1f} hours'.format(
+                    #     TIME, TIME / 60, TIME / 3600))
                     SR = np.array(SR).reshape(6000, 6000)
                     SR_file = open(folder_AC + '/' + date + '_b03.dat', 'wb')
                     SR.astype('f4').tofile(SR_file)
                     SR_file.close()
                     remove_original_file(folder_original)
+                    end_time = T.time()
+                    TIME = end_time - start_time
+                    print('time: {:.1f} secs, {:.1f} mins,{:.1f} hours'.format(
+                        TIME, TIME / 60, TIME / 3600))
                     print("delete file finish")
                 else:
                     print("file no exists")
