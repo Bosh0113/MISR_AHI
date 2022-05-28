@@ -7,7 +7,10 @@ from datetime import datetime, timedelta
 from ftplib import FTP
 import xarray
 
+ws = r'D:\Work_PhD\MISR_AHI_WS\220527'
+
 WORK_SPACE = os.getcwd()
+CAMS_FOLDER = os.path.join(ws, 'CAMS')
 CAMS_RESOLUTION = 0.75  # degree
 AHI_RESOLUTION = 0.01  # degree
 
@@ -20,13 +23,9 @@ VZA = 45
 RAA = 90
 # Aeropro = 3
 
-YYYY = '2016'
-MM = '08'
-DD = '23'
-HH = '04'
 
-
-def calcuate_cams_time(yyyy, mm, dd, obs_time):
+# Calculate CAMS time for AHI Obs.
+def calculate_cams_time(yyyy, mm, dd, obs_time):
     cams_times = [
         '0000', '0300', '0600', '0900', '1200', '1500', '1800', '2100'
     ]
@@ -52,28 +51,28 @@ def calcuate_cams_time(yyyy, mm, dd, obs_time):
     return cams_yyyymmdd, cams_hh
 
 
-def get_roi_min_extent_cams(roi_extent, lats, lons):
-    r_ullat = roi_extent[0]
-    r_ullon = roi_extent[1]
-    r_lrlat = roi_extent[2]
-    r_lrlon = roi_extent[3]
-    max_lat_c = lats[0]
-    min_lat_c = lats[len(lats) - 1]
-    max_lon_c = lons[len(lons) - 1]
-    min_lon_c = lons[0]
+def get_roi_min_extent(r_extent, f_lats, f_lons, resulution):
+    r_ullat = r_extent[0]
+    r_ullon = r_extent[1]
+    r_lrlat = r_extent[2]
+    r_lrlon = r_extent[3]
+    max_lat_c = f_lats[0]
+    min_lat_c = f_lats[len(f_lats) - 1]
+    max_lon_c = f_lons[len(f_lons) - 1]
+    min_lon_c = f_lons[0]
     m_ex_ullat, m_ex_ullon, m_ex_lrlat, m_ex_lrlon = None, None, None, None
     while max_lat_c > r_ullat:
         m_ex_ullat = max_lat_c
-        max_lat_c = max_lat_c - CAMS_RESOLUTION
+        max_lat_c = max_lat_c - resulution
     while min_lon_c < r_ullon:
         m_ex_ullon = min_lon_c
-        min_lon_c = min_lon_c + CAMS_RESOLUTION
+        min_lon_c = min_lon_c + resulution
     while min_lat_c < r_lrlat:
         m_ex_lrlat = min_lat_c
-        min_lat_c = min_lat_c + CAMS_RESOLUTION
+        min_lat_c = min_lat_c + resulution
     while max_lon_c > r_lrlon:
         m_ex_lrlon = max_lon_c
-        max_lon_c = max_lon_c - CAMS_RESOLUTION
+        max_lon_c = max_lon_c - resulution
 
     return m_ex_ullat, m_ex_ullon, m_ex_lrlat, m_ex_lrlon
 
@@ -121,6 +120,61 @@ def ac_band1(In_Ozone, In_AOT, In_SZA, In_VZA, In_RAA):
     del s
 
 
+# Get ROI Ozone & Watervaper from Rough Dataset with AHI Resolution
+def get_data_roi_ahi_reso(r_extent, data_v, lats, lons, o_resolution):
+    # min extent of ROI in CAMS dataset
+    m_ex_ullat, m_ex_ullon, m_ex_lrlat, m_ex_lrlon = get_roi_min_extent(r_extent, lats, lons, o_resolution)
+    n_lats = numpy.arange(m_ex_ullat, m_ex_lrlat - o_resolution, -AHI_RESOLUTION)
+    n_lons = numpy.arange(m_ex_ullon, m_ex_lrlon + o_resolution, AHI_RESOLUTION)
+    ex_ds = xarray.Dataset(
+        data_vars={
+            "values": (
+                ("latitude", "longitude"),
+                data_v[numpy.argmax(lats == m_ex_ullat):numpy.argmax(lats == m_ex_lrlat) + 1, numpy.argmax(lons == m_ex_ullon):numpy.argmax(lons == m_ex_lrlon) + 1],
+            ),
+        },
+        coords={"latitude": lats[numpy.argmax(lats == m_ex_ullat):numpy.argmax(lats == m_ex_lrlat) + 1], "longitude": lons[numpy.argmax(lons == m_ex_ullon):numpy.argmax(lons == m_ex_lrlon) + 1]},
+    )
+    # get min extent with AHI pixel size
+    n_ex_ds = ex_ds.interp(longitude=n_lons, latitude=n_lats, method="nearest")
+    n_ex_ullat, n_ex_ullon, n_ex_lrlat, n_ex_lrlon = get_roi_min_extent(r_extent, n_lats, n_lons, AHI_RESOLUTION)
+    n_ex_v = n_ex_ds["values"]
+    v_ahi_roi = n_ex_v[numpy.argmax(n_lats == n_ex_ullat):numpy.argmax(n_lats == n_ex_lrlat) + 1, numpy.argmax(n_lons == n_ex_ullon):numpy.argmax(n_lons == n_ex_lrlon) + 1]
+    return v_ahi_roi
+
+
+# Get ROI Ozone & Watervaper from CAMS with AHI Resolution
+def roi_oz_wv_ahi_from_cams(r_extent, ahi_obs_t):
+    # ahi obs time
+    ahi_yyyy = ahi_obs_t[:4]
+    ahi_mm = ahi_obs_t[4:6]
+    ahi_dd = ahi_obs_t[6:8]
+    ahi_time = ahi_obs_t[-4:]
+    # CAMS for Obs
+    cams_yyyymmdd, cams_hh = calculate_cams_time(ahi_yyyy, ahi_mm, ahi_dd, ahi_time)
+    cams_filename = os.path.join(CAMS_FOLDER, cams_yyyymmdd + '.nc')
+    # Watervapour & Ozone
+    ds_oz_wv = xarray.open_dataset(cams_filename)
+    oz_wv_name = ['gtco3', 'tcwv']
+    oz_wv_ahi_roi = []
+    for type_name in oz_wv_name:
+        data_v = ds_oz_wv[type_name].data[int(cams_hh) - 1]
+        data_v = numpy.array(data_v)
+        lats = ds_oz_wv['latitude']
+        lons = ds_oz_wv['longitude']
+        lats = numpy.array(lats)
+        lons = numpy.array(lons)
+        v_ahi_roi = get_data_roi_ahi_reso(r_extent, data_v, lats, lons, CAMS_RESOLUTION)        
+        oz_wv_ahi_roi.append(v_ahi_roi)
+    oz_ahi_roi_dn = oz_wv_ahi_roi[0]
+    wv_ahi_roi_dn = oz_wv_ahi_roi[1]
+    # Unit conversion
+    oz_ahi_roi_v = oz_ahi_roi_dn*46.6975764
+    wv_ahi_roi_v = wv_ahi_roi_dn/10
+
+    return oz_ahi_roi_v, wv_ahi_roi_v
+
+
 if __name__ == "__main__":
     # start = time.time()
 
@@ -132,35 +186,12 @@ if __name__ == "__main__":
     # print('time: {:.1f} secs, {:.1f} mins, {:.1f} hours'.format(
     #     T, T / 60, T / 3600))
 
-    ws = r'D:\Work_PhD\MISR_AHI_WS\220527'
-    cams_folder = os.path.join(ws, 'CAMS')
-    ahi_time = '0450'
-    # CAMS for Obs
-    cams_yyyymmdd, cams_hh = calcuate_cams_time(YYYY, MM, DD, ahi_time)
-    cams_filename = os.path.join(cams_folder, cams_yyyymmdd + '.nc')
-    # Watervapour & Ozone
-    ds_oz_wv = xarray.open_dataset(cams_filename)
-    oz = ds_oz_wv['gtco3'].data[int(cams_hh) - 1]
-    oz = numpy.array(oz)
-    lats = ds_oz_wv['latitude']
-    lons = ds_oz_wv['longitude']
-    lats = numpy.array(lats)
-    lons = numpy.array(lons)
+    # AHI Observation Time
+    ahi_obs_time = '201608230450'
     # roi_extent: (ullat, ullon, lrlat, lrlon)
     roi_extent = [47.325, 94.329, 47.203, 94.508]
-    # min extent of ROI in CAMS dataset
-    m_ex_ullat, m_ex_ullon, m_ex_lrlat, m_ex_lrlon = get_roi_min_extent_cams(roi_extent, lats, lons)
-    n_lats = numpy.arange(m_ex_ullat, m_ex_lrlat - CAMS_RESOLUTION, -AHI_RESOLUTION)
-    n_lons = numpy.arange(m_ex_ullon, m_ex_lrlon + CAMS_RESOLUTION, AHI_RESOLUTION)
-    ex_oz_ds = xarray.Dataset(
-        data_vars={
-            "gtco3": (
-                ("latitude", "longitude"),
-                oz[numpy.argmax(lats == m_ex_ullat):numpy.argmax(lats == m_ex_lrlat) + 1, numpy.argmax(lons == m_ex_ullon):numpy.argmax(lons == m_ex_lrlon) + 1],
-            ),
-        },
-        coords={"latitude": lats[numpy.argmax(lats == m_ex_ullat):numpy.argmax(lats == m_ex_lrlat) + 1], "longitude": lons[numpy.argmax(lons == m_ex_ullon):numpy.argmax(lons == m_ex_lrlon) + 1]},
-    )
-    # get min extent with AHI pixel size
-    n_ex_oz_ds = ex_oz_ds.interp(longitude=n_lons, latitude=n_lats, method="nearest")
-    # print(n_ex_oz_ds)
+    # Get ROI Ozone & Watervaper (xarray.core.dataarray.DataArray) from CAMS with AHI Resolution
+    oz_ahi_roi_da, wv_ahi_roi_da = roi_oz_wv_ahi_from_cams(roi_extent, ahi_obs_time)
+    # print(oz_ahi_roi_da)
+    # print(numpy.array(oz_ahi_roi_da))
+    # print(numpy.array(oz_ahi_roi_da['latitude']))
