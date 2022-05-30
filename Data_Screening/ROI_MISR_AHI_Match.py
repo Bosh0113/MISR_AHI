@@ -27,7 +27,7 @@ WORK_SPACE = os.getcwd()
 VZA_COS_THRESHOLD = 0.02
 
 # time diff
-SZA_TIME_THRESHOLD = 30*60  # seconds
+SZA_TIME_THRESHOLD = 30 * 60  # seconds
 
 # degree diff
 RAA_DEGREE_THRESHOLD = 10.
@@ -121,15 +121,13 @@ def get_region_ahi_raa(region_extent, ahi_vaa, ahi_saa):
     return roi_raa
 
 
-def misr_ahi_raa_matching(roi_geoj_file, misr_ls_file, ahi_vaa_file,
-                          ahi_saa_file, camera_index):
+def misr_ahi_raa_matching(roi_geoj_file, misr_ls_file, ahi_vaa_file, ahi_saa_file, camera_index):
     with open(roi_geoj_file, 'r', encoding='utf-8') as f:
         geoobj = json.load(f)
         polygon_pts = geoobj['features'][0]['geometry']['coordinates'][0]
         roi_extent = get_extent(polygon_pts)
         # MISR RAA
-        roi_r = MtkRegion(roi_extent[0], roi_extent[1], roi_extent[2],
-                          roi_extent[3])
+        roi_r = MtkRegion(roi_extent[0], roi_extent[1], roi_extent[2], roi_extent[3])
         m_file = MtkFile(misr_ls_file)
         m_grid = m_file.grid('RegParamsLnd')
         m_field = m_grid.field('RelViewCamAziAng[' + str(camera_index) + ']')
@@ -140,10 +138,9 @@ def misr_ahi_raa_matching(roi_geoj_file, misr_ls_file, ahi_vaa_file,
         if len(roi_misr_raa_list) > 0:
             roi_misr_raa = roi_misr_raa_list.mean()
             # AHI RAA
-            ahi_vaa_dn = numpy.fromfile(ahi_vaa_bin, dtype='>f4')
-            ahi_saa_dn = numpy.fromfile(ahi_saa_bin, dtype='>f4')
-            roi_ahi_all_raa = get_region_ahi_raa(roi_extent, ahi_vaa_dn,
-                                                 ahi_saa_dn)
+            ahi_vaa_dn = numpy.fromfile(ahi_vaa_file, dtype='>f4')
+            ahi_saa_dn = numpy.fromfile(ahi_saa_file, dtype='>f4')
+            roi_ahi_all_raa = get_region_ahi_raa(roi_extent, ahi_vaa_dn, ahi_saa_dn)
             roi_ahi_raa = roi_ahi_all_raa.mean()
             # show raa diff
             raa_diff = abs(roi_misr_raa - roi_ahi_raa)
@@ -154,8 +151,7 @@ def misr_ahi_raa_matching(roi_geoj_file, misr_ls_file, ahi_vaa_file,
 def get_region_mean_misr_sza(misr_hdf_filename, roi_extent):
     m_file = MtkFile(misr_hdf_filename)
     m_grid = m_file.grid('RegParamsLnd')
-    roi_r = MtkRegion(roi_extent[0], roi_extent[1], roi_extent[2],
-                      roi_extent[3])
+    roi_r = MtkRegion(roi_extent[0], roi_extent[1], roi_extent[2], roi_extent[3])
     m_field = m_grid.field('SolZenAng')
     f_sza_data = m_field.read(roi_r).data()
     # in single array
@@ -170,7 +166,7 @@ def get_region_mean_ahi_sza(temp_folder, ahi_time, region_extent):
     ahi_data_folder2 = ahi_time[0:8]
     ahi_sza_file = ahi_time + '.sun.zth.fld.4km.bin.bz2'
     ahi_sza_path = '/gridded/FD/V20190123/' + ahi_data_folder1 + '/4KM/' + ahi_data_folder2 + '/' + ahi_sza_file
-    
+
     ahi_sza_bin_bz2 = os.path.join(temp_folder, ahi_sza_file)
     ahi_sza_bin = ''
     try:
@@ -181,6 +177,7 @@ def get_region_mean_ahi_sza(temp_folder, ahi_time, region_extent):
         ahi_sza_bin = ahi_sza_bin_bz2[:-4]
         with open(ahi_sza_bin, 'wb') as f:
             f.write(data)
+        zipfile.close()
     except Exception as e:
         os.remove(ahi_sza_bin_bz2)
         # print('Error: ' + ahi_saa_data_ftp)
@@ -197,7 +194,7 @@ def get_region_mean_ahi_sza(temp_folder, ahi_time, region_extent):
     # print(ymin_index, xmin_index, ymax_index, xmax_index)
     roi_sza = ahi_sza_DN[ymin_index:ymax_index + 1, xmin_index:xmax_index + 1]
     roi_vsa_mean = roi_sza.mean()
-    
+
     return roi_vsa_mean
 
 
@@ -294,7 +291,7 @@ if __name__ == "__main__":
                                             # for SZA match
                                             roi_blocks = roi_r.block_range(path)
                                             blocks_time_list = m_file.block_metadata_field_read('PerBlockMetadataTime', 'BlockCenterTime')
-                                            roi_misr_time = blocks_time_list[roi_blocks[0]-1]
+                                            roi_misr_time = blocks_time_list[roi_blocks[0] - 1]
                                             # print('   ', roi_misr_time)
 
                                             misr_time_str = roi_misr_time.split('.')[0] + 'Z'
@@ -351,6 +348,7 @@ if __name__ == "__main__":
                                                         ahi_saa_bin = ahi_saa_bin_bz2[:-4]
                                                         with open(ahi_saa_bin, 'wb') as f:
                                                             f.write(data)
+                                                        zipfile.close()
                                                     except Exception as e:
                                                         os.remove(ahi_saa_bin_bz2)
                                                         # print('Error: ' + ahi_saa_data_ftp)
@@ -376,7 +374,8 @@ if __name__ == "__main__":
                                                             ahi_roi_sza = get_region_mean_ahi_sza(temp_ws, ahi_obs_time, roi_extent)
                                                             ahi_roi_sza = '%.3f' % ahi_roi_sza
                                                             # misr_orbit misr_camera_index misr_block_time ahi_time misr_vza ahi_vza misr_raa ahi_raa misr_sza ahi_sza
-                                                            record_item = str(misr_orbit) + '\t' + str(misr_camera) + '\t' + misr_roi_block_time + '\t' + ahi_obs_time + '\t' + str(misr_roi_vza) + '\t' + str(ahi_roi_vza) + '\t' + str(misr_roi_raa) + '\t' + str(ahi_roi_raa) + '\t' + str(misr_roi_sza) + '\t' + str(ahi_roi_sza)
+                                                            record_item = str(misr_orbit) + '\t' + str(misr_camera) + '\t' + misr_roi_block_time + '\t' + ahi_obs_time + '\t' + str(misr_roi_vza) + '\t' + str(ahi_roi_vza) + '\t' + str(
+                                                                misr_roi_raa) + '\t' + str(ahi_roi_raa) + '\t' + str(misr_roi_sza) + '\t' + str(ahi_roi_sza)
                                                             print(record_item)
                                                             geocond_record_str += record_item + '\n'
                                                             print('-- path:', path, '--', 'orbit:', orbit, '--', 'camera:', camera)
@@ -390,7 +389,10 @@ if __name__ == "__main__":
                                                             # record matched info
                                                             matched_roi_misr = {}
                                                             matched_roi_misr['misr_path_orbit_camera'] = misr_ws_c_folder
-                                                            matched_roi_misr['matched_info'] = [misr_orbit, misr_camera, int(misr_roi_block_time), int(ahi_obs_time), misr_roi_vza, ahi_roi_vza, misr_roi_raa, ahi_roi_raa, misr_roi_sza, ahi_roi_sza]
+                                                            matched_roi_misr['matched_info'] = [
+                                                                misr_orbit, misr_camera, int(misr_roi_block_time),
+                                                                int(ahi_obs_time), misr_roi_vza, ahi_roi_vza, misr_roi_raa, ahi_roi_raa, misr_roi_sza, ahi_roi_sza
+                                                            ]
                                                             matched_roi_misr_infos.append(matched_roi_misr)
 
                                                     shutil.rmtree(temp_ws)

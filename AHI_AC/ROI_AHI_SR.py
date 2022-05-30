@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # coding: utf-8
 import os
+import sys
+import bz2
 import numpy
 from Py6S import SixS, AtmosProfile, AeroProfile, Geometry, Wavelength, AtmosCorr
 from datetime import datetime, timedelta
@@ -14,6 +16,7 @@ WORK_SPACE = os.getcwd()
 CAMS_FOLDER = os.path.join(ws, 'CAMS')
 CAMS_RESOLUTION = 0.75  # degree
 JAXA_RESOLUTION = 0.375  # degree
+AHI_ANGLE_RESOLUTION = 0.04  # degree
 AHI_RESOLUTION = 0.01  # degree
 
 WATER = 3
@@ -208,7 +211,7 @@ def download_AOT(YYYY, MM, DD, HH, folder):
 
 
 # Get ROI AOT from JAXA with AHI Resolution
-def roi_aot_ahi_from_jaxa(r_extent, ahi_obs_t):
+def roi_od550_ahi_from_jaxa(r_extent, ahi_obs_t):
     # ahi obs time
     ahi_yyyy = ahi_obs_t[:4]
     ahi_mm = ahi_obs_t[4:6]
@@ -258,6 +261,7 @@ def get_aero_type(oceanic, dust_like, water_soluble, soot_like):
         return AeroProfile.Continental
 
 
+# Get ROI Aerosol Type with AHI Resolution
 def set_roi_aero_type(oceanic, dust_like, water_soluble, soot_like):
     aero_type_roi = numpy.zeros_like(oceanic)
     for lat in range(len(oceanic)):
@@ -265,6 +269,83 @@ def set_roi_aero_type(oceanic, dust_like, water_soluble, soot_like):
             aero_type = get_aero_type(oceanic[lat][lon], dust_like[lat][lon], water_soluble[lat][lon], soot_like[lat][lon])
             aero_type_roi[lat][lon] = aero_type
     return aero_type_roi
+
+
+def roi_ahi_angle(r_extent, ftp_link):
+    temp_ws = os.path.join(WORK_SPACE, 'temp')
+    if not os.path.exists(temp_ws):
+        os.makedirs(temp_ws)
+    filename_parts = ftp_link.split('/')
+    ahi_file = filename_parts[len(filename_parts) - 1]
+    ahi_bin_bz2 = os.path.join(temp_ws, ahi_file)
+    # AHI data ftp server
+    ftp = FTP()
+    ftp.connect('hmwr829gr.cr.chiba-u.ac.jp', 21)
+    ftp.login()
+    ahi_bin = ''
+    try:
+        with open(ahi_bin_bz2, 'wb') as f:
+            ftp.retrbinary('RETR ' + ftp_link, f.write, 1024 * 1024)
+        zipfile = bz2.BZ2File(ahi_bin_bz2)
+        data = zipfile.read()
+        ahi_bin = ahi_bin_bz2[:-4]
+        with open(ahi_bin, 'wb') as f:
+            f.write(data)
+        zipfile.close()
+    except Exception as e:
+        os.remove(ahi_bin_bz2)
+        print('Error: ' + ftp_link)
+        ftp.close()
+        sys.exit()
+    # disconnect ftp server
+    ftp.close()
+    # get roi angle array with AHI resolution (1km)
+    lons = numpy.arange(85.+AHI_ANGLE_RESOLUTION/2, 205, AHI_ANGLE_RESOLUTION)
+    lats = numpy.arange(60.-AHI_ANGLE_RESOLUTION/2, -60, -AHI_ANGLE_RESOLUTION)
+    ahi_dn = numpy.fromfile(ahi_bin, dtype='>f4')
+    ahi_dn = ahi_dn.reshape(len(lats), len(lons))
+    angle_ahi_roi = get_data_roi_ahi_reso(r_extent, ahi_dn, lats, lons, JAXA_RESOLUTION)
+
+    shutil.rmtree(temp_ws)
+    return angle_ahi_roi
+
+
+def get_ahi_raa(vaa, saa):
+    raa = 0
+    diff = abs(vaa - saa)
+    if diff < 180:
+        raa = diff
+    else:
+        raa = 360 - diff
+    return raa
+
+
+def calculate_raa_array(vaa_array, saa_array):
+    raa_array = numpy.zeros_like(vaa_array)
+    for lat in range(len(vaa_array)):
+        for lon in range(len(vaa_array[0])):
+            raa_array[lat][lon] = get_ahi_raa(vaa_array[lat][lon], saa_array[lat][lon])
+    return raa_array
+
+
+# Get ROI AHI Obs. condition with AHI Resolution
+def roi_ahi_geo(r_extent, ahi_obs_t):
+    obs_time = ahi_obs_t
+    ahi_ftp_folder1 = ahi_obs_t[:6]
+    ahi_ftp_folder2 = ahi_obs_t[:8]
+    common_filename = '/gridded/FD/V20190123/' + ahi_ftp_folder1 + '/4KM/' + ahi_ftp_folder2 + '/' + obs_time
+    # vza vaa saa sza
+    angles_suffix = ['.sat.zth.fld.4km.bin.bz2', '.sat.azm.fld.4km.bin.bz2', '.sun.azm.fld.4km.bin.bz2', '.sun.zth.fld.4km.bin.bz2']
+    angles_roi = []
+    for index in range(len(angles_suffix)):
+        angle_suffix = angles_suffix[index]
+        ftp_link = common_filename + angle_suffix
+        angle_roi = roi_ahi_angle(r_extent, ftp_link)
+        angles_roi.append(angle_roi)
+    roi_ahi_vza = angles_roi[0]
+    roi_ahi_raa = calculate_raa_array(angles_roi[1], angles_roi[2])
+    roi_ahi_sza = angles_roi[3]
+    return roi_ahi_vza, roi_ahi_raa, roi_ahi_sza
 
 
 def ac_band1(In_Ozone, In_AOT, In_SZA, In_VZA, In_RAA):
@@ -309,19 +390,26 @@ if __name__ == "__main__":
     roi_extent = [47.325, 94.329, 47.203, 94.508]
 
     # Get ROI Ozone & Watervaper (xarray.core.dataarray.DataArray) from CAMS with AHI Resolution
-    oz_ahi_roi_da, wv_ahi_roi_da = roi_oz_wv_ahi_from_cams(roi_extent, ahi_obs_time)
+    # oz_ahi_roi_da, wv_ahi_roi_da = roi_oz_wv_ahi_from_cams(roi_extent, ahi_obs_time)
     # print(oz_ahi_roi_da)
     # print(numpy.array(oz_ahi_roi_da).shape)
     # print(numpy.array(oz_ahi_roi_da))
     # print(numpy.array(oz_ahi_roi_da['latitude']))
 
     # Get ROI 550nm data from JAXA dataset with AHI Resolution
-    aot_ahi_roi_da, ss_ahi_roi_da, dust_ahi_roi_da, oa_ahi_roi_da, so4_ahi_roi_da, bc_ahi_roi_da = roi_aot_ahi_from_jaxa(roi_extent, ahi_obs_time)
+    # aot_ahi_roi_da, ss_ahi_roi_da, dust_ahi_roi_da, oa_ahi_roi_da, so4_ahi_roi_da, bc_ahi_roi_da = roi_od550_ahi_from_jaxa(roi_extent, ahi_obs_time)
     # print(aot_ahi_roi_da)
     # print(numpy.array(aot_ahi_roi_da).shape)
 
     # Calculate aerosol type
-    aero_type_ahi_roi = set_roi_aero_type(ss_ahi_roi_da, dust_ahi_roi_da, oa_ahi_roi_da, so4_ahi_roi_da + bc_ahi_roi_da)
+    # aero_type_ahi_roi = set_roi_aero_type(ss_ahi_roi_da, dust_ahi_roi_da, oa_ahi_roi_da, so4_ahi_roi_da + bc_ahi_roi_da)
     # print(aero_type_ahi_roi)
 
     # AHI data: vza, raa, sza
+    roi_ahi_vza, roi_ahi_raa, roi_ahi_sza = roi_ahi_geo(roi_extent, ahi_obs_time)
+    # print(roi_ahi_vza)
+    # print(numpy.array(roi_ahi_vza).shape)
+    # print(roi_ahi_raa)
+    # print(numpy.array(roi_ahi_raa).shape)
+    # print(roi_ahi_sza)
+    # print(numpy.array(roi_ahi_sza).shape)
