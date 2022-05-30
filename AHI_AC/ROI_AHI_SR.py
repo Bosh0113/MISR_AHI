@@ -29,9 +29,7 @@ RAA = 90
 
 # Calculate CAMS time for AHI Obs.
 def calculate_cams_time(yyyy, mm, dd, obs_time):
-    cams_times = [
-        '0000', '0300', '0600', '0900', '1200', '1500', '1800', '2100'
-    ]
+    cams_times = ['0000', '0300', '0600', '0900', '1200', '1500', '1800', '2100']
     com_flag = ['0130', '0430', '0730', '1330', '1630', '1930', '2230']
     date_add = 0
     for index in range(len(cams_times)):
@@ -44,9 +42,7 @@ def calculate_cams_time(yyyy, mm, dd, obs_time):
         cams_hour = '0000'
     obs_date_str = yyyy + mm + dd + '0000'
     obs_date = datetime.strptime(obs_date_str, "%Y%m%d%H%M")
-    add_time = timedelta(days=date_add,
-                         hours=int(cams_hour[:2]),
-                         minutes=int(cams_hour[2:]))
+    add_time = timedelta(days=date_add, hours=int(cams_hour[:2]), minutes=int(cams_hour[2:]))
     cams_time = obs_date + add_time
     cams_yyyymmdd = cams_time.strftime("%Y%m%d")
     cams_hh = cams_time.strftime("%H")
@@ -118,24 +114,19 @@ def get_data_roi_ahi_reso(r_extent, data_v, lats, lons, o_resolution):
     m_ex_ullat, m_ex_ullon, m_ex_lrlat, m_ex_lrlon = get_roi_para_extent(r_extent, lats, lons, o_resolution)
     ex_ds = xarray.Dataset(
         data_vars={
-            "values": (
-                ("latitude", "longitude"),
-                data_v[find_nearest_index(lats, m_ex_ullat):find_nearest_index(lats, m_ex_lrlat) + 1, find_nearest_index(lons, m_ex_ullon):find_nearest_index(lons, m_ex_lrlon) + 1],
-            ),
+            "values": (("latitude", "longitude"), data_v[find_nearest_index(lats, m_ex_ullat):find_nearest_index(lats, m_ex_lrlat) + 1,
+                                                         find_nearest_index(lons, m_ex_ullon):find_nearest_index(lons, m_ex_lrlon) + 1]),
         },
         coords={
-            "latitude":
-            lats[find_nearest_index(lats, m_ex_ullat):find_nearest_index(lats, m_ex_lrlat) + 1],
-            "longitude":
-            lons[find_nearest_index(lons, m_ex_ullon):find_nearest_index(lons, m_ex_lrlon) + 1]
+            "latitude": lats[find_nearest_index(lats, m_ex_ullat):find_nearest_index(lats, m_ex_lrlat) + 1],
+            "longitude": lons[find_nearest_index(lons, m_ex_ullon):find_nearest_index(lons, m_ex_lrlon) + 1]
         },
     )
     # get min extent with AHI pixel size
-    n_lats = numpy.arange(m_ex_ullat+o_resolution/2, m_ex_lrlat-o_resolution/2, -AHI_RESOLUTION)
-    n_lons = numpy.arange(m_ex_ullon-o_resolution/2, m_ex_lrlon+o_resolution/2, AHI_RESOLUTION)
-    n_ex_ds = ex_ds.interp(longitude=n_lons, latitude=n_lats, method="linear", kwargs={"fill_value": "extrapolate"})
-    n_ex_ullat, n_ex_ullon, n_ex_lrlat, n_ex_lrlon = get_roi_min_extent(
-        r_extent, n_lats, n_lons, AHI_RESOLUTION)
+    n_lats = numpy.arange(m_ex_ullat + o_resolution / 2, m_ex_lrlat - o_resolution / 2, -AHI_RESOLUTION)
+    n_lons = numpy.arange(m_ex_ullon - o_resolution / 2, m_ex_lrlon + o_resolution / 2, AHI_RESOLUTION)
+    n_ex_ds = ex_ds.interp(longitude=n_lons, latitude=n_lats, method="nearest", kwargs={"fill_value": "extrapolate"})  # linear?
+    n_ex_ullat, n_ex_ullon, n_ex_lrlat, n_ex_lrlon = get_roi_min_extent(r_extent, n_lats, n_lons, AHI_RESOLUTION)
     n_ex_v = n_ex_ds["values"]
     v_ahi_roi = n_ex_v[find_nearest_index(n_lats, n_ex_ullat):find_nearest_index(n_lats, n_ex_lrlat) + 1, find_nearest_index(n_lons, n_ex_ullon):find_nearest_index(n_lons, n_ex_lrlon) + 1]
     return v_ahi_roi
@@ -149,8 +140,7 @@ def roi_oz_wv_ahi_from_cams(r_extent, ahi_obs_t):
     ahi_dd = ahi_obs_t[6:8]
     ahi_time = ahi_obs_t[-4:]
     # CAMS for Obs
-    cams_yyyymmdd, cams_hh = calculate_cams_time(ahi_yyyy, ahi_mm, ahi_dd,
-                                                 ahi_time)
+    cams_yyyymmdd, cams_hh = calculate_cams_time(ahi_yyyy, ahi_mm, ahi_dd, ahi_time)
     cams_filename = os.path.join(CAMS_FOLDER, cams_yyyymmdd + '.nc')
     # Watervapour & Ozone
     ds_oz_wv = xarray.open_dataset(cams_filename)
@@ -176,16 +166,8 @@ def roi_oz_wv_ahi_from_cams(r_extent, ahi_obs_t):
 
 # Calculate CAMS time for AHI Obs.
 def calculate_jaxa_time(yyyy, mm, dd, obs_time):
-    jaxa_times = [
-        '0000', '0100', '0200', '0300', '0400', '0500', '0600', '0700', '0800',
-        '0900', '1000', '1100', '1200', '1300', '1400', '1500', '1600', '1700',
-        '1800', '1900', '2000', '2100', '2200', '2300'
-    ]
-    com_flag = [
-        '0030', '0130', '0230', '0330', '0430', '0530', '0630', '0730', '0830',
-        '0930', '1030', '1130', '1230', '1330', '1430', '1530', '1630', '1730',
-        '1830', '1930', '2030', '2130', '2230', '2330'
-    ]
+    jaxa_times = ['0000', '0100', '0200', '0300', '0400', '0500', '0600', '0700', '0800', '0900', '1000', '1100', '1200', '1300', '1400', '1500', '1600', '1700', '1800', '1900', '2000', '2100', '2200', '2300']
+    com_flag = ['0030', '0130', '0230', '0330', '0430', '0530', '0630', '0730', '0830', '0930', '1030', '1130', '1230', '1330', '1430', '1530', '1630', '1730', '1830', '1930', '2030', '2130', '2230', '2330']
     date_add = 0
     for index in range(len(jaxa_times)):
         if obs_time < com_flag[index]:
@@ -197,9 +179,7 @@ def calculate_jaxa_time(yyyy, mm, dd, obs_time):
         jaxa_hour = '0000'
     obs_date_str = yyyy + mm + dd + '0000'
     obs_date = datetime.strptime(obs_date_str, "%Y%m%d%H%M")
-    add_time = timedelta(days=date_add,
-                         hours=int(jaxa_hour[:2]),
-                         minutes=int(jaxa_hour[2:]))
+    add_time = timedelta(days=date_add, hours=int(jaxa_hour[:2]), minutes=int(jaxa_hour[2:]))
     jaxa_time = obs_date + add_time
     jaxa_yyyy = jaxa_time.strftime("%Y")
     jaxa_mm = jaxa_time.strftime("%m")
@@ -234,25 +214,57 @@ def roi_aot_ahi_from_jaxa(r_extent, ahi_obs_t):
     ahi_mm = ahi_obs_t[4:6]
     ahi_dd = ahi_obs_t[6:8]
     ahi_time = ahi_obs_t[-4:]
-    jaxa_yyyy, jaxa_mm, jaxa_dd, jaxa_hh = calculate_jaxa_time(
-        ahi_yyyy, ahi_mm, ahi_dd, ahi_time)
+    jaxa_yyyy, jaxa_mm, jaxa_dd, jaxa_hh = calculate_jaxa_time(ahi_yyyy, ahi_mm, ahi_dd, ahi_time)
     temp_folder = os.path.join(ws, 'temp')
     if not os.path.exists(temp_folder):
         os.makedirs(temp_folder)
     aot_filename = download_AOT(jaxa_yyyy, jaxa_mm, jaxa_dd, jaxa_hh, temp_folder)
     # AOT550
     ds_aot550 = xarray.open_dataset(aot_filename)
-    data_v = ds_aot550['od550aer']
-    data_v = numpy.array(data_v)
-    lats = ds_aot550['lat']
-    lons = ds_aot550['lon']
-    lats = numpy.array(lats)
-    lons = numpy.array(lons)
-    aot550_ahi_roi = get_data_roi_ahi_reso(r_extent, data_v, lats, lons, JAXA_RESOLUTION)
+    # AOT SeaSalt Dust OA SO4 BC
+    jaxa_names = ['od550aer', 'od550ss', 'od550dust', 'od550oa', 'od550so4', 'od550bc']
+    jaxa_ahi_roi = []
+    for jaxa_name in jaxa_names:
+        data_v = ds_aot550[jaxa_name]
+        data_v = numpy.array(data_v)
+        lats = ds_aot550['lat']
+        lons = ds_aot550['lon']
+        lats = numpy.array(lats)
+        lons = numpy.array(lons)
+        ad550_ahi_roi = get_data_roi_ahi_reso(r_extent, data_v, lats, lons, JAXA_RESOLUTION)
+        jaxa_ahi_roi.append(ad550_ahi_roi)
     ds_aot550.close()
+    aot550_ahi_roi = jaxa_ahi_roi[0]
+    ss550_ahi_roi = jaxa_ahi_roi[1]
+    dust550_ahi_roi = jaxa_ahi_roi[2]
+    oa550_ahi_roi = jaxa_ahi_roi[3]
+    so4550_ahi_roi = jaxa_ahi_roi[4]
+    bc550_ahi_roi = jaxa_ahi_roi[5]
     shutil.rmtree(temp_folder)
 
-    return aot550_ahi_roi
+    return aot550_ahi_roi, ss550_ahi_roi, dust550_ahi_roi, oa550_ahi_roi, so4550_ahi_roi, bc550_ahi_roi
+
+
+def get_aero_type(oceanic, dust_like, water_soluble, soot_like):
+    total = oceanic + dust_like + water_soluble + soot_like
+    # 1:oceanic, 2:dust_like, 3:water_soluble, 4:soot_like
+    percent_array = [[1, oceanic / total], [2, dust_like / total], [3, water_soluble / total], [4, soot_like / total]]
+    # sort by percentation
+    sorted_array = sorted(percent_array, key=(lambda x: x[1]), reverse=True)
+    max_type_index = sorted_array[0][0]
+    if max_type_index == 1:
+        return AeroProfile.Maritime
+    else:
+        return AeroProfile.Continental
+
+
+def set_roi_aero_type(oceanic, dust_like, water_soluble, soot_like):
+    aero_type_roi = numpy.zeros_like(oceanic)
+    for lat in range(len(oceanic)):
+        for lon in range(len(oceanic[0])):
+            aero_type = get_aero_type(oceanic[lat][lon], dust_like[lat][lon], water_soluble[lat][lon], soot_like[lat][lon])
+            aero_type_roi[lat][lon] = aero_type
+    return aero_type_roi
 
 
 def ac_band1(In_Ozone, In_AOT, In_SZA, In_VZA, In_RAA):
@@ -275,8 +287,7 @@ def ac_band1(In_Ozone, In_AOT, In_SZA, In_VZA, In_RAA):
     s.atmos_corr = AtmosCorr.AtmosCorrLambertianFromReflectance(0.2)
     s.run()
 
-    f1 = 1 / (s.outputs.transmittance_total_scattering.total *
-              s.outputs.transmittance_global_gas.total)
+    f1 = 1 / (s.outputs.transmittance_total_scattering.total * s.outputs.transmittance_global_gas.total)
     return (f1, s.outputs.coef_xb, s.outputs.coef_xc)
     del s
 
@@ -296,12 +307,21 @@ if __name__ == "__main__":
     ahi_obs_time = '201608230450'
     # roi_extent: (ullat, ullon, lrlat, lrlon)
     roi_extent = [47.325, 94.329, 47.203, 94.508]
+
     # Get ROI Ozone & Watervaper (xarray.core.dataarray.DataArray) from CAMS with AHI Resolution
     oz_ahi_roi_da, wv_ahi_roi_da = roi_oz_wv_ahi_from_cams(roi_extent, ahi_obs_time)
     # print(oz_ahi_roi_da)
-    print(numpy.array(oz_ahi_roi_da).shape)
+    # print(numpy.array(oz_ahi_roi_da).shape)
     # print(numpy.array(oz_ahi_roi_da))
     # print(numpy.array(oz_ahi_roi_da['latitude']))
-    aot_ahi_roi_da = roi_aot_ahi_from_jaxa(roi_extent, ahi_obs_time)
+
+    # Get ROI 550nm data from JAXA dataset with AHI Resolution
+    aot_ahi_roi_da, ss_ahi_roi_da, dust_ahi_roi_da, oa_ahi_roi_da, so4_ahi_roi_da, bc_ahi_roi_da = roi_aot_ahi_from_jaxa(roi_extent, ahi_obs_time)
     # print(aot_ahi_roi_da)
-    print(numpy.array(aot_ahi_roi_da).shape)
+    # print(numpy.array(aot_ahi_roi_da).shape)
+
+    # Calculate aerosol type
+    aero_type_ahi_roi = set_roi_aero_type(ss_ahi_roi_da, dust_ahi_roi_da, oa_ahi_roi_da, so4_ahi_roi_da + bc_ahi_roi_da)
+    # print(aero_type_ahi_roi)
+
+    # AHI data: vza, raa, sza
