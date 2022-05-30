@@ -390,19 +390,19 @@ if __name__ == "__main__":
     roi_extent = [47.325, 94.329, 47.203, 94.508]
 
     # Get ROI Ozone & Watervaper (xarray.core.dataarray.DataArray) from CAMS with AHI Resolution
-    # oz_ahi_roi_da, wv_ahi_roi_da = roi_oz_wv_ahi_from_cams(roi_extent, ahi_obs_time)
+    oz_ahi_roi_da, wv_ahi_roi_da = roi_oz_wv_ahi_from_cams(roi_extent, ahi_obs_time)
     # print(oz_ahi_roi_da)
     # print(numpy.array(oz_ahi_roi_da).shape)
     # print(numpy.array(oz_ahi_roi_da))
     # print(numpy.array(oz_ahi_roi_da['latitude']))
 
     # Get ROI 550nm data from JAXA dataset with AHI Resolution
-    # aot_ahi_roi_da, ss_ahi_roi_da, dust_ahi_roi_da, oa_ahi_roi_da, so4_ahi_roi_da, bc_ahi_roi_da = roi_od550_ahi_from_jaxa(roi_extent, ahi_obs_time)
+    aot_ahi_roi_da, ss_ahi_roi_da, dust_ahi_roi_da, oa_ahi_roi_da, so4_ahi_roi_da, bc_ahi_roi_da = roi_od550_ahi_from_jaxa(roi_extent, ahi_obs_time)
     # print(aot_ahi_roi_da)
     # print(numpy.array(aot_ahi_roi_da).shape)
 
     # Calculate aerosol type
-    # aero_type_ahi_roi = set_roi_aero_type(ss_ahi_roi_da, dust_ahi_roi_da, oa_ahi_roi_da, so4_ahi_roi_da + bc_ahi_roi_da)
+    aero_type_ahi_roi = set_roi_aero_type(ss_ahi_roi_da, dust_ahi_roi_da, oa_ahi_roi_da, so4_ahi_roi_da + bc_ahi_roi_da)
     # print(aero_type_ahi_roi)
 
     # AHI data: vza, raa, sza
