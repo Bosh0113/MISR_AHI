@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-# coding: utf-8
 import os
 import sys
 import bz2
@@ -10,24 +8,19 @@ from ftplib import FTP
 import xarray
 import shutil
 
+# workspace
 ws = r'D:\Work_PhD\MISR_AHI_WS\220527'
 
+# data paths
 WORK_SPACE = os.getcwd()
+BAND_RF_CSV = WORK_SPACE + "/AHI_AC/AHI_SF/sixs_band1.csv"
 CAMS_FOLDER = os.path.join(ws, 'CAMS')
+
+# parameters
 CAMS_RESOLUTION = 0.75  # degree
 JAXA_RESOLUTION = 0.375  # degree
 AHI_ANGLE_RESOLUTION = 0.04  # degree
 AHI_RESOLUTION = 0.01  # degree
-
-WATER = 3
-OZONE = 0.25
-ALTITUDE = 0
-AOT = 0.1
-SZA = 45
-VZA = 45
-RAA = 90
-
-# Aeropro = 3
 
 
 # Calculate CAMS time for AHI Obs.
@@ -126,8 +119,10 @@ def get_data_roi_ahi_reso(r_extent, data_v, lats, lons, o_resolution):
         },
     )
     # get min extent with AHI pixel size
-    n_lats = numpy.arange(m_ex_ullat + o_resolution / 2, m_ex_lrlat - o_resolution / 2, -AHI_RESOLUTION)
-    n_lons = numpy.arange(m_ex_ullon - o_resolution / 2, m_ex_lrlon + o_resolution / 2, AHI_RESOLUTION)
+    ahi_lats = numpy.arange(60.-AHI_RESOLUTION/2, -60, -AHI_RESOLUTION)
+    ahi_lons = numpy.arange(85.+AHI_RESOLUTION/2, 205, AHI_RESOLUTION)
+    n_lats = ahi_lats[find_nearest_index(ahi_lats, m_ex_ullat):find_nearest_index(ahi_lats, m_ex_lrlat) + 1]
+    n_lons = ahi_lons[find_nearest_index(ahi_lons, m_ex_ullon):find_nearest_index(ahi_lons, m_ex_lrlon) + 1]
     n_ex_ds = ex_ds.interp(longitude=n_lons, latitude=n_lats, method="nearest", kwargs={"fill_value": "extrapolate"})  # linear?
     n_ex_ullat, n_ex_ullon, n_ex_lrlat, n_ex_lrlon = get_roi_min_extent(r_extent, n_lats, n_lons, AHI_RESOLUTION)
     n_ex_v = n_ex_ds["values"]
@@ -272,7 +267,7 @@ def set_roi_aero_type(oceanic, dust_like, water_soluble, soot_like):
 
 
 def roi_ahi_angle(r_extent, ftp_link):
-    temp_ws = os.path.join(WORK_SPACE, 'temp')
+    temp_ws = os.path.join(ws, 'temp')
     if not os.path.exists(temp_ws):
         os.makedirs(temp_ws)
     filename_parts = ftp_link.split('/')
@@ -342,47 +337,49 @@ def roi_ahi_geo(r_extent, ahi_obs_t):
         ftp_link = common_filename + angle_suffix
         angle_roi = roi_ahi_angle(r_extent, ftp_link)
         angles_roi.append(angle_roi)
-    roi_ahi_vza = angles_roi[0]
+    roi_ahi_vza = numpy.array(angles_roi[0])
     roi_ahi_raa = calculate_raa_array(angles_roi[1], angles_roi[2])
-    roi_ahi_sza = angles_roi[3]
+    roi_ahi_sza = numpy.array(angles_roi[3])
     return roi_ahi_vza, roi_ahi_raa, roi_ahi_sza
 
 
-def ac_band1(In_Ozone, In_AOT, In_SZA, In_VZA, In_RAA):
-    wl_band = WORK_SPACE + "/AHI_AC/AHI_SF/sixs_band1.csv"
-    band = numpy.loadtxt(wl_band, delimiter=",")
-
+def atmospheric_correction_6s(band_RF, VZA, SZA, RAA, AOT, aerosol_type, ozone, water_vapour, altitude=0.):
     s = SixS()
-    s.atmos_profile = AtmosProfile.UserWaterAndOzone(WATER, In_Ozone)
-    s.aero_profile = AeroProfile.PredefinedType(2)  # AeroProfile.Maritime
-    s.aot550 = In_AOT
-    s.wavelength = Wavelength(band[0, 0], band[len(band) - 1, 0], band[:, 1])
+    s.atmos_profile = AtmosProfile.UserWaterAndOzone(water_vapour, ozone)
+    s.aero_profile = AeroProfile.PredefinedType(aerosol_type)
+    s.aot550 = AOT
+    s.wavelength = Wavelength(band_RF[0, 0], band_RF[len(band_RF) - 1, 0], band_RF[:, 1])
     s.altitudes.set_sensor_satellite_level()
-    s.altitudes.set_target_custom_altitude(ALTITUDE)
+    s.altitudes.set_target_custom_altitude(altitude)
     s.geometry = Geometry.User()
-    s.geometry.solar_z = In_SZA
-    s.geometry.solar_a = In_RAA
-    s.geometry.view_z = In_VZA
+    s.geometry.solar_z = SZA
+    s.geometry.solar_a = RAA
+    s.geometry.view_z = VZA
     s.geometry.view_a = 0
 
-    s.atmos_corr = AtmosCorr.AtmosCorrLambertianFromReflectance(0.2)
+    s.atmos_corr = AtmosCorr.AtmosCorrLambertianFromReflectance(0.2)    # value is no matter, results are same
     s.run()
 
-    f1 = 1 / (s.outputs.transmittance_total_scattering.total * s.outputs.transmittance_global_gas.total)
-    return (f1, s.outputs.coef_xb, s.outputs.coef_xc)
+    # f1 = 1 / (s.outputs.transmittance_total_scattering.total * s.outputs.transmittance_global_gas.total)
+    # print(f1, s.outputs.coef_xa, f1-s.outputs.coef_xa)
+    # x1 = f1
+
+    x1 = s.outputs.coef_xa
+    x2 = s.outputs.coef_xb
+    x3 = s.outputs.coef_xc
     del s
+    return (x1, x2, x3)
+
+
+def ac_roi_parameter(band_RF, VZA_ar, SZA_ar, RAA_ar, AOT_ar, aerosol_type_ar, ozone_ar, water_vapour_ar):
+    ac_para = numpy.zeros_like(VZA_ar)
+    for lat in range(len(VZA_ar)):
+        for lon in range(len(VZA_ar[0])):
+            ac_para[lat][lon] = atmospheric_correction_6s(band_RF, VZA_ar[lat][lon], SZA_ar[lat][lon], RAA_ar[lat][lon], AOT_ar[lat][lon], aerosol_type_ar[lat][lon], ozone_ar[lat][lon], water_vapour_ar[lat][lon])
+    return ac_para
 
 
 if __name__ == "__main__":
-    # start = time.time()
-
-    # AC_output = ac_band1(Ozone, AOT, SZA, VZA, RAA)
-    # print(AC_output)
-
-    # end = time.time()
-    # T = end - start
-    # print('time: {:.1f} secs, {:.1f} mins, {:.1f} hours'.format(
-    #     T, T / 60, T / 3600))
 
     # AHI Observation Time
     ahi_obs_time = '201608230450'
@@ -391,6 +388,8 @@ if __name__ == "__main__":
 
     # Get ROI Ozone & Watervaper (xarray.core.dataarray.DataArray) from CAMS with AHI Resolution
     oz_ahi_roi_da, wv_ahi_roi_da = roi_oz_wv_ahi_from_cams(roi_extent, ahi_obs_time)
+    oz_ahi_roi = numpy.array(oz_ahi_roi_da)
+    wv_ahi_roi = numpy.array(wv_ahi_roi_da)
     # print(oz_ahi_roi_da)
     # print(numpy.array(oz_ahi_roi_da).shape)
     # print(numpy.array(oz_ahi_roi_da))
@@ -398,6 +397,7 @@ if __name__ == "__main__":
 
     # Get ROI 550nm data from JAXA dataset with AHI Resolution
     aot_ahi_roi_da, ss_ahi_roi_da, dust_ahi_roi_da, oa_ahi_roi_da, so4_ahi_roi_da, bc_ahi_roi_da = roi_od550_ahi_from_jaxa(roi_extent, ahi_obs_time)
+    aot_ahi_roi = numpy.array(aot_ahi_roi_da)
     # print(aot_ahi_roi_da)
     # print(numpy.array(aot_ahi_roi_da).shape)
 
@@ -413,3 +413,12 @@ if __name__ == "__main__":
     # print(numpy.array(roi_ahi_raa).shape)
     # print(roi_ahi_sza)
     # print(numpy.array(roi_ahi_sza).shape)
+
+    # Get Atmospheric Correction Parameters using 6SV
+    band_rf = numpy.loadtxt(BAND_RF_CSV, delimiter=",")
+    ac_roi_parameters = ac_roi_parameter(band_rf, roi_ahi_vza, roi_ahi_sza, roi_ahi_raa, aot_ahi_roi, aero_type_ahi_roi, oz_ahi_roi, wv_ahi_roi)
+    # 
+    # ac_parameters = atmospheric_correction_6s(band_rf, roi_ahi_vza[0][0], roi_ahi_sza[0][0], roi_ahi_raa[0][0], aot_ahi_roi[0][0], aero_type_ahi_roi[0][0], oz_ahi_roi[0][0], wv_ahi_roi[0][0])
+    # print(ac_parameters)
+
+    # Atmospheric Correction using 6SV
