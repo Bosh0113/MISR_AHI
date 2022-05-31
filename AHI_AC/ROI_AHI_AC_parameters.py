@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 from ftplib import FTP
 import xarray
 import shutil
+import time
 
 # workspace
 ws = r'D:\Work_PhD\MISR_AHI_WS\220527'
@@ -305,21 +306,17 @@ def roi_ahi_angle(r_extent, ftp_link):
     return angle_ahi_roi
 
 
-def get_ahi_raa(vaa, saa):
-    raa = 0
-    diff = abs(vaa - saa)
-    if diff < 180:
-        raa = diff
-    else:
-        raa = 360 - diff
-    return raa
-
-
 def calculate_raa_array(vaa_array, saa_array):
     raa_array = numpy.zeros_like(vaa_array)
     for lat in range(len(vaa_array)):
         for lon in range(len(vaa_array[0])):
-            raa_array[lat][lon] = get_ahi_raa(vaa_array[lat][lon], saa_array[lat][lon])
+            raa = 0
+            diff = abs(vaa_array[lat][lon] - saa_array[lat][lon])
+            if diff < 180:
+                raa = diff
+            else:
+                raa = 360 - diff
+            raa_array[lat][lon] = raa
     return raa_array
 
 
@@ -368,23 +365,21 @@ def atmospheric_correction_6s(band_RF, VZA, SZA, RAA, AOT, aerosol_type, ozone, 
     x2 = s.outputs.coef_xb
     x3 = s.outputs.coef_xc
     del s
-    return (x1, x2, x3)
+    return x1, x2, x3
 
 
 def ac_roi_parameter(band_RF, VZA_ar, SZA_ar, RAA_ar, AOT_ar, aerosol_type_ar, ozone_ar, water_vapour_ar):
-    ac_para = numpy.zeros_like(VZA_ar)
+    ac_xa = numpy.zeros_like(VZA_ar)
+    ac_xb = numpy.zeros_like(VZA_ar)
+    ac_xc = numpy.zeros_like(VZA_ar)
     for lat in range(len(VZA_ar)):
         for lon in range(len(VZA_ar[0])):
-            ac_para[lat][lon] = atmospheric_correction_6s(band_RF, VZA_ar[lat][lon], SZA_ar[lat][lon], RAA_ar[lat][lon], AOT_ar[lat][lon], aerosol_type_ar[lat][lon], ozone_ar[lat][lon], water_vapour_ar[lat][lon])
-    return ac_para
+            ac_xa[lat][lon], ac_xb[lat][lon], ac_xc[lat][lon] = atmospheric_correction_6s(band_RF, VZA_ar[lat][lon], SZA_ar[lat][lon], RAA_ar[lat][lon], AOT_ar[lat][lon], aerosol_type_ar[lat][lon], ozone_ar[lat][lon], water_vapour_ar[lat][lon])
+    return ac_xa, ac_xb, ac_xc
 
 
-if __name__ == "__main__":
-
-    # AHI Observation Time
-    ahi_obs_time = '201608230450'
-    # roi_extent: (ullat, ullon, lrlat, lrlon)
-    roi_extent = [47.325, 94.329, 47.203, 94.508]
+# Record the data in ROI, and calculate the AC parameters
+def record_roi_data_AC_parameters(r_extent, ahi_obs_t):
 
     # Get ROI Ozone & Watervaper (xarray.core.dataarray.DataArray) from CAMS with AHI Resolution
     oz_ahi_roi_da, wv_ahi_roi_da = roi_oz_wv_ahi_from_cams(roi_extent, ahi_obs_time)
@@ -416,9 +411,66 @@ if __name__ == "__main__":
 
     # Get Atmospheric Correction Parameters using 6SV
     band_rf = numpy.loadtxt(BAND_RF_CSV, delimiter=",")
-    ac_roi_parameters = ac_roi_parameter(band_rf, roi_ahi_vza, roi_ahi_sza, roi_ahi_raa, aot_ahi_roi, aero_type_ahi_roi, oz_ahi_roi, wv_ahi_roi)
-    # 
-    # ac_parameters = atmospheric_correction_6s(band_rf, roi_ahi_vza[0][0], roi_ahi_sza[0][0], roi_ahi_raa[0][0], aot_ahi_roi[0][0], aero_type_ahi_roi[0][0], oz_ahi_roi[0][0], wv_ahi_roi[0][0])
-    # print(ac_parameters)
+    ac_roi_xa, ac_roi_xb, ac_roi_xc = ac_roi_parameter(band_rf, roi_ahi_vza, roi_ahi_sza, roi_ahi_raa, aot_ahi_roi, aero_type_ahi_roi, oz_ahi_roi, wv_ahi_roi)
 
-    # Atmospheric Correction using 6SV
+    # Template of record
+    #############################
+    # demo = [
+    #     {
+    #         'obs_time': '201608230450',
+    #         'roi_lats': [60.0, 59.99, ..., -60.0],
+    #         'roi_lons': [85.0, 85.01, ..., 205.0],
+    #         'roi_vza': [[..., ..., ...], ...],
+    #         'roi_sza': [[..., ..., ...], ...],
+    #         'roi_raa': [[..., ..., ...], ...],
+    #         'roi_aot': [[..., ..., ...], ...],
+    #         'roi_aero_type': [[..., ..., ...], ...],
+    #         'roi_oz': [[..., ..., ...], ...],
+    #         'roi_wv': [[..., ..., ...], ...],
+    #         'roi_ac_xa': [[..., ..., ...], ...],
+    #         'roi_ac_xb': [[..., ..., ...], ...],
+    #         'roi_ac_xc': [[..., ..., ...], ...],
+    #     }
+    # ]
+    #############################
+
+    r_lats = wv_ahi_roi_da['latitude']
+    r_lons = wv_ahi_roi_da['longitude']
+    record_info = [
+        {
+            'obs_time': ahi_obs_t,
+            'roi_lats': r_lats,
+            'roi_lons': r_lons,
+            'roi_vza': roi_ahi_vza,
+            'roi_sza': roi_ahi_sza,
+            'roi_raa': roi_ahi_raa,
+            'roi_aot': aot_ahi_roi,
+            'roi_aero_type': aero_type_ahi_roi,
+            'roi_oz': oz_ahi_roi,
+            'roi_wv': wv_ahi_roi,
+            'roi_ac_xa': ac_roi_xa,
+            'roi_ac_xb': ac_roi_xb,
+            'roi_ac_xc': ac_roi_xc
+        }
+    ]
+
+    # Storage to file
+    folder_path = os.path.join(ws, 'AHI_AC_PARAMETER')
+    if not os.path.exists(folder_path):
+        os.makedirs(folder_path)
+    file_path = os.path.join(folder_path, ahi_obs_t + '_ac_para.npy')
+    numpy.save(file_path, record_info)
+
+
+if __name__ == "__main__":
+    start = time.perf_counter()
+
+    # AHI Observation Time
+    ahi_obs_time = '201608230450'
+    # roi_extent: (ullat, ullon, lrlat, lrlon)
+    roi_extent = [47.325, 94.329, 47.203, 94.508]
+    # Record data and AC parameter at ROI
+    record_roi_data_AC_parameters(roi_extent, ahi_obs_time)
+
+    end = time.perf_counter()
+    print("Run time: ", end - start, 's')
