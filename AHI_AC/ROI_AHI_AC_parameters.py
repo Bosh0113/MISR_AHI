@@ -11,11 +11,28 @@ import time
 
 # workspace
 ws = r'D:\Work_PhD\MISR_AHI_WS\220527'
+DN2Tbb_folder = r'D:\Work_PhD\MISR_AHI_WS\220527\band_DN2Tbb'
 
 # data paths
 WORK_SPACE = os.getcwd()
-BAND_RF_CSV = WORK_SPACE + "/AHI_AC/AHI_SF/sixs_band1.csv"
+BAND_RF_FOLDER = WORK_SPACE + "/AHI_AC/AHI_SF"
 CAMS_FOLDER = os.path.join(ws, 'CAMS')
+
+# JMA AHI band reflect function 
+BAND_RF_CSV = {
+    'band1': 'sixs_band1.csv',
+    'band2': 'sixs_band2.csv',
+    'band3': 'sixs_band3.csv',
+    'band4': 'sixs_band4.csv',
+}
+
+# JMA AHI band: [CEReS gridded, resolution, file_suffix, DN2Tbb_name]
+BAND_INFO = {
+    'band1': ['VIS', '0.01', '.vis.01.fld.geoss.bz2', 'vis.01'],
+    'band2': ['VIS', '0.01', '.vis.02.fld.geoss.bz2', 'vis.02'],
+    'band3': ['EXT', '0.005', '.ext.01.fld.geoss.bz2', 'ext.01'],
+    'band4': ['VIS', '0.01', '.vis.03.fld.geoss.bz2', 'vis.03'],
+}
 
 # parameters
 CAMS_RESOLUTION = 0.75  # degree
@@ -105,7 +122,7 @@ def find_nearest_index(array, value):
     return idx
 
 
-# Get ROI Ozone & Watervaper from Rough Dataset with AHI Resolution
+# Get ROI Data from Rough Dataset with AHI Resolution
 def get_data_roi_ahi_reso(r_extent, data_v, lats, lons, o_resolution):
     # min extent of ROI in CAMS dataset
     m_ex_ullat, m_ex_ullon, m_ex_lrlat, m_ex_lrlon = get_roi_para_extent(r_extent, lats, lons, o_resolution)
@@ -291,6 +308,7 @@ def roi_ahi_angle(r_extent, ftp_link):
     except Exception as e:
         os.remove(ahi_bin_bz2)
         print('Error: ' + ftp_link)
+        print(e)
         ftp.close()
         sys.exit()
     # disconnect ftp server
@@ -300,7 +318,7 @@ def roi_ahi_angle(r_extent, ftp_link):
     lats = numpy.arange(60.-AHI_ANGLE_RESOLUTION/2, -60, -AHI_ANGLE_RESOLUTION)
     ahi_dn = numpy.fromfile(ahi_bin, dtype='>f4')
     ahi_dn = ahi_dn.reshape(len(lats), len(lons))
-    angle_ahi_roi = get_data_roi_ahi_reso(r_extent, ahi_dn, lats, lons, JAXA_RESOLUTION)
+    angle_ahi_roi = get_data_roi_ahi_reso(r_extent, ahi_dn, lats, lons, AHI_ANGLE_RESOLUTION)
 
     shutil.rmtree(temp_ws)
     return angle_ahi_roi
@@ -357,29 +375,150 @@ def atmospheric_correction_6s(band_RF, VZA, SZA, RAA, AOT, aerosol_type, ozone, 
     s.atmos_corr = AtmosCorr.AtmosCorrLambertianFromReflectance(0.2)    # value is no matter, results are same
     s.run()
 
-    # f1 = 1 / (s.outputs.transmittance_total_scattering.total * s.outputs.transmittance_global_gas.total)
-    # print(f1, s.outputs.coef_xa, f1-s.outputs.coef_xa)
-    # x1 = f1
+    # TOA Reflectance to TOA Radiance?
+    f1 = 1 / (s.outputs.transmittance_total_scattering.total * s.outputs.transmittance_global_gas.total)
 
     x1 = s.outputs.coef_xa
     x2 = s.outputs.coef_xb
     x3 = s.outputs.coef_xc
     del s
-    return x1, x2, x3
+    return f1, x1, x2, x3
 
 
 def ac_roi_parameter(band_RF, VZA_ar, SZA_ar, RAA_ar, AOT_ar, aerosol_type_ar, ozone_ar, water_vapour_ar):
+    ac_fa = numpy.zeros_like(VZA_ar)
     ac_xa = numpy.zeros_like(VZA_ar)
     ac_xb = numpy.zeros_like(VZA_ar)
     ac_xc = numpy.zeros_like(VZA_ar)
     for lat in range(len(VZA_ar)):
         for lon in range(len(VZA_ar[0])):
-            ac_xa[lat][lon], ac_xb[lat][lon], ac_xc[lat][lon] = atmospheric_correction_6s(band_RF, VZA_ar[lat][lon], SZA_ar[lat][lon], RAA_ar[lat][lon], AOT_ar[lat][lon], aerosol_type_ar[lat][lon], ozone_ar[lat][lon], water_vapour_ar[lat][lon])
-    return ac_xa, ac_xb, ac_xc
+            ac_fa[lat][lon], ac_xa[lat][lon], ac_xb[lat][lon], ac_xc[lat][lon] = atmospheric_correction_6s(band_RF, VZA_ar[lat][lon], SZA_ar[lat][lon], RAA_ar[lat][lon], AOT_ar[lat][lon], aerosol_type_ar[lat][lon], ozone_ar[lat][lon], water_vapour_ar[lat][lon])
+    return ac_fa, ac_xa, ac_xb, ac_xc
+
+
+def get_roi_data_extent(r_extent, f_lats, f_lons, resolution):
+    r_ullat = r_extent[0]
+    r_ullon = r_extent[1]
+    r_lrlat = r_extent[2]
+    r_lrlon = r_extent[3]
+
+    m_ex_ullat = f_lats[(numpy.abs(f_lats - r_ullat)).argmin()]
+    m_ex_ullon = f_lons[(numpy.abs(f_lons - r_ullon)).argmin()]
+    m_ex_lrlat = f_lats[(numpy.abs(f_lats - r_lrlat)).argmin()]
+    m_ex_lrlon = f_lons[(numpy.abs(f_lons - r_lrlon)).argmin()]
+
+    return m_ex_ullat + resolution*2, m_ex_ullon - resolution*2, m_ex_lrlat - resolution*2, m_ex_lrlon + resolution*2
+
+
+# Get ROI Data from Rough Dataset with AHI Resolution (Simple version)
+def get_data_roi_ahi_reso2(r_extent, data_v, lats, lons, o_resolution):
+    # min extent of ROI in CAMS dataset
+    m_ex_ullat, m_ex_ullon, m_ex_lrlat, m_ex_lrlon = get_roi_data_extent(r_extent, lats, lons, o_resolution)
+    ex_ds = xarray.Dataset(
+        data_vars={
+            "values": (("latitude", "longitude"), data_v[find_nearest_index(lats, m_ex_ullat):find_nearest_index(lats, m_ex_lrlat) + 1,
+                                                         find_nearest_index(lons, m_ex_ullon):find_nearest_index(lons, m_ex_lrlon) + 1]),
+        },
+        coords={
+            "latitude": lats[find_nearest_index(lats, m_ex_ullat):find_nearest_index(lats, m_ex_lrlat) + 1],
+            "longitude": lons[find_nearest_index(lons, m_ex_ullon):find_nearest_index(lons, m_ex_lrlon) + 1]
+        },
+    )
+    # get min extent with AHI pixel size
+    ahi_lats = numpy.arange(60.-AHI_RESOLUTION/2, -60, -AHI_RESOLUTION)
+    ahi_lons = numpy.arange(85.+AHI_RESOLUTION/2, 205, AHI_RESOLUTION)
+    n_lats = ahi_lats[find_nearest_index(ahi_lats, m_ex_ullat):find_nearest_index(ahi_lats, m_ex_lrlat) + 1]
+    n_lons = ahi_lons[find_nearest_index(ahi_lons, m_ex_ullon):find_nearest_index(ahi_lons, m_ex_lrlon) + 1]
+    n_ex_ds = ex_ds.interp(longitude=n_lons, latitude=n_lats, method="nearest", kwargs={"fill_value": "extrapolate"})  # linear?
+    n_ex_ullat, n_ex_ullon, n_ex_lrlat, n_ex_lrlon = get_roi_min_extent(r_extent, n_lats, n_lons, AHI_RESOLUTION)
+    n_ex_v = n_ex_ds["values"]
+    v_ahi_roi = n_ex_v[find_nearest_index(n_lats, n_ex_ullat):find_nearest_index(n_lats, n_ex_lrlat) + 1, find_nearest_index(n_lons, n_ex_ullon):find_nearest_index(n_lons, n_ex_lrlon) + 1]
+    return v_ahi_roi
+
+
+def roi_ahi_data_dn(r_extent, ftp_link, o_resolution):
+    temp_ws = os.path.join(ws, 'temp')
+    if not os.path.exists(temp_ws):
+        os.makedirs(temp_ws)
+    filename_parts = ftp_link.split('/')
+    ahi_file = filename_parts[len(filename_parts) - 1]
+    ahi_bin_bz2 = os.path.join(temp_ws, ahi_file)
+    # AHI data ftp server
+    ftp = FTP()
+    ftp.connect('hmwr829gr.cr.chiba-u.ac.jp', 21)
+    ftp.login()
+    ahi_bin = ''
+    try:
+        with open(ahi_bin_bz2, 'wb') as f:
+            ftp.retrbinary('RETR ' + ftp_link, f.write, 1024 * 1024)
+        zipfile = bz2.BZ2File(ahi_bin_bz2)
+        data = zipfile.read()
+        ahi_bin = ahi_bin_bz2[:-4]
+        with open(ahi_bin, 'wb') as f:
+            f.write(data)
+        zipfile.close()
+    except Exception as e:
+        os.remove(ahi_bin_bz2)
+        print('Error: ' + ftp_link)
+        print(e)
+        ftp.close()
+        sys.exit()
+    # disconnect ftp server
+    ftp.close()
+    # get roi angle array with AHI resolution (1km)
+    lons = numpy.arange(85.+o_resolution/2, 205, o_resolution)
+    lats = numpy.arange(60.-o_resolution/2, -60, -o_resolution)
+    ahi_dn = numpy.fromfile(ahi_bin, dtype='>u2')
+    ahi_dn = ahi_dn.reshape(len(lats), len(lons))
+    data_ahi_roi = get_data_roi_ahi_reso2(r_extent, ahi_dn, lats, lons, o_resolution)
+
+    shutil.rmtree(temp_ws)
+    return data_ahi_roi
+
+
+def roi_ahi_data(r_extent, ahi_obs_t, band_jma):
+    # JMA AHI band: [CEReS gridded, resolution, file_suffix, DN2Tbb_name]
+    band_info_ = BAND_INFO[band_jma]
+    # AHI data
+    obs_time = ahi_obs_t
+    ahi_ftp_folder1 = ahi_obs_t[:6]
+    ahi_ftp_folder2 = band_info_[0]
+    ahi_ftp_suffix = band_info_[2]
+    ftp_filename = '/gridded/FD/V20190123/' + ahi_ftp_folder1 + '/' + ahi_ftp_folder2 + '/' + obs_time + ahi_ftp_suffix
+    resolution = float(band_info_[1])
+    roi_ahi_dn = roi_ahi_data_dn(r_extent, ftp_filename, resolution)
+    # DN to Tbb
+    LUT_file = band_info_[3]
+    LUT_filename = os.path.join(DN2Tbb_folder, LUT_file)
+    DN2Tbb_LUT = numpy.loadtxt(LUT_filename)
+    roi_ahi_ref = numpy.zeros_like(roi_ahi_dn)
+    for lat in range(len(roi_ahi_dn)):
+        for lon in range(len(roi_ahi_dn[0])):
+            roi_ahi_ref[lat][lon] = DN2Tbb_LUT[int(roi_ahi_dn[lat][lon]), 1]
+    roi_ahi_ref = roi_ahi_ref/100
+    return roi_ahi_ref
+
+
+def band_SR(xa, xb, xc, obs_r):
+    y = xa * obs_r - xb
+    sr = y / (1 + xc * y)
+    return sr
+
+
+def calculate_SR(roi_xa, roi_xb, roi_xc, roi_obs_r):
+    roi_sr = numpy.zeros_like(roi_xa)
+    for lat in range(len(roi_xa)):
+        for lon in range(len(roi_xa[0])):
+            xa = roi_xa[lat][lon]
+            xb = roi_xb[lat][lon]
+            xc = roi_xc[lat][lon]
+            obs_r = roi_obs_r[lat][lon]
+            roi_sr[lat][lon] = band_SR(xa, xb, xc, obs_r)
+    return roi_sr
 
 
 # Record the data in ROI, and calculate the AC parameters
-def record_roi_data_AC_parameters(r_extent, ahi_obs_t):
+def record_roi_data_AC_parameters_sr(r_extent, ahi_obs_t, band_jma):
 
     # Get ROI Ozone & Watervaper (xarray.core.dataarray.DataArray) from CAMS with AHI Resolution
     oz_ahi_roi_da, wv_ahi_roi_da = roi_oz_wv_ahi_from_cams(roi_extent, ahi_obs_time)
@@ -409,9 +548,17 @@ def record_roi_data_AC_parameters(r_extent, ahi_obs_t):
     # print(roi_ahi_sza)
     # print(numpy.array(roi_ahi_sza).shape)
 
-    # Get Atmospheric Correction Parameters using 6SV
-    band_rf = numpy.loadtxt(BAND_RF_CSV, delimiter=",")
-    ac_roi_xa, ac_roi_xb, ac_roi_xc = ac_roi_parameter(band_rf, roi_ahi_vza, roi_ahi_sza, roi_ahi_raa, aot_ahi_roi, aero_type_ahi_roi, oz_ahi_roi, wv_ahi_roi)
+    # Get Atmospheric Correction Parameters using
+    filename = BAND_RF_CSV[band_jma]
+    band_rf_csv_path = os.path.join(BAND_RF_FOLDER, filename)
+    band_rf = numpy.loadtxt(band_rf_csv_path, delimiter=",")
+    ac_roi_fa, ac_roi_xa, ac_roi_xb, ac_roi_xc = ac_roi_parameter(band_rf, roi_ahi_vza, roi_ahi_sza, roi_ahi_raa, aot_ahi_roi, aero_type_ahi_roi, oz_ahi_roi, wv_ahi_roi)
+
+    # GET ROI AHI data
+    ahi_data_roi = roi_ahi_data(roi_extent, ahi_obs_time, band_jma)
+
+    # AHI AC
+    roi_ahi_sr = calculate_SR(ac_roi_fa, ac_roi_xb, ac_roi_xc, ahi_data_roi)
 
     # Template of record
     #############################
@@ -427,15 +574,18 @@ def record_roi_data_AC_parameters(r_extent, ahi_obs_t):
     #         'roi_aero_type': [[..., ..., ...], ...],
     #         'roi_oz': [[..., ..., ...], ...],
     #         'roi_wv': [[..., ..., ...], ...],
+    #         'roi_ac_fa': [[..., ..., ...], ...],
     #         'roi_ac_xa': [[..., ..., ...], ...],
     #         'roi_ac_xb': [[..., ..., ...], ...],
     #         'roi_ac_xc': [[..., ..., ...], ...],
+    #         'roi_ahi_data': [[..., ..., ...], ...],
+    #         'roi_ahi_sr': [[..., ..., ...], ...],
     #     }
     # ]
     #############################
 
-    r_lats = wv_ahi_roi_da['latitude']
-    r_lons = wv_ahi_roi_da['longitude']
+    r_lats = numpy.array(wv_ahi_roi_da['latitude'])
+    r_lons = numpy.array(wv_ahi_roi_da['longitude'])
     record_info = [
         {
             'obs_time': ahi_obs_t,
@@ -448,9 +598,12 @@ def record_roi_data_AC_parameters(r_extent, ahi_obs_t):
             'roi_aero_type': aero_type_ahi_roi,
             'roi_oz': oz_ahi_roi,
             'roi_wv': wv_ahi_roi,
+            'roi_ac_fa': ac_roi_fa,
             'roi_ac_xa': ac_roi_xa,
             'roi_ac_xb': ac_roi_xb,
-            'roi_ac_xc': ac_roi_xc
+            'roi_ac_xc': ac_roi_xc,
+            'roi_ahi_data': ahi_data_roi,
+            'roi_ahi_sr': roi_ahi_sr,
         }
     ]
 
@@ -458,7 +611,7 @@ def record_roi_data_AC_parameters(r_extent, ahi_obs_t):
     folder_path = os.path.join(ws, 'AHI_AC_PARAMETER')
     if not os.path.exists(folder_path):
         os.makedirs(folder_path)
-    file_path = os.path.join(folder_path, ahi_obs_t + '_ac_para.npy')
+    file_path = os.path.join(folder_path, ahi_obs_t + '_ac_' + band_jma + '.npy')
     numpy.save(file_path, record_info)
 
 
@@ -469,8 +622,11 @@ if __name__ == "__main__":
     ahi_obs_time = '201608230450'
     # roi_extent: (ullat, ullon, lrlat, lrlon)
     roi_extent = [47.325, 94.329, 47.203, 94.508]
+    # band
+    band_name = 'band4'
+
     # Record data and AC parameter at ROI
-    record_roi_data_AC_parameters(roi_extent, ahi_obs_time)
+    record_roi_data_AC_parameters_sr(roi_extent, ahi_obs_time, band_name)
 
     end = time.perf_counter()
     print("Run time: ", end - start, 's')
