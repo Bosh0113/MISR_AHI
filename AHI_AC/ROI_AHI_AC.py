@@ -18,7 +18,7 @@ WORK_SPACE = os.getcwd()
 BAND_RF_FOLDER = WORK_SPACE + "/AHI_AC/AHI_SF"
 CAMS_FOLDER = os.path.join(ws, 'CAMS')
 
-# JMA AHI band reflect function 
+# JMA AHI band reflect function
 BAND_RF_CSV = {
     'band1': 'sixs_band1.csv',
     'band2': 'sixs_band2.csv',
