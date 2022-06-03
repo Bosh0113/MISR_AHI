@@ -2,14 +2,17 @@ from Py6S import SixS, AtmosProfile, AeroProfile, Geometry, Wavelength, AtmosCor
 import numpy
 import os
 
-AOT = 0.0875
-RAA = 32.8816
-SZA = 37.8147
-VZA = 70.2937
+VZA = 70.57832
+SZA = 67.64781
+RAA = 22.20868
+AOT = 0.02187729        # JAXA
+# AOT = 0.03416528553     # CAMS
 AT = 1.0
-ALT = 0.0
-OZ = 0.2846
-WV = 1.1300
+ALT = 0.55
+OZ = 0.3509108
+WV = 0.3950571
+
+AHI_TOA = 0.20294118
 
 WORK_SPACE = os.getcwd()
 BAND_RF_CSV = WORK_SPACE + "/AHI_AC/AHI_SF/sixs_band1.csv"
@@ -33,15 +36,12 @@ def atmospheric_correction_6s(band_RF, VZA, SZA, RAA, AOT, aerosol_type, ozone, 
     s.atmos_corr = AtmosCorr.AtmosCorrLambertianFromReflectance(0.2)
     s.run()
 
-    # f1 = 1 / (s.outputs.transmittance_total_scattering.total * s.outputs.transmittance_global_gas.total)
-    # print(f1, s.outputs.coef_xa, f1 - s.outputs.coef_xa)
-    # x1 = f1
+    f1 = 1 / (s.outputs.transmittance_total_scattering.total * s.outputs.transmittance_global_gas.total)
     x1 = s.outputs.coef_xa
     x2 = s.outputs.coef_xb
     x3 = s.outputs.coef_xc
     del s
-    print(x1, x2, x3)
-    return (x1, x2, x3)
+    return f1, x1, x2, x3
 
 
 def band_SR(xa, xb, xc, obs_r):
@@ -51,9 +51,8 @@ def band_SR(xa, xb, xc, obs_r):
 
 
 if __name__ == "__main__":
-    # AHI Observation Time
-    ahi_obs_time = '201608230450'
-    # roi_extent: (ullat, ullon, lrlat, lrlon)
-    roi_extent = [47.325, 94.329, 47.203, 94.508]
-
-    atmospheric_correction_6s(band_rf, VZA, SZA, RAA, AOT, AT, OZ, WV, altitude=0.)
+    f1, x1, x2, x3 = atmospheric_correction_6s(band_rf, VZA, SZA, RAA, AOT, AT, OZ, WV, ALT)
+    print('f1, x1, x2, x3:', f1, x1, x2, x3)
+    print(AHI_TOA)
+    AHI_SR = band_SR(f1, x2, x3, AHI_TOA)
+    print(AHI_SR)

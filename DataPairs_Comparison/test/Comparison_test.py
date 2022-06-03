@@ -65,7 +65,7 @@ if __name__ == "__main__":
             roi_brf_dn = block_brf_dn[b_lat_idx][b_lon_idx]
             roi_brf_t = BRF_TrueValue(roi_brf_dn, scale_landBRF, offset_landBRF)
             roi_misr_brf[lat_index][lon_index] = roi_brf_t
-    
+
     # print(roi_misr_brf)
     mapping(roi_misr_brf)
     # https://www-pm.larc.nasa.gov/cgi-bin/site/showdoc?mnemonic=SBAF
@@ -79,4 +79,3 @@ if __name__ == "__main__":
     # diff (<=0.01->np.NaN)
     diff_misr_ahi[abs(diff_misr_ahi) <= 0.01] = numpy.NaN
     mapping(diff_misr_ahi)
-

@@ -10,12 +10,12 @@ import shutil
 import time
 
 # workspace
-ws = '/disk1/workspace/20220602/70_80_band3'
-DN2Tbb_folder = os.path.join(ws, 'band_DN2Tbb')
+ws = r'D:\Work_PhD\MISR_AHI_WS\220527'
+DN2Tbb_folder = r'D:\Work_PhD\MISR_AHI_WS\220527\band_DN2Tbb'
 
 # data paths
 WORK_SPACE = os.getcwd()
-BAND_RF_FOLDER = os.path.join(ws, 'AHI_SF')
+BAND_RF_FOLDER = WORK_SPACE + "/AHI_AC/AHI_SF"
 CAMS_FOLDER = os.path.join(ws, 'CAMS')
 
 # JMA AHI band reflect function
@@ -90,36 +90,62 @@ def get_roi_min_extent(r_extent, f_lats, f_lons, resolution):
     return m_ex_ullat, m_ex_ullon, m_ex_lrlat, m_ex_lrlon
 
 
+def get_roi_para_extent(r_extent, f_lats, f_lons, resolution):
+    r_ullat = r_extent[0]
+    r_ullon = r_extent[1]
+    r_lrlat = r_extent[2]
+    r_lrlon = r_extent[3]
+    max_lat_c = f_lats[0]
+    min_lat_c = f_lats[len(f_lats) - 1]
+    max_lon_c = f_lons[len(f_lons) - 1]
+    min_lon_c = f_lons[0]
+    m_ex_ullat, m_ex_ullon, m_ex_lrlat, m_ex_lrlon = None, None, None, None
+    while max_lat_c > r_ullat:
+        m_ex_ullat = max_lat_c
+        max_lat_c = max_lat_c - resolution
+    while min_lon_c < r_ullon:
+        m_ex_ullon = min_lon_c
+        min_lon_c = min_lon_c + resolution
+    while min_lat_c < r_lrlat:
+        m_ex_lrlat = min_lat_c
+        min_lat_c = min_lat_c + resolution
+    while max_lon_c > r_lrlon:
+        m_ex_lrlon = max_lon_c
+        max_lon_c = max_lon_c - resolution
+
+    return m_ex_ullat + resolution, m_ex_ullon - resolution, m_ex_lrlat - resolution, m_ex_lrlon + resolution
+
+
 def find_nearest_index(array, value):
     array = numpy.asarray(array)
     idx = (numpy.abs(array - value)).argmin()
     return idx
 
 
-# Get ROI Data from Rough Dataset with AHI Resolution (simple version)
+# Get ROI Data from Rough Dataset with AHI Resolution
 def get_data_roi_ahi_reso(r_extent, data_v, lats, lons, o_resolution):
-    r_ullat = r_extent[0]
-    r_ullon = r_extent[1]
-    r_lrlat = r_extent[2]
-    r_lrlon = r_extent[3]
-    
+    # min extent of ROI in CAMS dataset
+    m_ex_ullat, m_ex_ullon, m_ex_lrlat, m_ex_lrlon = get_roi_para_extent(r_extent, lats, lons, o_resolution)
     ex_ds = xarray.Dataset(
         data_vars={
-            "values": (("latitude", "longitude"), data_v),
+            "values": (("latitude", "longitude"), data_v[find_nearest_index(lats, m_ex_ullat):find_nearest_index(lats, m_ex_lrlat) + 1,
+                                                         find_nearest_index(lons, m_ex_ullon):find_nearest_index(lons, m_ex_lrlon) + 1]),
         },
         coords={
-            "latitude": lats,
-            "longitude": lons
+            "latitude": lats[find_nearest_index(lats, m_ex_ullat):find_nearest_index(lats, m_ex_lrlat) + 1],
+            "longitude": lons[find_nearest_index(lons, m_ex_ullon):find_nearest_index(lons, m_ex_lrlon) + 1]
         },
     )
-
+    # get min extent with AHI pixel size
     ahi_lats = numpy.arange(60.-AHI_RESOLUTION/2, -60, -AHI_RESOLUTION)
     ahi_lons = numpy.arange(85.+AHI_RESOLUTION/2, 205, AHI_RESOLUTION)
-    n_lats = ahi_lats[find_nearest_index(ahi_lats, r_ullat):find_nearest_index(ahi_lats, r_lrlat) + 1]
-    n_lons = ahi_lons[find_nearest_index(ahi_lons, r_ullon):find_nearest_index(ahi_lons, r_lrlon) + 1]
+    n_lats = ahi_lats[find_nearest_index(ahi_lats, m_ex_ullat):find_nearest_index(ahi_lats, m_ex_lrlat) + 1]
+    n_lons = ahi_lons[find_nearest_index(ahi_lons, m_ex_ullon):find_nearest_index(ahi_lons, m_ex_lrlon) + 1]
     n_ex_ds = ex_ds.interp(longitude=n_lons, latitude=n_lats, method="nearest", kwargs={"fill_value": "extrapolate"})  # linear?
+    n_ex_ullat, n_ex_ullon, n_ex_lrlat, n_ex_lrlon = get_roi_min_extent(r_extent, n_lats, n_lons, AHI_RESOLUTION)
     n_ex_v = n_ex_ds["values"]
-    return n_ex_v
+    v_ahi_roi = n_ex_v[find_nearest_index(n_lats, n_ex_ullat):find_nearest_index(n_lats, n_ex_lrlat) + 1, find_nearest_index(n_lons, n_ex_ullon):find_nearest_index(n_lons, n_ex_lrlon) + 1]
+    return v_ahi_roi
 
 
 # Get ROI Ozone & Watervaper from CAMS with AHI Resolution
@@ -370,6 +396,46 @@ def ac_roi_parameter(band_RF, VZA_ar, SZA_ar, RAA_ar, AOT_ar, aerosol_type_ar, o
     return ac_fa, ac_xa, ac_xb, ac_xc
 
 
+def get_roi_data_extent(r_extent, f_lats, f_lons, resolution):
+    r_ullat = r_extent[0]
+    r_ullon = r_extent[1]
+    r_lrlat = r_extent[2]
+    r_lrlon = r_extent[3]
+
+    m_ex_ullat = f_lats[(numpy.abs(f_lats - r_ullat)).argmin()]
+    m_ex_ullon = f_lons[(numpy.abs(f_lons - r_ullon)).argmin()]
+    m_ex_lrlat = f_lats[(numpy.abs(f_lats - r_lrlat)).argmin()]
+    m_ex_lrlon = f_lons[(numpy.abs(f_lons - r_lrlon)).argmin()]
+
+    return m_ex_ullat + resolution*2, m_ex_ullon - resolution*2, m_ex_lrlat - resolution*2, m_ex_lrlon + resolution*2
+
+
+# Get ROI Data from Rough Dataset with AHI Resolution (Simple version)
+def get_data_roi_ahi_reso2(r_extent, data_v, lats, lons, o_resolution):
+    # min extent of ROI in CAMS dataset
+    m_ex_ullat, m_ex_ullon, m_ex_lrlat, m_ex_lrlon = get_roi_data_extent(r_extent, lats, lons, o_resolution)
+    ex_ds = xarray.Dataset(
+        data_vars={
+            "values": (("latitude", "longitude"), data_v[find_nearest_index(lats, m_ex_ullat):find_nearest_index(lats, m_ex_lrlat) + 1,
+                                                         find_nearest_index(lons, m_ex_ullon):find_nearest_index(lons, m_ex_lrlon) + 1]),
+        },
+        coords={
+            "latitude": lats[find_nearest_index(lats, m_ex_ullat):find_nearest_index(lats, m_ex_lrlat) + 1],
+            "longitude": lons[find_nearest_index(lons, m_ex_ullon):find_nearest_index(lons, m_ex_lrlon) + 1]
+        },
+    )
+    # get min extent with AHI pixel size
+    ahi_lats = numpy.arange(60.-AHI_RESOLUTION/2, -60, -AHI_RESOLUTION)
+    ahi_lons = numpy.arange(85.+AHI_RESOLUTION/2, 205, AHI_RESOLUTION)
+    n_lats = ahi_lats[find_nearest_index(ahi_lats, m_ex_ullat):find_nearest_index(ahi_lats, m_ex_lrlat) + 1]
+    n_lons = ahi_lons[find_nearest_index(ahi_lons, m_ex_ullon):find_nearest_index(ahi_lons, m_ex_lrlon) + 1]
+    n_ex_ds = ex_ds.interp(longitude=n_lons, latitude=n_lats, method="nearest", kwargs={"fill_value": "extrapolate"})  # linear?
+    n_ex_ullat, n_ex_ullon, n_ex_lrlat, n_ex_lrlon = get_roi_min_extent(r_extent, n_lats, n_lons, AHI_RESOLUTION)
+    n_ex_v = n_ex_ds["values"]
+    v_ahi_roi = n_ex_v[find_nearest_index(n_lats, n_ex_ullat):find_nearest_index(n_lats, n_ex_lrlat) + 1, find_nearest_index(n_lons, n_ex_ullon):find_nearest_index(n_lons, n_ex_lrlon) + 1]
+    return v_ahi_roi
+
+
 def roi_ahi_data_dn(r_extent, ftp_link, o_resolution):
     temp_ws = os.path.join(ws, 'temp')
     if not os.path.exists(temp_ws):
@@ -404,7 +470,7 @@ def roi_ahi_data_dn(r_extent, ftp_link, o_resolution):
     lats = numpy.arange(60.-o_resolution/2, -60, -o_resolution)
     ahi_dn = numpy.fromfile(ahi_bin, dtype='>u2')
     ahi_dn = ahi_dn.reshape(len(lats), len(lons))
-    data_ahi_roi = get_data_roi_ahi_reso(r_extent, ahi_dn, lats, lons, o_resolution)
+    data_ahi_roi = get_data_roi_ahi_reso2(r_extent, ahi_dn, lats, lons, o_resolution)
 
     shutil.rmtree(temp_ws)
     return data_ahi_roi
@@ -458,16 +524,29 @@ def record_roi_data_AC_parameters_sr(r_extent, ahi_obs_t, band_jma):
     oz_ahi_roi_da, wv_ahi_roi_da = roi_oz_wv_ahi_from_cams(roi_extent, ahi_obs_time)
     oz_ahi_roi = numpy.array(oz_ahi_roi_da)
     wv_ahi_roi = numpy.array(wv_ahi_roi_da)
+    # print(oz_ahi_roi_da)
+    # print(numpy.array(oz_ahi_roi_da).shape)
+    # print(numpy.array(oz_ahi_roi_da))
+    # print(numpy.array(oz_ahi_roi_da['latitude']))
 
     # Get ROI 550nm data from JAXA dataset with AHI Resolution
     aot_ahi_roi_da, ss_ahi_roi_da, dust_ahi_roi_da, oa_ahi_roi_da, so4_ahi_roi_da, bc_ahi_roi_da = roi_od550_ahi_from_jaxa(roi_extent, ahi_obs_time)
     aot_ahi_roi = numpy.array(aot_ahi_roi_da)
+    # print(aot_ahi_roi_da)
+    # print(numpy.array(aot_ahi_roi_da).shape)
 
     # Calculate aerosol type
     aero_type_ahi_roi = set_roi_aero_type(ss_ahi_roi_da, dust_ahi_roi_da, oa_ahi_roi_da, so4_ahi_roi_da + bc_ahi_roi_da)
+    # print(aero_type_ahi_roi)
 
     # AHI data: vza, raa, sza
     roi_ahi_vza, roi_ahi_raa, roi_ahi_sza = roi_ahi_geo(roi_extent, ahi_obs_time)
+    # print(roi_ahi_vza)
+    # print(numpy.array(roi_ahi_vza).shape)
+    # print(roi_ahi_raa)
+    # print(numpy.array(roi_ahi_raa).shape)
+    # print(roi_ahi_sza)
+    # print(numpy.array(roi_ahi_sza).shape)
 
     # Get Atmospheric Correction Parameters using
     filename = BAND_RF_CSV[band_jma]
@@ -543,11 +622,11 @@ if __name__ == "__main__":
     start = time.perf_counter()
 
     # AHI Observation Time
-    ahi_obs_time = '201610130340'
+    ahi_obs_time = '201608230450'
     # roi_extent: (ullat, ullon, lrlat, lrlon)
-    roi_extent = [59.637, 117.273, 59.545, 117.452]
+    roi_extent = [47.325, 94.329, 47.203, 94.508]
     # band
-    band_name = 'band3'
+    band_name = 'band4'
 
     # Record data and AC parameter at ROI
     record_roi_data_AC_parameters_sr(roi_extent, ahi_obs_time, band_name)
