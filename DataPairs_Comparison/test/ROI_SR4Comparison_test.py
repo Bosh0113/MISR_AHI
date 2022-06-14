@@ -7,15 +7,31 @@ import numpy
 import matplotlib.pyplot as plt
 
 # https://www-pm.larc.nasa.gov/cgi-bin/site/showdoc?mnemonic=SBAF
-AHI2MISR_SLOPE = 1.039
-MISR_orbit = 84051
-band_index = 0
-MISR_camera = 3
+# # AHI2MISR_SLOPE = 1.039  # 26-10 band1
+# # AHI2MISR_SLOPE = 0.966  # 26-10 band2
+# # AHI2MISR_SLOPE = 0.973  # 26-10 band3
+# AHI2MISR_SLOPE = 0.992  # 26-10 band4
+# MISR_orbit = 84051
+# band_index = 3
+# MISR_camera = 3
+# time = 201510070250
+# workspace = r'D:\Work_PhD\MISR_AHI_WS\220614\26_10'
+# MISR_hdf = os.path.join(workspace, 'MISR_AM1_AS_LAND_P117_O084051_F07_0022.hdf')
+# misr_nc_filename = os.path.join(workspace, 'MISR_AM1_AS_LAND_P117_O084051_F08_0023.nc')
+# AHI_AC_npy = os.path.join(workspace, str(time) + '_ac_band' + str(band_index+1) + '.npy')
 
-workspace = r'D:\Work_PhD\MISR_AHI_WS\220609\26.1_10'
-MISR_hdf = os.path.join(workspace, 'MISR_AM1_AS_LAND_P117_O084051_F07_0022.hdf')
-misr_nc_filename = r'D:\Work_PhD\MISR_AHI_WS\220609\26.1_10\MISR_AM1_AS_LAND_P117_O084051_F08_0023.nc'
-AHI_AC_npy = os.path.join(workspace, '201510070250_ac_band' + str(band_index+1) + '.npy')
+# AHI2MISR_SLOPE = 0.930  # 70-80 band1
+# AHI2MISR_SLOPE = 1.212  # 70-80 band2
+# AHI2MISR_SLOPE = 1.034  # 70-80 band3
+AHI2MISR_SLOPE = 0.983  # 70-80 band4
+MISR_orbit = 89469
+band_index = 3
+MISR_camera = 0
+time = 201610130340
+workspace = r'D:\Work_PhD\MISR_AHI_WS\220614\70_80'
+MISR_hdf = os.path.join(workspace, 'MISR_AM1_AS_LAND_P129_O089469_F07_0022.hdf')
+misr_nc_filename = os.path.join(workspace, 'MISR_AM1_AS_LAND_P129_O089469_F08_0023.nc')
+AHI_AC_npy = os.path.join(workspace, str(time) + '_ac_band' + str(band_index+1) + '.npy')
 
 
 def BRF_TrueValue(o_value, scale, offset):
@@ -93,29 +109,37 @@ if __name__ == "__main__":
             roi_misr_brfv3[lat_index][lon_index] = roi_brf_tv3
 
     # MISR BRF v2
-    roi_misr_brfv2[abs(roi_misr_brfv2) <= 0.0] = numpy.NaN
+    roi_misr_brfv2[roi_misr_brfv2 <= 0.0] = numpy.NaN
     mapping(roi_misr_brfv2)
     # MISR BRF v3
-    roi_misr_brfv3[abs(roi_misr_brfv3) <= 0.0] = numpy.NaN
+    roi_misr_brfv3[roi_misr_brfv3 <= 0.0] = numpy.NaN
     mapping(roi_misr_brfv3)
 
-    mapping(abs((roi_misr_brfv2-roi_misr_brfv3)-roi_misr_brfv3))
+    # value = MISRv2-MISRv3*2
+    mapping(roi_misr_brfv2-roi_misr_brfv3*2)
 
-    roi_misr_brfv2[abs(roi_misr_brfv2) >= 0.0] = 1
+    mask_array = numpy.copy(roi_misr_brfv3)
+    mask_array[mask_array > 0.0] = 1.
 
     # TOA(AHI)
-    ahi_toa_misr = roi_ahi_toa*roi_misr_brfv2
+    ahi_toa_misr = roi_ahi_toa*mask_array
     mapping(ahi_toa_misr)
 
     # SR(AHI2MISR)
     ahi_sr_misr = ahi_sr2misr_sr(roi_ahi_sr, AHI2MISR_SLOPE)
     # print(ahi_sr_misr)
-    ahi_sr_misr = ahi_sr_misr*roi_misr_brfv2
+    ahi_sr_misr = ahi_sr_misr*mask_array
     mapping(ahi_sr_misr)
 
-    # # diff
-    # diff_misr_ahi = roi_misr_brf - ahi_sr_misr
-    # mapping(diff_misr_ahi)
-    # # diff (<=0.01->np.NaN)
-    # diff_misr_ahi[abs(diff_misr_ahi) <= 0.01] = numpy.NaN
-    # mapping(diff_misr_ahi)
+    # record as npy file
+    record_info = [
+        {
+            'misr_v2': roi_misr_brfv2,
+            'misr_v3': roi_misr_brfv3,
+            'ahi_toa': roi_ahi_toa,
+            'ahi_sr': roi_ahi_sr,
+            'ahi_sr2misr': ahi_sr_misr
+        }
+    ]
+    file_path = os.path.join(workspace, str(time) + '_sr_band' + str(band_index+1) + '.npy')
+    numpy.save(file_path, record_info)
