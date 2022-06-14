@@ -60,8 +60,9 @@ def calculate_cams_time(yyyy, mm, dd, obs_time):
     cams_time = obs_date + add_time
     cams_yyyymmdd = cams_time.strftime("%Y%m%d")
     cams_hh = cams_time.strftime("%H")
+    cams_hh_index = cams_times.index(str(cams_hh)+'00')
     # return yyyymmdd, hh
-    return cams_yyyymmdd, cams_hh
+    return cams_yyyymmdd, cams_hh, cams_hh_index
 
 
 def get_roi_min_extent(r_extent, f_lats, f_lons, resolution):
@@ -130,14 +131,14 @@ def roi_oz_wv_ahi_from_cams(r_extent, ahi_obs_t):
     ahi_dd = ahi_obs_t[6:8]
     ahi_time = ahi_obs_t[-4:]
     # CAMS for Obs
-    cams_yyyymmdd, cams_hh = calculate_cams_time(ahi_yyyy, ahi_mm, ahi_dd, ahi_time)
+    cams_yyyymmdd, cams_hh, cams_hh_index = calculate_cams_time(ahi_yyyy, ahi_mm, ahi_dd, ahi_time)
     cams_filename = os.path.join(CAMS_FOLDER, cams_yyyymmdd + '.nc')
     # Watervapour & Ozone
     ds_oz_wv = xarray.open_dataset(cams_filename)
     oz_wv_name = ['gtco3', 'tcwv']
     oz_wv_ahi_roi = []
     for type_name in oz_wv_name:
-        data_v = ds_oz_wv[type_name].data[int(cams_hh) - 1]
+        data_v = ds_oz_wv[type_name].data[cams_hh_index]
         data_v = numpy.array(data_v)
         lats = ds_oz_wv['latitude']
         lons = ds_oz_wv['longitude']
@@ -455,19 +456,19 @@ def calculate_SR(roi_xa, roi_xb, roi_xc, roi_obs_r):
 def record_roi_data_AC_parameters_sr(r_extent, ahi_obs_t, band_jma):
 
     # Get ROI Ozone & Watervaper (xarray.core.dataarray.DataArray) from CAMS with AHI Resolution
-    oz_ahi_roi_da, wv_ahi_roi_da = roi_oz_wv_ahi_from_cams(roi_extent, ahi_obs_time)
+    oz_ahi_roi_da, wv_ahi_roi_da = roi_oz_wv_ahi_from_cams(r_extent, ahi_obs_time)
     oz_ahi_roi = numpy.array(oz_ahi_roi_da)
     wv_ahi_roi = numpy.array(wv_ahi_roi_da)
 
     # Get ROI 550nm data from JAXA dataset with AHI Resolution
-    aot_ahi_roi_da, ss_ahi_roi_da, dust_ahi_roi_da, oa_ahi_roi_da, so4_ahi_roi_da, bc_ahi_roi_da = roi_od550_ahi_from_jaxa(roi_extent, ahi_obs_time)
+    aot_ahi_roi_da, ss_ahi_roi_da, dust_ahi_roi_da, oa_ahi_roi_da, so4_ahi_roi_da, bc_ahi_roi_da = roi_od550_ahi_from_jaxa(r_extent, ahi_obs_time)
     aot_ahi_roi = numpy.array(aot_ahi_roi_da)
 
     # Calculate aerosol type
     aero_type_ahi_roi = set_roi_aero_type(ss_ahi_roi_da, dust_ahi_roi_da, oa_ahi_roi_da, so4_ahi_roi_da + bc_ahi_roi_da)
 
     # AHI data: vza, raa, sza
-    roi_ahi_vza, roi_ahi_raa, roi_ahi_sza = roi_ahi_geo(roi_extent, ahi_obs_time)
+    roi_ahi_vza, roi_ahi_raa, roi_ahi_sza = roi_ahi_geo(r_extent, ahi_obs_time)
 
     # Get Atmospheric Correction Parameters using
     filename = BAND_RF_CSV[band_jma]
@@ -476,7 +477,7 @@ def record_roi_data_AC_parameters_sr(r_extent, ahi_obs_t, band_jma):
     ac_roi_fa, ac_roi_xa, ac_roi_xb, ac_roi_xc = ac_roi_parameter(band_rf, roi_ahi_vza, roi_ahi_sza, roi_ahi_raa, aot_ahi_roi, aero_type_ahi_roi, oz_ahi_roi, wv_ahi_roi)
 
     # GET ROI AHI data
-    ahi_data_roi = roi_ahi_data(roi_extent, ahi_obs_time, band_jma)
+    ahi_data_roi = roi_ahi_data(r_extent, ahi_obs_time, band_jma)
 
     # AHI AC
     roi_ahi_sr = calculate_SR(ac_roi_fa, ac_roi_xb, ac_roi_xc, ahi_data_roi)

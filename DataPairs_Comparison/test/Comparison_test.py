@@ -1,13 +1,21 @@
 # for python 3.6
 import os
 from MisrToolkit import MtkFile, orbit_to_path, latlon_to_bls
+import netCDF4
 import math
 import numpy
 import matplotlib.pyplot as plt
 
-workspace = r'D:\Work_PhD\MISR_AHI_WS\220602\70_80'
-MISR_hdf = os.path.join(workspace, 'MISR_AM1_AS_LAND_P129_O089469_F07_0022.hdf')
-AHI_AC_npy = os.path.join(workspace, '201610130340_ac_band1.npy')
+# https://www-pm.larc.nasa.gov/cgi-bin/site/showdoc?mnemonic=SBAF
+AHI2MISR_SLOPE = 1.039
+MISR_orbit = 84051
+band_index = 0
+MISR_camera = 3
+
+workspace = r'D:\Work_PhD\MISR_AHI_WS\220609\26.1_10'
+MISR_hdf = os.path.join(workspace, 'MISR_AM1_AS_LAND_P117_O084051_F07_0022.hdf')
+misr_nc_filename = r'D:\Work_PhD\MISR_AHI_WS\220609\26.1_10\MISR_AM1_AS_LAND_P117_O084051_F08_0023.nc'
+AHI_AC_npy = os.path.join(workspace, '201510070250_ac_band' + str(band_index+1) + '.npy')
 
 
 def BRF_TrueValue(o_value, scale, offset):
@@ -16,7 +24,7 @@ def BRF_TrueValue(o_value, scale, offset):
     overflow = 65535
 
     if o_value in [fill, underflow, overflow]:
-        return 0
+        return 0.
     else:
         x = math.floor(o_value/2)
         y = x*scale + offset
@@ -34,48 +42,80 @@ def mapping(array):
 
 
 if __name__ == "__main__":
-    MISR_orbit = 89469
-    # band_index = 3
-    band_index = 1
-    MISR_camera = 0
 
     ac_info = numpy.load(AHI_AC_npy, allow_pickle=True)[0]
     roi_lats = ac_info['roi_lats']
     roi_lons = ac_info['roi_lons']
     roi_ahi_sr = ac_info['roi_ahi_sr']
-    # roi_ahi_sr = ac_info['roi_ahi_data']
+    roi_ahi_toa = ac_info['roi_ahi_data']
     # print(roi_ahi_sr)
     misr_path = orbit_to_path(MISR_orbit)
+    # MISR v2 HDF
     m_file = MtkFile(MISR_hdf)
     m_grid = m_file.grid('SubregParamsLnd')
-    misr_resolution = m_grid.resolution
+    misr_resolutionv2 = m_grid.resolution
     m_field = m_grid.field('LandBRF[' + str(band_index) + ']'+'[' + str(MISR_camera) + ']')
-    scale_landBRF = m_grid.attr_get('Scale LandBRF')
-    offset_landBRF = m_grid.attr_get('Offset LandBRF')
-    roi_misr_brf = numpy.zeros_like(roi_ahi_sr)
+    scale_landBRFv2 = m_grid.attr_get('Scale LandBRF')
+    offset_landBRFv2 = m_grid.attr_get('Offset LandBRF')
+    # MISR v3 netCDF4
+    misr_nc = netCDF4.Dataset(misr_nc_filename)
+    misr_nc_11 = misr_nc.groups['1.1_KM_PRODUCTS']
+    misr_brf_var = misr_nc_11.variables['Bidirectional_Reflectance_Factor']
+    misr_brf_scalev3 = misr_brf_var.scale_factor
+    misr_brf_offsetv3 = misr_brf_var.add_offset
+    misr_nc.close()
+    m_file2 = MtkFile(misr_nc_filename)
+    m_grid11 = m_file2.grid('1.1_KM_PRODUCTS')
+    misr_resolutionv3 = m_grid11.resolution
+    m_field11 = m_grid11.field('Bidirectional_Reflectance_Factor[' + str(band_index) + ']'+'[' + str(MISR_camera) + ']')
+    # MISR data at ROI
+    roi_misr_brfv2 = numpy.zeros_like(roi_ahi_sr)
+    roi_misr_brfv3 = numpy.zeros_like(roi_ahi_sr)
     for lat_index in range(len(roi_lats)):
         for lon_index in range(len(roi_lons)):
             lat = roi_lats[lat_index]
             lon = roi_lons[lon_index]
-            misr_bls = latlon_to_bls(misr_path, misr_resolution, lat, lon)
-            block_ll = misr_bls[0]
-            b_lat_idx = int(misr_bls[1])
-            b_lon_idx = int(misr_bls[2])
-            block_brf_dn = m_field.read(block_ll, block_ll)[0]
-            roi_brf_dn = block_brf_dn[b_lat_idx][b_lon_idx]
-            roi_brf_t = BRF_TrueValue(roi_brf_dn, scale_landBRF, offset_landBRF)
-            roi_misr_brf[lat_index][lon_index] = roi_brf_t
+            misr_blsv2 = latlon_to_bls(misr_path, misr_resolutionv2, lat, lon)
+            misr_blsv3 = latlon_to_bls(misr_path, misr_resolutionv3, lat, lon)
+            block_llv2 = misr_blsv2[0]
+            block_llv3 = misr_blsv3[0]
+            b_lat_idxv2 = round(misr_blsv2[1])
+            b_lon_idxv2 = round(misr_blsv2[2])
+            b_lat_idxv3 = round(misr_blsv3[1])
+            b_lon_idxv3 = round(misr_blsv3[2])
+            block_brf_dnv2 = m_field.read(block_llv2, block_llv2)[0]
+            block_brf_dnv3 = m_field.read(block_llv3, block_llv3)[0]
+            roi_brf_dnv2 = block_brf_dnv2[b_lat_idxv2][b_lon_idxv2]
+            roi_brf_dnv3 = block_brf_dnv3[b_lat_idxv3][b_lon_idxv3]
+            roi_brf_tv2 = BRF_TrueValue(roi_brf_dnv2, scale_landBRFv2, offset_landBRFv2)
+            roi_brf_tv3 = BRF_TrueValue(roi_brf_dnv3, misr_brf_scalev3, misr_brf_offsetv3)
+            roi_misr_brfv2[lat_index][lon_index] = roi_brf_tv2
+            roi_misr_brfv3[lat_index][lon_index] = roi_brf_tv3
 
-    # print(roi_misr_brf)
-    mapping(roi_misr_brf)
-    # https://www-pm.larc.nasa.gov/cgi-bin/site/showdoc?mnemonic=SBAF
-    ahi2misr_slope_b1 = 0.930   # temp
-    ahi_sr_misr = ahi_sr2misr_sr(roi_ahi_sr, ahi2misr_slope_b1)
+    # MISR BRF v2
+    roi_misr_brfv2[abs(roi_misr_brfv2) <= 0.0] = numpy.NaN
+    mapping(roi_misr_brfv2)
+    # MISR BRF v3
+    roi_misr_brfv3[abs(roi_misr_brfv3) <= 0.0] = numpy.NaN
+    mapping(roi_misr_brfv3)
+
+    mapping(abs((roi_misr_brfv2-roi_misr_brfv3)-roi_misr_brfv3))
+
+    roi_misr_brfv2[abs(roi_misr_brfv2) >= 0.0] = 1
+
+    # TOA(AHI)
+    ahi_toa_misr = roi_ahi_toa*roi_misr_brfv2
+    mapping(ahi_toa_misr)
+
+    # SR(AHI2MISR)
+    ahi_sr_misr = ahi_sr2misr_sr(roi_ahi_sr, AHI2MISR_SLOPE)
     # print(ahi_sr_misr)
+    ahi_sr_misr = ahi_sr_misr*roi_misr_brfv2
     mapping(ahi_sr_misr)
-    # diff
-    diff_misr_ahi = roi_misr_brf - ahi_sr_misr
-    mapping(diff_misr_ahi)
-    # diff (<=0.01->np.NaN)
-    diff_misr_ahi[abs(diff_misr_ahi) <= 0.01] = numpy.NaN
-    mapping(diff_misr_ahi)
+
+    # # diff
+    # diff_misr_ahi = roi_misr_brf - ahi_sr_misr
+    # mapping(diff_misr_ahi)
+    # # diff (<=0.01->np.NaN)
+    # diff_misr_ahi[abs(diff_misr_ahi) <= 0.01] = numpy.NaN
+    # mapping(diff_misr_ahi)
