@@ -100,7 +100,7 @@ if __name__ == "__main__":
             b_lat_idxv3 = round(misr_blsv3[1])
             b_lon_idxv3 = round(misr_blsv3[2])
             block_brf_dnv2 = m_field.read(block_llv2, block_llv2)[0]
-            block_brf_dnv3 = m_field.read(block_llv3, block_llv3)[0]
+            block_brf_dnv3 = m_field11.read(block_llv3, block_llv3)[0]
             roi_brf_dnv2 = block_brf_dnv2[b_lat_idxv2][b_lon_idxv2]
             roi_brf_dnv3 = block_brf_dnv3[b_lat_idxv3][b_lon_idxv3]
             roi_brf_tv2 = BRF_TrueValue(roi_brf_dnv2, scale_landBRFv2, offset_landBRFv2)
