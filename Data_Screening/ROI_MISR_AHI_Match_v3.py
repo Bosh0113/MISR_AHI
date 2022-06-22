@@ -141,8 +141,8 @@ def misr_ahi_raa_matching(roi_geoj_file, misr_ls_file, ahi_vaa_file, ahi_saa_fil
         roi_r = MtkRegion(roi_extent[0], roi_extent[1], roi_extent[2], roi_extent[3])
         m_file = MtkFile(misr_ls_file)
         m_grid = m_file.grid('4.4_KM_PRODUCTS')
-        m_field_vaa = m_grid.field('View_Azimuth_Angle[' + str(camera_index) + ']')
-        m_field_saa = m_grid.field('Solar_Azimuth_Angle')
+        m_field_vaa = m_grid.field('GEOMETRY/View_Azimuth_Angle[' + str(camera_index) + ']')
+        m_field_saa = m_grid.field('GEOMETRY/Solar_Azimuth_Angle')
         # in single array
         f_vaa_data = m_field_vaa.read(roi_r).data()
         roi_misr_vaa_list = f_vaa_data.flatten()
@@ -168,7 +168,7 @@ def get_region_mean_misr_sza(misr_hdf_filename, roi_extent):
     m_file = MtkFile(misr_hdf_filename)
     m_grid = m_file.grid('4.4_KM_PRODUCTS')
     roi_r = MtkRegion(roi_extent[0], roi_extent[1], roi_extent[2], roi_extent[3])
-    m_field = m_grid.field('Solar_Zenith_Angle')
+    m_field = m_grid.field('GEOMETRY/Solar_Zenith_Angle')
     f_sza_data = m_field.read(roi_r).data()
     # in single array
     roi_misr_sza_list = f_sza_data.flatten()
@@ -283,7 +283,7 @@ if __name__ == "__main__":
                                     cameras = [0, 8]
 
                                 for camera in cameras:
-                                    m_field = m_grid.field('View_Zenith_Angle[' + str(camera) + ']')
+                                    m_field = m_grid.field('GEOMETRY/View_Zenith_Angle[' + str(camera) + ']')
                                     f_vza_data = m_field.read(roi_r).data()
                                     # in single array
                                     roi_misr_vza_list = f_vza_data.flatten()
