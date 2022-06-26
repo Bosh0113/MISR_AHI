@@ -1,5 +1,5 @@
 # for python 3.6
-from MisrToolkit import MtkRegion, MtkFile, path_time_range_to_orbit_list
+from MisrToolkit import MtkRegion, MtkFile, path_time_range_to_orbit_list, orbit_to_time_range
 import math
 from datetime import datetime, timedelta
 import numpy
@@ -8,6 +8,8 @@ import json
 import bz2
 import shutil
 import netCDF4
+import re
+import urllib.request
 from ftplib import FTP
 
 # time range for our study
@@ -215,6 +217,32 @@ def get_region_mean_ahi_sza(temp_folder, ahi_time, region_extent):
     return roi_vsa_mean
 
 
+def re_download_MISR_MIL2ASLS03_NC(folder, path, orbit):
+    time_range = orbit_to_time_range(orbit)
+    s_time = time_range[0]
+    matchObj = re.search(r'(\d+)-(\d+)-(\d+)T', str(s_time))
+    yy = matchObj.group(1)
+    mm = matchObj.group(2)
+    dd = matchObj.group(3)
+    
+    t = str(yy) + '.' + str(mm) + '.' + str(dd)
+    P = 'P' + (3-len(str(path)))*'0' + str(path)
+    O_ = 'O' + (6-len(str(orbit)))*'0' + str(orbit)
+    F = 'F' + '08'
+    v = '0023'
+    base_url = 'https://opendap.larc.nasa.gov/opendap/MISR/MIL2ASLS.003'
+    filename = 'MISR_AM1_AS_LAND_' + P + '_' + O_ + '_' + F + '_' + v + '.nc'
+
+    download_url = base_url + '/' + t + '/' + filename
+    storage_path = folder + '/' + filename
+
+    try:
+        urllib.request.urlretrieve(download_url, filename=storage_path)
+    except Exception as e:
+        print('Error: ' + download_url)
+        print(e)
+
+
 if __name__ == "__main__":
     # AHI data ftp server
     ftp = FTP()
@@ -268,7 +296,16 @@ if __name__ == "__main__":
                             misr_v3_nc_file = 'MISR_AM1_AS_LAND_' + P + '_' + O_ + '_' + F + '_' + v + '.nc'
                             misr_nc_filename = misr_folder + '/' + misr_v3_nc_file
                             if os.path.exists(misr_nc_filename):
-                                m_file = MtkFile(misr_nc_filename)
+                                m_file = None
+                                file_read_flag = 1
+                                while file_read_flag == 1:
+                                    try:
+                                        m_file = MtkFile(misr_nc_filename)
+                                        file_read_flag = 0
+                                    except Exception as e:
+                                        print('re-download:', misr_v3_nc_file)
+                                        re_download_MISR_MIL2ASLS03_NC(misr_folder, path, orbit)
+
                                 m_grid = m_file.grid('4.4_KM_PRODUCTS')
 
                                 cameras = []
@@ -408,7 +445,7 @@ if __name__ == "__main__":
                                                                 misr_roi_raa) + '\t' + str(ahi_roi_raa) + '\t' + str(misr_roi_sza) + '\t' + str(ahi_roi_sza)
                                                             print(record_item)
                                                             geocond_record_str += record_item + '\n'
-                                                            print('-- path:', path, '--', 'orbit:', orbit, '--', 'camera:', camera)
+                                                            # print('-- path:', path, '--', 'orbit:', orbit, '--', 'camera:', camera)
                                                             # build folder for MISR-AHI data
                                                             misr_path_orbit_camera = str(P) + '_' + str(O_) + '_' + str(camera)
                                                             misr_ws_c_folder = roi_matched_folder + '/' + misr_path_orbit_camera

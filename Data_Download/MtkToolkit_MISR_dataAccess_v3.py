@@ -9,21 +9,21 @@ import ssl
 ssl._create_default_https_context = ssl._create_unverified_context
 
 
-def download_MISR_MIL2ASLS03_HDF(folder, path, orbit):
+def download_MISR_MIL2ASLS03_NC(folder, path, orbit):
     time_range = orbit_to_time_range(orbit)
     s_time = time_range[0]
     matchObj = re.search(r'(\d+)-(\d+)-(\d+)T', str(s_time))
     yy = matchObj.group(1)
     mm = matchObj.group(2)
     dd = matchObj.group(3)
-    
+
     t = str(yy) + '.' + str(mm) + '.' + str(dd)
     P = 'P' + (3-len(str(path)))*'0' + str(path)
-    O = 'O' + (6-len(str(orbit)))*'0' + str(orbit)
+    O_ = 'O' + (6-len(str(orbit)))*'0' + str(orbit)
     F = 'F' + '08'
     v = '0023'
     base_url = 'https://opendap.larc.nasa.gov/opendap/MISR/MIL2ASLS.003'
-    filename = 'MISR_AM1_AS_LAND_' + P + '_' + O + '_' + F + '_' + v + '.nc'
+    filename = 'MISR_AM1_AS_LAND_' + P + '_' + O_ + '_' + F + '_' + v + '.nc'
 
     download_url = base_url + '/' + t + '/' + filename
     storage_path = folder + '/' + filename
@@ -49,7 +49,7 @@ if __name__ == "__main__":
     for path in pathList:
         orbits = path_time_range_to_orbit_list(path, start_t, end_t)
         for orbit in orbits:
-            download_MISR_MIL2ASLS03_HDF(storage_folder, path, orbit)
+            download_MISR_MIL2ASLS03_NC(storage_folder, path, orbit)
 
     end = time.perf_counter()
     print("Run time: ", end - start, 's')
