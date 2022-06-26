@@ -7,18 +7,19 @@ import os
 import json
 import bz2
 import shutil
+import netCDF4
 from ftplib import FTP
 
 # time range for our study
-start_t = '2015-07-01T00:00:00Z'
-end_t = '2021-07-01T23:59:59Z'
+start_t = '2017-01-01T00:00:00Z'
+end_t = '2019-12-31T23:59:59Z'
 # daytime range
 ahi_localtime_start = '08:00:00Z'
 ahi_localtime_end = '15:59:59Z'
 # data path
 ahi_vza_bin = '/disk1/Data/AHI/VZA/202201010000.sat.zth.fld.4km.bin'
 ahi_vaa_bin = '/disk1/Data/AHI/VAA/202201010000.sat.azm.fld.4km.bin'
-misr_folder = '/disk1/Data/MISR4AHI2015070120170601'
+misr_folder = '/disk1/Data/MISR4AHI2015070120210630_3'
 roi_folder = '/disk1/Data/MISR_AHI_ROIs'
 # storage path
 WORK_SPACE = os.getcwd()
@@ -264,10 +265,10 @@ if __name__ == "__main__":
                             O_ = 'O' + (6 - len(str(orbit))) * '0' + str(orbit)
                             F = 'F' + '08'
                             v = '0023'
-                            hdf_file = 'MISR_AM1_AS_LAND_' + P + '_' + O_ + '_' + F + '_' + v + '.nc'
-                            hdf_filename = misr_folder + '/' + hdf_file
-                            if os.path.exists(hdf_filename):
-                                m_file = MtkFile(hdf_filename)
+                            misr_v3_nc_file = 'MISR_AM1_AS_LAND_' + P + '_' + O_ + '_' + F + '_' + v + '.nc'
+                            misr_nc_filename = misr_folder + '/' + misr_v3_nc_file
+                            if os.path.exists(misr_nc_filename):
+                                m_file = MtkFile(misr_nc_filename)
                                 m_grid = m_file.grid('4.4_KM_PRODUCTS')
 
                                 cameras = []
@@ -306,12 +307,22 @@ if __name__ == "__main__":
 
                                             # for SZA match
                                             roi_blocks = roi_r.block_range(path)
-                                            blocks_time_list = m_file.block_metadata_field_read('PerBlockMetadataTime', 'BlockCenterTime')
-                                            roi_misr_time = blocks_time_list[roi_blocks[0] - 1]
-                                            # print('   ', roi_misr_time)
+                                            block_no = roi_blocks[0]
+                                            misr_nc = netCDF4.Dataset(misr_nc_filename)
+                                            misr_nc_44 = misr_nc.groups['4.4_KM_PRODUCTS']
+                                            misr_block_var = misr_nc_44.variables['Block_Number']
+                                            misr_block_var = misr_nc_44.variables['Block_Number']
+                                            misr_time_var = misr_nc_44.variables['Time']
+                                            misr_units = misr_time_var.units
+                                            start_time = misr_units[14:-8]+'Z'
+                                            misr_start_date = datetime.strptime(start_time, "%Y-%m-%dT%H:%M:%SZ")
+                                            block_time_num = int(len(misr_time_var[:])/len(misr_block_var[:]))
+                                            block_time_array = misr_time_var[(block_no-1)*block_time_num:block_no*block_time_num]
+                                            block_time_offset = round(block_time_array.mean())
+                                            block_time_offset_s = timedelta(seconds=block_time_offset)
+                                            misr_roi_date = misr_start_date + block_time_offset_s
+                                            misr_nc.close()
 
-                                            misr_time_str = roi_misr_time.split('.')[0] + 'Z'
-                                            misr_roi_date = datetime.strptime(misr_time_str, "%Y-%m-%dT%H:%M:%SZ")
                                             # daytime range on same day
                                             center_pt = [(roi_extent[0] + roi_extent[2]) / 2, (roi_extent[1] + roi_extent[3]) / 2]
                                             time_offset = ahi_lon_timeoffset(center_pt[1])
@@ -371,7 +382,7 @@ if __name__ == "__main__":
                                                         # print(e)
                                                     # print('ahi_saa', os.path.exists(ahi_saa_bin_bz2))
                                                     if os.path.exists(ahi_saa_bin_bz2):
-                                                        m_raa, ahi_raa, diff_raa = misr_ahi_raa_matching(roi_geoj_filename, hdf_filename, ahi_vaa_bin, ahi_saa_bin, camera)
+                                                        m_raa, ahi_raa, diff_raa = misr_ahi_raa_matching(roi_geoj_filename, misr_nc_filename, ahi_vaa_bin, ahi_saa_bin, camera)
                                                         # ## RAA match ###
                                                         # print(diff_raa < RAA_DEGREE_THRESHOLD)
                                                         if diff_raa > 0 and diff_raa < RAA_DEGREE_THRESHOLD:
@@ -385,7 +396,7 @@ if __name__ == "__main__":
                                                             ahi_roi_vza = '%.3f' % ahi_vza_mean
                                                             misr_roi_raa = '%.3f' % m_raa
                                                             ahi_roi_raa = '%.3f' % ahi_raa
-                                                            misr_roi_sza = get_region_mean_misr_sza(hdf_filename, roi_extent)
+                                                            misr_roi_sza = get_region_mean_misr_sza(misr_nc_filename, roi_extent)
                                                             misr_roi_sza = '%.3f' % misr_roi_sza
                                                             ahi_roi_sza = get_region_mean_ahi_sza(temp_ws, ahi_obs_time, roi_extent)
                                                             ahi_roi_sza = '%.3f' % ahi_roi_sza
@@ -400,8 +411,8 @@ if __name__ == "__main__":
                                                             misr_ws_c_folder = roi_matched_folder + '/' + misr_path_orbit_camera
                                                             if not os.path.exists(misr_ws_c_folder):
                                                                 os.makedirs(misr_ws_c_folder)
-                                                            misr_ws_data_filename = misr_ws_c_folder + '/' + hdf_file
-                                                            shutil.copy(hdf_filename, misr_ws_data_filename)
+                                                            misr_ws_data_filename = misr_ws_c_folder + '/' + misr_v3_nc_file
+                                                            shutil.copy(misr_nc_filename, misr_ws_data_filename)
                                                             # record matched info
                                                             matched_roi_misr = {}
                                                             matched_roi_misr['misr_path_orbit_camera'] = misr_ws_c_folder

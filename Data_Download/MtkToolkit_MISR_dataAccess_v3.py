@@ -9,7 +9,7 @@ import ssl
 ssl._create_default_https_context = ssl._create_unverified_context
 
 
-def download_MISR_MIL2ASLS02_HDF(folder, path, orbit):
+def download_MISR_MIL2ASLS03_HDF(folder, path, orbit):
     time_range = orbit_to_time_range(orbit)
     s_time = time_range[0]
     matchObj = re.search(r'(\d+)-(\d+)-(\d+)T', str(s_time))
@@ -49,7 +49,7 @@ if __name__ == "__main__":
     for path in pathList:
         orbits = path_time_range_to_orbit_list(path, start_t, end_t)
         for orbit in orbits:
-            download_MISR_MIL2ASLS02_HDF(storage_folder, path, orbit)
+            download_MISR_MIL2ASLS03_HDF(storage_folder, path, orbit)
 
     end = time.perf_counter()
     print("Run time: ", end - start, 's')
