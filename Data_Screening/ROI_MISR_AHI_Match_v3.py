@@ -317,7 +317,10 @@ if __name__ == "__main__":
                                             start_time = misr_units[14:-8]+'Z'
                                             misr_start_date = datetime.strptime(start_time, "%Y-%m-%dT%H:%M:%SZ")
                                             block_time_num = int(len(misr_time_var[:])/len(misr_block_var[:]))
-                                            block_time_array = misr_time_var[(block_no-1)*block_time_num:block_no*block_time_num]
+                                            blocks = numpy.array(misr_block_var[:])
+                                            block_time_s = numpy.argmax(blocks == block_no-1)
+                                            block_time_e = numpy.argmax(blocks == block_no)
+                                            block_time_array = misr_time_var[block_time_s*block_time_num:block_time_e*block_time_num]
                                             block_time_offset = round(block_time_array.mean())
                                             block_time_offset_s = timedelta(seconds=block_time_offset)
                                             misr_roi_date = misr_start_date + block_time_offset_s
