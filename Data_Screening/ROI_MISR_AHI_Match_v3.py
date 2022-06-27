@@ -142,18 +142,27 @@ def misr_ahi_raa_matching(roi_geoj_file, misr_ls_file, ahi_vaa_file, ahi_saa_fil
         roi_extent = get_extent(polygon_pts)
         # MISR RAA
         roi_r = MtkRegion(roi_extent[0], roi_extent[1], roi_extent[2], roi_extent[3])
+        misr_nc = netCDF4.Dataset(misr_ls_file)
+        misr_nc_44 = misr_nc.groups['4.4_KM_PRODUCTS']
+        misr_vaa_var = misr_nc_44.groups['GEOMETRY'].variables['View_Azimuth_Angle']
+        misr_vaa_scale = misr_vaa_var.scale_factor
+        misr_vaa_offset = misr_vaa_var.add_offset
+        misr_nc.close()
         m_file = MtkFile(misr_ls_file)
         m_grid = m_file.grid('4.4_KM_PRODUCTS')
         m_field_vaa = m_grid.field('GEOMETRY/View_Azimuth_Angle[' + str(camera_index) + ']')
         m_field_saa = m_grid.field('GEOMETRY/Solar_Azimuth_Angle')
         # in single array
         f_vaa_data = m_field_vaa.read(roi_r).data()
-        roi_misr_vaa_list = f_vaa_data.flatten()
+        f_vaa_data = numpy.array(f_vaa_data)
+        roi_misr_vaa_dn = f_vaa_data.flatten()
         f_saa_data = m_field_saa.read(roi_r).data()
+        f_saa_data = numpy.array(f_saa_data)
         roi_misr_saa_list = f_saa_data.flatten()
-        roi_misr_vaa_list = numpy.setdiff1d(roi_misr_vaa_list, [-9999])
-        roi_misr_saa_list = numpy.setdiff1d(roi_misr_saa_list, [-9999])
-        if len(roi_misr_vaa_list) > 0:
+        roi_misr_vaa_dn = roi_misr_vaa_dn[~numpy.isin(roi_misr_vaa_dn, [65533, 65534, 65535, -9999])]
+        roi_misr_vaa_list = roi_misr_vaa_dn*misr_vaa_scale + numpy.ones_like(roi_misr_vaa_dn)*misr_vaa_offset
+        roi_misr_saa_list = roi_misr_saa_list[~numpy.isin(roi_misr_saa_list, [65533, 65534, 65535, -9999])]
+        try:
             f_raa_data = get_misr_raa(roi_misr_vaa_list, roi_misr_saa_list)
             roi_misr_raa = f_raa_data.mean()
             # AHI RAA
@@ -164,18 +173,21 @@ def misr_ahi_raa_matching(roi_geoj_file, misr_ls_file, ahi_vaa_file, ahi_saa_fil
             # show raa diff
             raa_diff = abs(roi_misr_raa - roi_ahi_raa)
             return roi_misr_raa, roi_ahi_raa, raa_diff
-    return 0, 0, 0
+        except Exception as e:
+            print(e)
+            return 0, 0, 0
 
 
 def get_region_mean_misr_sza(misr_hdf_filename, roi_extent):
     m_file = MtkFile(misr_hdf_filename)
     m_grid = m_file.grid('4.4_KM_PRODUCTS')
     roi_r = MtkRegion(roi_extent[0], roi_extent[1], roi_extent[2], roi_extent[3])
-    m_field = m_grid.field('GEOMETRY/Solar_Zenith_Angle')
+    m_field = m_grid.field('GEOMETRY/Solar_Zenith_Angle')       # angle at 0° scan time...
     f_sza_data = m_field.read(roi_r).data()
+    f_sza_data = numpy.array(f_sza_data)
     # in single array
     roi_misr_sza_list = f_sza_data.flatten()
-    roi_misr_sza_list = numpy.setdiff1d(roi_misr_sza_list, [-9999])
+    roi_misr_sza_list = roi_misr_sza_list[~numpy.isin(roi_misr_sza_list, [65533, 65534, 65535, -9999])]
     roi_misr_sza = roi_misr_sza_list.mean()
     return roi_misr_sza
 
@@ -198,6 +210,7 @@ def get_region_mean_ahi_sza(temp_folder, ahi_time, region_extent):
             f.write(data)
         zipfile.close()
     except Exception as e:
+        print(e)
         os.remove(ahi_sza_bin_bz2)
         # print('Error: ' + ahi_saa_data_ftp)
         # print(e)
@@ -303,6 +316,7 @@ if __name__ == "__main__":
                                         m_file = MtkFile(misr_nc_filename)
                                         file_read_flag = 0
                                     except Exception as e:
+                                        print(e)
                                         print('re-download:', misr_v3_nc_file)
                                         re_download_MISR_MIL2ASLS03_NC(misr_folder, path, orbit)
 
@@ -321,14 +335,23 @@ if __name__ == "__main__":
                                     cameras = [0, 8]
 
                                 for camera in cameras:
+                                    misr_nc = netCDF4.Dataset(misr_nc_filename)
+                                    misr_nc_44 = misr_nc.groups['4.4_KM_PRODUCTS']
+                                    misr_vza_var = misr_nc_44.groups['GEOMETRY'].variables['View_Zenith_Angle']
+                                    misr_vza_scale = misr_vza_var.scale_factor
+                                    misr_vza_offset = misr_vza_var.add_offset
+                                    misr_nc.close()
                                     m_field = m_grid.field('GEOMETRY/View_Zenith_Angle[' + str(camera) + ']')
                                     f_vza_data = m_field.read(roi_r).data()
+                                    f_vza_data = numpy.array(f_vza_data)
                                     # in single array
-                                    roi_misr_vza_list = f_vza_data.flatten()
-                                    roi_misr_vza_list = numpy.setdiff1d(roi_misr_vza_list, [-9999])
+                                    roi_misr_vza_dn = f_vza_data.flatten()
+                                    roi_misr_vza_dn = roi_misr_vza_dn[~numpy.isin(roi_misr_vza_dn, [65533, 65534, 65535, -9999])]
+                                    roi_misr_vza_list = roi_misr_vza_dn*misr_vza_scale + numpy.ones_like(roi_misr_vza_dn)*misr_vza_offset
                                     # has available values?
                                     if len(roi_misr_vza_list) > 0:
                                         roi_misr_vza = roi_misr_vza_list.mean()
+                                        # print(roi_misr_vza)
                                         # ## VZA match ###
                                         a1 = 0
                                         a2 = 0
@@ -341,128 +364,135 @@ if __name__ == "__main__":
                                         differ_cos = 1 - (math.cos(math.radians(a1)) / math.cos(math.radians(a2)))
                                         if differ_cos <= VZA_COS_THRESHOLD:
                                             print('-- path:', path, '--', 'orbit:', orbit, '--', 'camera:', camera)
+                                            # print('VZA matched')
+                                            try:
+                                                # for SZA match
+                                                roi_blocks = roi_r.block_range(path)
+                                                block_no = roi_blocks[0]
+                                                misr_nc = netCDF4.Dataset(misr_nc_filename)
+                                                misr_nc_44 = misr_nc.groups['4.4_KM_PRODUCTS']
+                                                misr_block_var = misr_nc_44.variables['Block_Number']
+                                                misr_block_var = misr_nc_44.variables['Block_Number']
+                                                misr_time_var = misr_nc_44.variables['Time']
+                                                misr_units = misr_time_var.units
+                                                start_time = misr_units[14:-8]+'Z'
+                                                misr_start_date = datetime.strptime(start_time, "%Y-%m-%dT%H:%M:%SZ")
+                                                block_time_num = int(len(misr_time_var[:])/len(misr_block_var[:]))
+                                                blocks = numpy.array(misr_block_var[:])
+                                                block_time_s = numpy.argmax(blocks == block_no-1)
+                                                block_time_e = numpy.argmax(blocks == block_no)
+                                                block_time_array = misr_time_var[block_time_s*block_time_num:block_time_e*block_time_num]
+                                                block_time_offset = round(block_time_array.mean())
+                                                block_time_offset_s = timedelta(seconds=block_time_offset)
+                                                camera_time_offset_s = timedelta(seconds=int((7*60)/4*(camera-4)))
+                                                misr_roi_date = misr_start_date + block_time_offset_s + camera_time_offset_s
+                                                misr_nc.close()
 
-                                            # for SZA match
-                                            roi_blocks = roi_r.block_range(path)
-                                            block_no = roi_blocks[0]
-                                            misr_nc = netCDF4.Dataset(misr_nc_filename)
-                                            misr_nc_44 = misr_nc.groups['4.4_KM_PRODUCTS']
-                                            misr_block_var = misr_nc_44.variables['Block_Number']
-                                            misr_block_var = misr_nc_44.variables['Block_Number']
-                                            misr_time_var = misr_nc_44.variables['Time']
-                                            misr_units = misr_time_var.units
-                                            start_time = misr_units[14:-8]+'Z'
-                                            misr_start_date = datetime.strptime(start_time, "%Y-%m-%dT%H:%M:%SZ")
-                                            block_time_num = int(len(misr_time_var[:])/len(misr_block_var[:]))
-                                            blocks = numpy.array(misr_block_var[:])
-                                            block_time_s = numpy.argmax(blocks == block_no-1)
-                                            block_time_e = numpy.argmax(blocks == block_no)
-                                            block_time_array = misr_time_var[block_time_s*block_time_num:block_time_e*block_time_num]
-                                            block_time_offset = round(block_time_array.mean())
-                                            block_time_offset_s = timedelta(seconds=block_time_offset)
-                                            misr_roi_date = misr_start_date + block_time_offset_s
-                                            misr_nc.close()
+                                                # daytime range on same day
+                                                center_pt = [(roi_extent[0] + roi_extent[2]) / 2, (roi_extent[1] + roi_extent[3]) / 2]
+                                                time_offset = ahi_lon_timeoffset(center_pt[1])
+                                                local_date = misr_roi_date + timedelta(hours=time_offset)
+                                                local_day_str = local_date.strftime("%Y-%m-%dT")
+                                                local_time_start_str = local_day_str + ahi_localtime_start
+                                                local_date_start = datetime.strptime(local_time_start_str, "%Y-%m-%dT%H:%M:%SZ")
+                                                utc_date_start = local_date_start - timedelta(hours=time_offset)
+                                                local_time_end_str = local_day_str + ahi_localtime_end
+                                                local_date_end = datetime.strptime(local_time_end_str, "%Y-%m-%dT%H:%M:%SZ")
+                                                utc_date_end = local_date_end - timedelta(hours=time_offset)
 
-                                            # daytime range on same day
-                                            center_pt = [(roi_extent[0] + roi_extent[2]) / 2, (roi_extent[1] + roi_extent[3]) / 2]
-                                            time_offset = ahi_lon_timeoffset(center_pt[1])
-                                            local_date = misr_roi_date + timedelta(hours=time_offset)
-                                            local_day_str = local_date.strftime("%Y-%m-%dT")
-                                            local_time_start_str = local_day_str + ahi_localtime_start
-                                            local_date_start = datetime.strptime(local_time_start_str, "%Y-%m-%dT%H:%M:%SZ")
-                                            utc_date_start = local_date_start - timedelta(hours=time_offset)
-                                            local_time_end_str = local_day_str + ahi_localtime_end
-                                            local_date_end = datetime.strptime(local_time_end_str, "%Y-%m-%dT%H:%M:%SZ")
-                                            utc_date_end = local_date_end - timedelta(hours=time_offset)
+                                                # for record required AHI SAA data
+                                                AHI_saa_filename_diffs = []
+                                                date_interval = timedelta(minutes=10)
+                                                date_ahi = utc_date_start
+                                                # print(utc_date_start.strftime("%Y-%m-%dT%H:%M:%SZ"), utc_date_end.strftime("%Y-%m-%dT%H:%M:%SZ"))
+                                                while date_ahi < utc_date_end:
+                                                    datetime_diff = date_ahi - misr_roi_date
+                                                    datetime_diff_s = abs(datetime_diff.total_seconds())
+                                                    # ## SZA match ###
+                                                    if datetime_diff_s < SZA_TIME_THRESHOLD:
+                                                        ahi_data_time = date_ahi.strftime("%Y%m%d%H%M")
+                                                        ahi_data_folder1 = date_ahi.strftime("%Y%m")
+                                                        ahi_data_folder2 = date_ahi.strftime("%Y%m%d")
+                                                        ahi_saa_file = ahi_data_time + '.sun.azm.fld.4km.bin.bz2'
+                                                        ahi_saa_path = '/gridded/FD/V20190123/' + ahi_data_folder1 + '/4KM/' + ahi_data_folder2 + '/' + ahi_saa_file
+                                                        # no download, just record
+                                                        AHI_saa_filename_diffs.append([ahi_saa_path, datetime_diff_s])
+                                                    date_ahi = date_ahi + date_interval
+                                                # sort by time diff
+                                                AHI_saa_filename_diffs = sorted(AHI_saa_filename_diffs, key=(lambda x: x[1]))
+                                                # for raa match
+                                                matched_flag = False
+                                                for AHI_saa_filename_diff in AHI_saa_filename_diffs:
+                                                    if not matched_flag:
+                                                        ahi_saa_data_ftp = AHI_saa_filename_diff[0]
+                                                        temp_ws = os.path.join(WORK_SPACE, 'temp')
+                                                        if not os.path.exists(temp_ws):
+                                                            os.makedirs(temp_ws)
+                                                        filename_parts = ahi_saa_data_ftp.split('/')
+                                                        ahi_saa_file = filename_parts[len(filename_parts) - 1]
+                                                        ahi_saa_bin_bz2 = os.path.join(temp_ws, ahi_saa_file)
+                                                        ahi_saa_bin = ''
+                                                        try:
+                                                            with open(ahi_saa_bin_bz2, 'wb') as f:
+                                                                ftp.retrbinary('RETR ' + ahi_saa_data_ftp, f.write, 1024 * 1024)
+                                                            zipfile = bz2.BZ2File(ahi_saa_bin_bz2)
+                                                            data = zipfile.read()
+                                                            ahi_saa_bin = ahi_saa_bin_bz2[:-4]
+                                                            with open(ahi_saa_bin, 'wb') as f:
+                                                                f.write(data)
+                                                            zipfile.close()
+                                                        except Exception as e:
+                                                            print(e)
+                                                            os.remove(ahi_saa_bin_bz2)
+                                                            # print('Error: ' + ahi_saa_data_ftp)
+                                                            # print(e)
+                                                        # print('ahi_saa', os.path.exists(ahi_saa_bin_bz2))
+                                                        if os.path.exists(ahi_saa_bin_bz2):
+                                                            m_raa, ahi_raa, diff_raa = misr_ahi_raa_matching(roi_geoj_filename, misr_nc_filename, ahi_vaa_bin, ahi_saa_bin, camera)
+                                                            # ## RAA match ###
+                                                            # print(diff_raa < RAA_DEGREE_THRESHOLD)
+                                                            if diff_raa > 0 and diff_raa < RAA_DEGREE_THRESHOLD:
+                                                                # print('RAA matched')
+                                                                # print('SZA matched')
+                                                                matched_flag = True
+                                                                # geo-obs condition
+                                                                misr_orbit = orbit
+                                                                misr_camera = camera
+                                                                misr_roi_block_time = misr_roi_date.strftime("%Y%m%d%H%M")
+                                                                ahi_obs_time = ahi_saa_file.split('.')[0]
+                                                                misr_roi_vza = '%.3f' % roi_misr_vza
+                                                                ahi_roi_vza = '%.3f' % ahi_vza_mean
+                                                                misr_roi_raa = '%.3f' % m_raa
+                                                                ahi_roi_raa = '%.3f' % ahi_raa
+                                                                misr_roi_sza = get_region_mean_misr_sza(misr_nc_filename, roi_extent)
+                                                                misr_roi_sza = '%.3f' % misr_roi_sza
+                                                                ahi_roi_sza = get_region_mean_ahi_sza(temp_ws, ahi_obs_time, roi_extent)
+                                                                ahi_roi_sza = '%.3f' % ahi_roi_sza
+                                                                # misr_orbit misr_camera_index misr_block_time ahi_time misr_vza ahi_vza misr_raa ahi_raa misr_sza ahi_sza
+                                                                record_item = str(misr_orbit) + '\t' + str(misr_camera) + '\t' + misr_roi_block_time + '\t' + ahi_obs_time + '\t' + str(misr_roi_vza) + '\t' + str(ahi_roi_vza) + '\t' + str(
+                                                                    misr_roi_raa) + '\t' + str(ahi_roi_raa) + '\t' + str(misr_roi_sza) + '\t' + str(ahi_roi_sza)
+                                                                print(record_item)
+                                                                geocond_record_str += record_item + '\n'
+                                                                # print('-- path:', path, '--', 'orbit:', orbit, '--', 'camera:', camera)
+                                                                # build folder for MISR-AHI data
+                                                                misr_path_orbit_camera = str(P) + '_' + str(O_) + '_' + str(camera)
+                                                                misr_ws_c_folder = roi_matched_folder + '/' + misr_path_orbit_camera
+                                                                if not os.path.exists(misr_ws_c_folder):
+                                                                    os.makedirs(misr_ws_c_folder)
+                                                                misr_ws_data_filename = misr_ws_c_folder + '/' + misr_v3_nc_file
+                                                                # shutil.copy(misr_nc_filename, misr_ws_data_filename)
+                                                                # record matched info
+                                                                matched_roi_misr = {}
+                                                                matched_roi_misr['misr_path_orbit_camera'] = misr_path_orbit_camera
+                                                                matched_roi_misr['matched_info'] = [
+                                                                    misr_orbit, misr_camera, int(misr_roi_block_time),
+                                                                    int(ahi_obs_time), misr_roi_vza, ahi_roi_vza, misr_roi_raa, ahi_roi_raa, misr_roi_sza, ahi_roi_sza
+                                                                ]
+                                                                matched_roi_misr_infos.append(matched_roi_misr)
+                                                        shutil.rmtree(temp_ws)
+                                            except Exception as e:
+                                                print(e)
 
-                                            # for record required AHI SAA data
-                                            AHI_saa_filename_diffs = []
-                                            date_interval = timedelta(minutes=10)
-                                            date_ahi = utc_date_start
-                                            # print(utc_date_start.strftime("%Y-%m-%dT%H:%M:%SZ"), utc_date_end.strftime("%Y-%m-%dT%H:%M:%SZ"))
-                                            while date_ahi < utc_date_end:
-                                                datetime_diff = date_ahi - misr_roi_date
-                                                datetime_diff_s = abs(datetime_diff.total_seconds())
-                                                # ## SZA match ###
-                                                if datetime_diff_s < SZA_TIME_THRESHOLD:
-                                                    ahi_data_time = date_ahi.strftime("%Y%m%d%H%M")
-                                                    ahi_data_folder1 = date_ahi.strftime("%Y%m")
-                                                    ahi_data_folder2 = date_ahi.strftime("%Y%m%d")
-                                                    ahi_saa_file = ahi_data_time + '.sun.azm.fld.4km.bin.bz2'
-                                                    ahi_saa_path = '/gridded/FD/V20190123/' + ahi_data_folder1 + '/4KM/' + ahi_data_folder2 + '/' + ahi_saa_file
-                                                    # no download, just record
-                                                    AHI_saa_filename_diffs.append([ahi_saa_path, datetime_diff_s])
-                                                date_ahi = date_ahi + date_interval
-                                            # sort by time diff
-                                            AHI_saa_filename_diffs = sorted(AHI_saa_filename_diffs, key=(lambda x: x[1]))
-                                            # for raa match
-                                            matched_flag = False
-                                            for AHI_saa_filename_diff in AHI_saa_filename_diffs:
-                                                if not matched_flag:
-                                                    ahi_saa_data_ftp = AHI_saa_filename_diff[0]
-                                                    temp_ws = os.path.join(WORK_SPACE, 'temp')
-                                                    if not os.path.exists(temp_ws):
-                                                        os.makedirs(temp_ws)
-                                                    filename_parts = ahi_saa_data_ftp.split('/')
-                                                    ahi_saa_file = filename_parts[len(filename_parts) - 1]
-                                                    ahi_saa_bin_bz2 = os.path.join(temp_ws, ahi_saa_file)
-                                                    ahi_saa_bin = ''
-                                                    try:
-                                                        with open(ahi_saa_bin_bz2, 'wb') as f:
-                                                            ftp.retrbinary('RETR ' + ahi_saa_data_ftp, f.write, 1024 * 1024)
-                                                        zipfile = bz2.BZ2File(ahi_saa_bin_bz2)
-                                                        data = zipfile.read()
-                                                        ahi_saa_bin = ahi_saa_bin_bz2[:-4]
-                                                        with open(ahi_saa_bin, 'wb') as f:
-                                                            f.write(data)
-                                                        zipfile.close()
-                                                    except Exception as e:
-                                                        os.remove(ahi_saa_bin_bz2)
-                                                        # print('Error: ' + ahi_saa_data_ftp)
-                                                        # print(e)
-                                                    # print('ahi_saa', os.path.exists(ahi_saa_bin_bz2))
-                                                    if os.path.exists(ahi_saa_bin_bz2):
-                                                        m_raa, ahi_raa, diff_raa = misr_ahi_raa_matching(roi_geoj_filename, misr_nc_filename, ahi_vaa_bin, ahi_saa_bin, camera)
-                                                        # ## RAA match ###
-                                                        # print(diff_raa < RAA_DEGREE_THRESHOLD)
-                                                        if diff_raa > 0 and diff_raa < RAA_DEGREE_THRESHOLD:
-                                                            matched_flag = True
-                                                            # geo-obs condition
-                                                            misr_orbit = orbit
-                                                            misr_camera = camera
-                                                            misr_roi_block_time = misr_roi_date.strftime("%Y%m%d%H%M")
-                                                            ahi_obs_time = ahi_saa_file.split('.')[0]
-                                                            misr_roi_vza = '%.3f' % roi_misr_vza
-                                                            ahi_roi_vza = '%.3f' % ahi_vza_mean
-                                                            misr_roi_raa = '%.3f' % m_raa
-                                                            ahi_roi_raa = '%.3f' % ahi_raa
-                                                            misr_roi_sza = get_region_mean_misr_sza(misr_nc_filename, roi_extent)
-                                                            misr_roi_sza = '%.3f' % misr_roi_sza
-                                                            ahi_roi_sza = get_region_mean_ahi_sza(temp_ws, ahi_obs_time, roi_extent)
-                                                            ahi_roi_sza = '%.3f' % ahi_roi_sza
-                                                            # misr_orbit misr_camera_index misr_block_time ahi_time misr_vza ahi_vza misr_raa ahi_raa misr_sza ahi_sza
-                                                            record_item = str(misr_orbit) + '\t' + str(misr_camera) + '\t' + misr_roi_block_time + '\t' + ahi_obs_time + '\t' + str(misr_roi_vza) + '\t' + str(ahi_roi_vza) + '\t' + str(
-                                                                misr_roi_raa) + '\t' + str(ahi_roi_raa) + '\t' + str(misr_roi_sza) + '\t' + str(ahi_roi_sza)
-                                                            print(record_item)
-                                                            geocond_record_str += record_item + '\n'
-                                                            # print('-- path:', path, '--', 'orbit:', orbit, '--', 'camera:', camera)
-                                                            # build folder for MISR-AHI data
-                                                            misr_path_orbit_camera = str(P) + '_' + str(O_) + '_' + str(camera)
-                                                            misr_ws_c_folder = roi_matched_folder + '/' + misr_path_orbit_camera
-                                                            if not os.path.exists(misr_ws_c_folder):
-                                                                os.makedirs(misr_ws_c_folder)
-                                                            misr_ws_data_filename = misr_ws_c_folder + '/' + misr_v3_nc_file
-                                                            shutil.copy(misr_nc_filename, misr_ws_data_filename)
-                                                            # record matched info
-                                                            matched_roi_misr = {}
-                                                            matched_roi_misr['misr_path_orbit_camera'] = misr_ws_c_folder
-                                                            matched_roi_misr['matched_info'] = [
-                                                                misr_orbit, misr_camera, int(misr_roi_block_time),
-                                                                int(ahi_obs_time), misr_roi_vza, ahi_roi_vza, misr_roi_raa, ahi_roi_raa, misr_roi_sza, ahi_roi_sza
-                                                            ]
-                                                            matched_roi_misr_infos.append(matched_roi_misr)
-
-                                                    shutil.rmtree(temp_ws)
                     matched_roi_info['roi_misr_infos'] = matched_roi_misr_infos
                     matched_info_record.append(matched_roi_info)
     ###############################################

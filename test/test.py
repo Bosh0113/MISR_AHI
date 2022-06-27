@@ -1,8 +1,8 @@
 import numpy
 
 if __name__ == "__main__":
-    r = 0.04
-    lon_ = numpy.arange(85.+r/2, 205, r)
-    lat_ = numpy.arange(60.-r/2, -60, -r)
-    print(len(lon_))
-    print(lat_)
+    array = [0, 12, 1, 3, 2]
+    array1 = [0.0]
+    array = numpy.array(array)
+    b_a = array[numpy.isin(array, array1)]
+    print(b_a)
