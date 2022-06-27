@@ -142,12 +142,6 @@ def misr_ahi_raa_matching(roi_geoj_file, misr_ls_file, ahi_vaa_file, ahi_saa_fil
         roi_extent = get_extent(polygon_pts)
         # MISR RAA
         roi_r = MtkRegion(roi_extent[0], roi_extent[1], roi_extent[2], roi_extent[3])
-        misr_nc = netCDF4.Dataset(misr_ls_file)
-        misr_nc_44 = misr_nc.groups['4.4_KM_PRODUCTS']
-        misr_vaa_var = misr_nc_44.groups['GEOMETRY'].variables['View_Azimuth_Angle']
-        misr_vaa_scale = misr_vaa_var.scale_factor
-        misr_vaa_offset = misr_vaa_var.add_offset
-        misr_nc.close()
         m_file = MtkFile(misr_ls_file)
         m_grid = m_file.grid('4.4_KM_PRODUCTS')
         m_field_vaa = m_grid.field('GEOMETRY/View_Azimuth_Angle[' + str(camera_index) + ']')
@@ -155,13 +149,12 @@ def misr_ahi_raa_matching(roi_geoj_file, misr_ls_file, ahi_vaa_file, ahi_saa_fil
         # in single array
         f_vaa_data = m_field_vaa.read(roi_r).data()
         f_vaa_data = numpy.array(f_vaa_data)
-        roi_misr_vaa_dn = f_vaa_data.flatten()
+        roi_misr_vaa_list = f_vaa_data.flatten()
         f_saa_data = m_field_saa.read(roi_r).data()
         f_saa_data = numpy.array(f_saa_data)
         roi_misr_saa_list = f_saa_data.flatten()
-        roi_misr_vaa_dn = roi_misr_vaa_dn[~numpy.isin(roi_misr_vaa_dn, [65533, 65534, 65535, -9999])]
-        roi_misr_vaa_list = roi_misr_vaa_dn*misr_vaa_scale + numpy.ones_like(roi_misr_vaa_dn)*misr_vaa_offset
-        roi_misr_saa_list = roi_misr_saa_list[~numpy.isin(roi_misr_saa_list, [65533, 65534, 65535, -9999])]
+        roi_misr_vaa_list = roi_misr_vaa_list[roi_misr_vaa_list > 0.]
+        roi_misr_saa_list = roi_misr_saa_list[roi_misr_saa_list > 0.]
         try:
             f_raa_data = get_misr_raa(roi_misr_vaa_list, roi_misr_saa_list)
             roi_misr_raa = f_raa_data.mean()
@@ -187,7 +180,7 @@ def get_region_mean_misr_sza(misr_hdf_filename, roi_extent):
     f_sza_data = numpy.array(f_sza_data)
     # in single array
     roi_misr_sza_list = f_sza_data.flatten()
-    roi_misr_sza_list = roi_misr_sza_list[~numpy.isin(roi_misr_sza_list, [65533, 65534, 65535, -9999])]
+    roi_misr_sza_list = roi_misr_sza_list[roi_misr_sza_list > 0.]
     roi_misr_sza = roi_misr_sza_list.mean()
     return roi_misr_sza
 
@@ -335,19 +328,12 @@ if __name__ == "__main__":
                                     cameras = [0, 8]
 
                                 for camera in cameras:
-                                    misr_nc = netCDF4.Dataset(misr_nc_filename)
-                                    misr_nc_44 = misr_nc.groups['4.4_KM_PRODUCTS']
-                                    misr_vza_var = misr_nc_44.groups['GEOMETRY'].variables['View_Zenith_Angle']
-                                    misr_vza_scale = misr_vza_var.scale_factor
-                                    misr_vza_offset = misr_vza_var.add_offset
-                                    misr_nc.close()
                                     m_field = m_grid.field('GEOMETRY/View_Zenith_Angle[' + str(camera) + ']')
                                     f_vza_data = m_field.read(roi_r).data()
                                     f_vza_data = numpy.array(f_vza_data)
                                     # in single array
-                                    roi_misr_vza_dn = f_vza_data.flatten()
-                                    roi_misr_vza_dn = roi_misr_vza_dn[~numpy.isin(roi_misr_vza_dn, [65533, 65534, 65535, -9999])]
-                                    roi_misr_vza_list = roi_misr_vza_dn*misr_vza_scale + numpy.ones_like(roi_misr_vza_dn)*misr_vza_offset
+                                    roi_misr_vza_list = f_vza_data.flatten()
+                                    roi_misr_vza_list = roi_misr_vza_list[roi_misr_vza_list > 0.]
                                     # has available values?
                                     if len(roi_misr_vza_list) > 0:
                                         roi_misr_vza = roi_misr_vza_list.mean()
