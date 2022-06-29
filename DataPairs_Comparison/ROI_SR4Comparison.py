@@ -2,11 +2,11 @@
 import os
 from MisrToolkit import MtkFile, orbit_to_path, latlon_to_bls
 import netCDF4
-import math
 import numpy
 import random
 import matplotlib
 import matplotlib.pyplot as plt
+from matplotlib.ticker import MultipleLocator
 
 workspace = os.getcwd()
 MISR_NC_FOLDER = '/disk1/Data/MISR4AHI2015070120210630_3'
@@ -85,8 +85,7 @@ def BRF_TrueValue(o_value, scale, offset):
     if o_value in [fill, underflow, overflow]:
         return 0.
     else:
-        x = math.floor(o_value/2)
-        y = x*scale + offset
+        y = o_value*scale + offset
         return y
 
 
@@ -108,20 +107,20 @@ def mapping(array, figure_title):
     plt.clf()
 
 
-# def mapping_scatter(x_arrray, y_array, figure_title):
-#     plt.scatter(x_arrray, y_array)
-#     plt.title(figure_title)
-#     plt.xlim((0, 0.5))
-#     plt.ylim((0, 0.5))
-#     plt.xlabel('AHI SR')
-#     plt.ylabel('MISR SR')
-#     figure_folder = os.path.join(workspace, 'figure_scatter')
-#     if not os.path.exists(figure_folder):
-#         os.makedirs(figure_folder)
-#     fig_filename = os.path.join(figure_folder, figure_title + '.png')
-#     plt.savefig(fig_filename)
-#     plt.clf()
-#     print(fig_filename)
+def mapping_scatter(x_arrray, y_array, figure_title):
+    plt.scatter(x_arrray, y_array)
+    plt.title(figure_title)
+    plt.xlim((0, 0.5))
+    plt.ylim((0, 0.5))
+    plt.xlabel('AHI SR')
+    plt.ylabel('MISR SR')
+    figure_folder = os.path.join(workspace, 'figure_scatter')
+    if not os.path.exists(figure_folder):
+        os.makedirs(figure_folder)
+    fig_filename = os.path.join(figure_folder, figure_title + '.png')
+    plt.savefig(fig_filename)
+    plt.clf()
+    print(fig_filename)
 
 
 def record_roi_misr_ahi(roi_name, band_index, misr_orbit, misr_camera_index, ahi_obs_time, misr_nc_filename, ahi_ac_npy, AHI2MISR_slope):
@@ -168,10 +167,10 @@ def record_roi_misr_ahi(roi_name, band_index, misr_orbit, misr_camera_index, ahi
         mask_array = numpy.copy(roi_misr_brfv3)
         mask_array[mask_array > 0.0] = 1.
 
-        # TOA(AHI)
-        ahi_toa_misr = roi_ahi_toa*mask_array
-        figure_title = roi_name + '_' + ahi_obs_time + '_band_' + str(band_index + 1) + '_ahi_toa'
-        mapping(ahi_toa_misr, figure_title)
+        # # TOA(AHI)
+        # ahi_toa_misr = roi_ahi_toa*mask_array
+        # figure_title = roi_name + '_' + ahi_obs_time + '_band_' + str(band_index + 1) + '_ahi_toa'
+        # mapping(ahi_toa_misr, figure_title)
 
         # SR(AHI2MISR)
         ahi_sr_misr = ahi_sr2misr_sr(roi_ahi_sr, AHI2MISR_slope)
@@ -180,9 +179,9 @@ def record_roi_misr_ahi(roi_name, band_index, misr_orbit, misr_camera_index, ahi
         figure_title = roi_name + '_' + ahi_obs_time + '_band_' + str(band_index + 1) + '_ahi_sr'
         mapping(ahi_sr_misr, figure_title)
 
-        # # # y=SR(MISR) / x=SR(AHI)
-        # figure_title = roi_name + '_' + ahi_obs_time + '_band_' + str(band_index + 1) + '_scatter_sr'
-        # mapping_scatter(ahi_sr_misr, roi_misr_brfv3, figure_title)
+        # # y=SR(MISR) / x=SR(AHI)
+        figure_title = roi_name + '_' + ahi_obs_time + '_band_' + str(band_index + 1) + '_scatter_sr'
+        mapping_scatter(ahi_sr_misr, roi_misr_brfv3, figure_title)
 
         # record as npy file
         record_info = [
@@ -216,7 +215,9 @@ def get_roi_misr_ahi(roi_name, misr_path_orbit_camera, ahi_ac_npy):
     return roi_misr_sr, roi_ahi_sr_misr
 
 
+
 def mapping_scatter_all(x_3Darray, y_3Darray, color_array, ahi_obs_time_record, figure_title):
+    ax = plt.axes()
     for idx in range(len(x_3Darray)):
         x_2Darray = x_3Darray[idx]
         y_2Darray = y_3Darray[idx]
@@ -224,13 +225,17 @@ def mapping_scatter_all(x_3Darray, y_3Darray, color_array, ahi_obs_time_record, 
         ahi_obs_time = ahi_obs_time_record[idx]
         plt.scatter(x_2Darray, y_2Darray, marker='o', edgecolors=[color], c='none', s=15, linewidths=0.5, label=ahi_obs_time)
     plt.title(figure_title)
+    minorLocator = MultipleLocator(0.02)
+    ax.xaxis.set_minor_locator(minorLocator)
+    ax.yaxis.set_minor_locator(minorLocator)
+    plt.rcParams['xtick.direction'] = 'in'
+    plt.rcParams['ytick.direction'] = 'in'
     plt.xlim((0, 0.5))
     plt.ylim((0, 0.5))
     plt.xlabel('AHI SR')
     plt.ylabel('MISR SR')
     plt.grid(which='both', linestyle='--', alpha=0.3, linewidth=0.5)
     plt.legend()
-    plt.show()
     fig_filename = os.path.join(workspace, figure_title + '.png')
     plt.savefig(fig_filename)
     # plt.show()
