@@ -43,7 +43,7 @@ def get_data_roi_ahi_reso(r_extent, data_v, lats, lons, o_resolution):
     return n_ex_v
 
 
-def modis_angle_roi(r_extent, modis_tiff):    
+def modis_angle_roi(r_extent, modis_tiff):
     modis_ds = xarray.open_rasterio(modis_tiff)
     modis_scale_factor = modis_ds.scale_factor
     modis_add_offset = modis_ds.add_offset

@@ -556,7 +556,7 @@ if __name__ == "__main__":
 
     for ahi_obs_time in ahi_obs_times:
         for band_name in band_names:
-            print()
+            print(ahi_obs_time + '_' + band_name)
             # Record data and AC parameter at ROI
             record_roi_data_AC_parameters_sr(roi_extent, ahi_obs_time, band_name)
 
