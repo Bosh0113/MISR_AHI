@@ -225,7 +225,7 @@ def mapping_scatter_all(x_3Darray, y_3Darray, color_array, ahi_obs_time_record, 
         y_2Darray = y_3Darray[idx]
         color = color_array[idx]
         ahi_obs_time = ahi_obs_time_record[idx]
-        plt.scatter(x_2Darray, y_2Darray, marker='o', edgecolors=[color], c='none', s=15, linewidths=0.5, label=ahi_obs_time)
+        plt.scatter(x_2Darray, y_2Darray, marker='o', edgecolors=[color], c='none', s=15, linewidths=0.5, label=ahi_obs_time[:8])
     # linear regression
     x_3Darray_np = numpy.array(x_3Darray)
     x_3Darray_np_1d = x_3Darray_np.flatten()

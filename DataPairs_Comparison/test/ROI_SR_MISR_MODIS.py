@@ -180,9 +180,9 @@ def misr_modis_comparison(vza_modis_tiff, sza_modis_tiff, raa_modis_tiff, sr3_mo
 
     # MIL2ASLS.003 BRF
     vza_misr_roi, sza_misr_roi, raa_misr_roi = misr_obs_condition(roi_extent, misr_nc_filename)     # MISR observation condition
-    print('MODIS VZA:', round(vza_modis_roi), ' | MISR VZA:', round(vza_misr_roi))
-    print('MODIS SZA:', round(sza_modis_roi), ' | MISR SZA:', round(sza_misr_roi))
-    print('MODIS RAA:', round(raa_modis_roi), ' | MISR RAA:', round(raa_misr_roi))
+    print('MODIS VZA:', round(vza_modis_roi), '| MISR VZA:', round(vza_misr_roi))
+    print('MODIS SZA:', round(sza_modis_roi), '| MISR SZA:', round(sza_misr_roi))
+    print('MODIS RAA:', round(raa_modis_roi), '| MISR RAA:', round(raa_misr_roi))
     misr_nc_ds = netCDF4.Dataset(misr_nc_filename)
     misr_nc_11 = misr_nc_ds.groups['1.1_KM_PRODUCTS']
     misr_brf_var = misr_nc_11.variables['Bidirectional_Reflectance_Factor']
@@ -231,7 +231,7 @@ def misr_modis_comparison(vza_modis_tiff, sza_modis_tiff, raa_modis_tiff, sr3_mo
     return sr3_modis_roi, sr3_misr2modis_roi, sr4_modis_roi, sr4_misr2modis_roi
 
 
-def mapping_scatter_all(x_3Darray, y_3Darray, color_array, ahi_obs_time_record, figure_title):
+def mapping_scatter_all(x_3Darray, y_3Darray, color_array, obs_time_record, figure_title):
     max_axs = 0.5
     band_name = figure_title[-5:]
     if band_name == 'band3':
@@ -241,8 +241,8 @@ def mapping_scatter_all(x_3Darray, y_3Darray, color_array, ahi_obs_time_record, 
         x_2Darray = x_3Darray[idx]
         y_2Darray = y_3Darray[idx]
         color = color_array[idx]
-        ahi_obs_time = ahi_obs_time_record[idx]
-        plt.scatter(x_2Darray, y_2Darray, marker='o', edgecolors=[color], c='none', s=15, linewidths=0.5, label=ahi_obs_time)
+        obs_date = obs_time_record[idx][:8]
+        plt.scatter(x_2Darray, y_2Darray, marker='o', edgecolors=[color], c='none', s=15, linewidths=0.5, label=obs_date)
     # linear regression
     x_3Darray_np = numpy.array(x_3Darray)
     x_3Darray_np_1d = x_3Darray_np.flatten()
@@ -291,7 +291,8 @@ if __name__ == "__main__":
     roi_extent = [-13.723, 142.529, -13.899, 142.709]
 
     # obs. date
-    obs_time_s = ['201708110057', '201709120057', '201804240058', '201808300058', '201809150058', '201904110057', '201908170057', '201909020056', '201909180056']
+    # obs_time_s = ['201708110057', '201709120057', '201804240058', '201808300058', '201809150058', '201904110057', '201908170057', '201909020056', '201909180056']
+    obs_time_s = ['201709120057', '201804240058', '201808300058', '201809150058', '201904110057', '201908170057', '201909020056', '201909180056']
 
     b3_modis_roi_3D = []
     b4_modis_roi_3D = []
