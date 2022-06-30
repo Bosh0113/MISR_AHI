@@ -12,6 +12,9 @@ workspace = os.getcwd()
 
 def mapping_scatter_all(x_3Darray, y_3Darray, color_array, ahi_obs_time_record, figure_title):
     max_axs = 0.5
+    # band_name = figure_title[-5:]
+    # if band_name == 'band3':
+    #     max_axs = 0.2
     ax = plt.axes()
     for idx in range(len(x_3Darray)):
         x_2Darray = x_3Darray[idx]
@@ -33,12 +36,15 @@ def mapping_scatter_all(x_3Darray, y_3Darray, color_array, ahi_obs_time_record, 
     r2 = r2_score(x_3Darray_np_1d, y_3Darray_np_1d)
     rmse = math.sqrt(mean_squared_error(x_3Darray_np_1d, y_3Darray_np_1d))
     text = 'R^2=' + str(round(r2, 3)) + '\ny=' + str(round(b, 2)) + '*x+' + str(round(a, 3)) + '\nRMSE=' + str(round(rmse, 3))
-    plt.text(x=0.01, y=max_axs-0.09, s=text, fontsize=12)
+    plt.text(x=0.01, y=max_axs-max_axs/5, s=text, fontsize=12)
 
     plt.title(figure_title)
     minorLocator = MultipleLocator(0.02)
+    majorLocator = MultipleLocator(0.1)
     ax.xaxis.set_minor_locator(minorLocator)
     ax.yaxis.set_minor_locator(minorLocator)
+    ax.xaxis.set_major_locator(majorLocator)
+    ax.yaxis.set_major_locator(majorLocator)
     plt.rcParams['xtick.direction'] = 'in'
     plt.rcParams['ytick.direction'] = 'in'
     plt.xlim((0, max_axs))
@@ -54,12 +60,12 @@ def mapping_scatter_all(x_3Darray, y_3Darray, color_array, ahi_obs_time_record, 
 
 
 if __name__ == "__main__":
-    # 0.0_50
-    roi_name = '0.0_50'
-    roi_matched_npy = r'D:\Work_PhD\MISR_AHI_WS\220629\0.0_50_matched_sr.npy'
-    # # 0.0_60
-    # roi_name = '0.0_60'
-    # roi_matched_npy = r'D:\Work_PhD\MISR_AHI_WS\220629\0.0_60_matched_sr.npy'
+    # # 0.0_50
+    # roi_name = '0.0_50'
+    # roi_matched_npy = r'D:\Work_PhD\MISR_AHI_WS\220629\0.0_50_matched_sr.npy'
+    # 0.0_60
+    roi_name = '0.0_60'
+    roi_matched_npy = r'D:\Work_PhD\MISR_AHI_WS\220629\0.0_60_matched_sr.npy'
 
     roi_matched_record = numpy.load(roi_matched_npy, allow_pickle=True)
     color_s = []

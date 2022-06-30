@@ -3,6 +3,8 @@ import xarray
 import os
 from MisrToolkit import MtkFile, MtkRegion, orbit_to_path, latlon_to_bls
 import netCDF4
+import random
+import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MultipleLocator
 from sklearn.metrics import mean_squared_error, r2_score
@@ -106,58 +108,42 @@ def misr_obs_condition(r_extent, misrv3_nc_filename):
     return roi_misr_vza, roi_misr_sza, roi_misr_raa
 
 
-def mapping(array, title):
-    plt.imshow(array)
-    plt.title(title)
-    plt.colorbar()
-    plt.show()
+# def linear_regression(x_array, y_array):
+#     max_v = max(x_array.max(), y_array.max())
+#     ticks_max = max_v + 0.02*2
+#     fig, ax = plt.subplots()
+#     ax.scatter(x_array, y_array, alpha=0.7, edgecolors="k")
+#     b, a = numpy.polyfit(x_array, y_array, deg=1)
+#     # print('slope:', b, '; intercept:', a)
+#     xseq = numpy.linspace(0, ticks_max, num=100)
+#     ax.plot(xseq, a + b * xseq, color="k", lw=2)
+#     ax.plot(xseq, xseq, 'r--', label='line 1', alpha=0.5, linewidth=1)
+#     minorLocator = MultipleLocator(0.02)
+#     majorLocator = MultipleLocator(0.1)
+#     ax.xaxis.set_minor_locator(minorLocator)
+#     ax.yaxis.set_minor_locator(minorLocator)
+#     ax.xaxis.set_major_locator(majorLocator)
+#     ax.yaxis.set_major_locator(majorLocator)
+#     plt.rcParams['xtick.direction'] = 'in'
+#     plt.rcParams['ytick.direction'] = 'in'
+#     plt.xticks(numpy.arange(0, ticks_max, 0.1))
+#     plt.yticks(numpy.arange(0, ticks_max, 0.1))
+#     plt.xlim((0, ticks_max))
+#     plt.ylim((0, ticks_max))
+#     plt.xlabel('MISR SR')
+#     plt.ylabel('MODIS SR')
+#     plt.grid(which='both', linestyle='--', alpha=0.3, linewidth=0.5)
+#     r2 = r2_score(x_array, y_array)
+#     rmse = math.sqrt(mean_squared_error(x_array, y_array))
+#     # print(r2)
+#     # print(rmse)
+#     text = 'R^2=' + str(round(r2, 3)) + '\ny=' + str(round(b, 2)) + '*x+' + str(round(a, 3)) + '\nRMSE=' + str(round(rmse, 3))
+#     plt.text(x=0.01, y=ticks_max-0.02*3, s=text, fontsize=12)
+#     plt.show()
 
 
-def linear_regression(x_array, y_array):
-    max_v = max(x_array.max(), y_array.max())
-    ticks_max = max_v + 0.02*2
-    fig, ax = plt.subplots()
-    ax.scatter(x_array, y_array, alpha=0.7, edgecolors="k")
-    b, a = numpy.polyfit(x_array, y_array, deg=1)
-    # print('slope:', b, '; intercept:', a)
-    xseq = numpy.linspace(0, ticks_max, num=100)
-    ax.plot(xseq, a + b * xseq, color="k", lw=2)
-    ax.plot(xseq, xseq, 'r--', label='line 1', alpha=0.5, linewidth=1)
-    minorLocator = MultipleLocator(0.02)
-    ax.xaxis.set_minor_locator(minorLocator)
-    ax.yaxis.set_minor_locator(minorLocator)
-    plt.rcParams['xtick.direction'] = 'in'
-    plt.rcParams['ytick.direction'] = 'in'
-    plt.xticks(numpy.arange(0, ticks_max, 0.1))
-    plt.yticks(numpy.arange(0, ticks_max, 0.1))
-    plt.xlim((0, ticks_max))
-    plt.ylim((0, ticks_max))
-    plt.xlabel('MISR SR')
-    plt.ylabel('MODIS SR')
-    plt.grid(which='both', linestyle='--', alpha=0.3, linewidth=0.5)
-    r2 = r2_score(x_array, y_array)
-    rmse = math.sqrt(mean_squared_error(x_array, y_array))
-    # print(r2)
-    # print(rmse)
-    text = 'R^2=' + str(round(r2, 3)) + '\ny=' + str(round(b, 2)) + '*x+' + str(round(a, 3)) + '\nRMSE=' + str(round(rmse, 3))
-    plt.text(x=0.01, y=ticks_max-0.02*3, s=text, fontsize=12)
-    plt.show()
-
-
-if __name__ == "__main__":
-    ws = r'D:\Work_PhD\MISR_AHI_WS\220615'
-
-    # roi_extent: (ullat, ullon, lrlat, lrlon)
-    # roi_extent = [-13.322, 135.360, -13.497, 135.540]
-    roi_extent = [-13.322, 135.060, -13.497, 135.240]
-
-    # MOD09A1061 folder
-    modis_folder = os.path.join(ws, '0_120_buff_MOD09A1061')
-
+def misr_modis_comparison(vza_modis_tiff, sza_modis_tiff, raa_modis_tiff, sr3_modis_tiff, sr4_modis_tiff, misr_nc_filename):
     # MOD09A1061 Obs. condition
-    vza_modis_tiff = os.path.join(modis_folder, 'MOD09A1.061_sur_refl_vzen.tif')
-    sza_modis_tiff = os.path.join(modis_folder, 'MOD09A1.061_sur_refl_szen.tif')
-    raa_modis_tiff = os.path.join(modis_folder, 'MOD09A1.061_sur_refl_raz.tif')
     # modis vza roi
     vza_modis_roi_ar_ds = modis_angle_roi(roi_extent, vza_modis_tiff)
     vza_modis_roi_ar = numpy.array(vza_modis_roi_ar_ds)
@@ -184,8 +170,6 @@ if __name__ == "__main__":
     # print('MODIS RAA:', raa_modis_roi)
 
     # MOD09A1061 Surface Reflectance
-    sr3_modis_tiff = os.path.join(modis_folder, 'MOD09A1.061_sur_refl_b01.tif')     # MODIS band1 <-> MISR band3
-    sr4_modis_tiff = os.path.join(modis_folder, 'MOD09A1.061_sur_refl_b02.tif')     # MODIS band2 <-> MISR band4
     sr3_modis_roi_ar_ds = modis_angle_roi(roi_extent, sr3_modis_tiff)
     sr4_modis_roi_ar_ds = modis_angle_roi(roi_extent, sr4_modis_tiff)
     sr3_modis_roi = numpy.array(sr3_modis_roi_ar_ds)
@@ -194,10 +178,7 @@ if __name__ == "__main__":
     lons = numpy.array(sr4_modis_roi_ar_ds['longitude'])
     lats = numpy.array(sr4_modis_roi_ar_ds['latitude'])
 
-    # MIL2ASLS.003 folder
-    misr_folder = os.path.join(ws, '0_120_misr_20160928')
     # MIL2ASLS.003 BRF
-    misr_nc_filename = os.path.join(misr_folder, 'MISR_AM1_AS_LAND_P104_O089249_F08_0023.nc')
     vza_misr_roi, sza_misr_roi, raa_misr_roi = misr_obs_condition(roi_extent, misr_nc_filename)     # MISR observation condition
     print('MODIS VZA:', round(vza_modis_roi), ' | MISR VZA:', round(vza_misr_roi))
     print('MODIS SZA:', round(sza_modis_roi), ' | MISR SZA:', round(sza_misr_roi))
@@ -240,13 +221,105 @@ if __name__ == "__main__":
             sr3_misr_roi[lat_idx][lon_idx] = roi_brf_b3_tv3
             sr4_misr_roi[lat_idx][lon_idx] = roi_brf_b4_tv3
 
-    # # mapping
-    # mapping(sr3_modis_roi, 'ROI_0.0_120 SR MODIS Band1')
-    # mapping(sr4_modis_roi, 'ROI_0.0_120 SR MODIS Band2')
-    # mapping(sr3_misr_roi, 'ROI_0.0_120 SR MISR Band3')
-    # mapping(sr4_misr_roi, 'ROI_0.0_120 SR MISR Band4')
     # linear regression
-    linear_regression(sr3_misr_roi.flatten()/1.038, sr3_modis_roi.flatten())
-    linear_regression(sr4_misr_roi.flatten()/0.997, sr4_modis_roi.flatten())
+    misr_modis_slope_band3 = 0.957
+    misr_modis_slope_band4 = 0.998
+    # linear_regression(sr3_misr_roi.flatten()/misr_modis_slope_band3, sr3_modis_roi.flatten())
+    # linear_regression(sr4_misr_roi.flatten()/misr_modis_slope_band4, sr4_modis_roi.flatten())
+    sr3_misr2modis_roi = sr3_misr_roi/misr_modis_slope_band3
+    sr4_misr2modis_roi = sr4_misr_roi/misr_modis_slope_band4
+    return sr3_modis_roi, sr3_misr2modis_roi, sr4_modis_roi, sr4_misr2modis_roi
 
-    # print(sr3_misr_roi.shape)
+
+def mapping_scatter_all(x_3Darray, y_3Darray, color_array, ahi_obs_time_record, figure_title):
+    max_axs = 0.5
+    band_name = figure_title[-5:]
+    if band_name == 'band3':
+        max_axs = 0.2
+    ax = plt.axes()
+    for idx in range(len(x_3Darray)):
+        x_2Darray = x_3Darray[idx]
+        y_2Darray = y_3Darray[idx]
+        color = color_array[idx]
+        ahi_obs_time = ahi_obs_time_record[idx]
+        plt.scatter(x_2Darray, y_2Darray, marker='o', edgecolors=[color], c='none', s=15, linewidths=0.5, label=ahi_obs_time)
+    # linear regression
+    x_3Darray_np = numpy.array(x_3Darray)
+    x_3Darray_np_1d = x_3Darray_np.flatten()
+    y_3Darray_np = numpy.array(y_3Darray)
+    y_3Darray_np_1d = y_3Darray_np.flatten()
+    x_mask = numpy.copy(x_3Darray_np_1d)
+    x_mask[~numpy.isnan(x_3Darray_np_1d)] = 1
+    y_3Darray_np_1d = y_3Darray_np_1d * x_mask
+    x_3Darray_np_1d = x_3Darray_np_1d[~numpy.isnan(x_3Darray_np_1d)]
+    y_3Darray_np_1d = y_3Darray_np_1d[~numpy.isnan(y_3Darray_np_1d)]
+    b, a = numpy.polyfit(x_3Darray_np_1d, y_3Darray_np_1d, deg=1)
+    xseq = numpy.linspace(0, max_axs, num=100)
+    ax.plot(xseq, a + b * xseq, color="k", lw=2)
+    ax.plot(xseq, xseq, 'r--', alpha=0.5, linewidth=1)
+    r2 = r2_score(x_3Darray_np_1d, y_3Darray_np_1d)
+    rmse = math.sqrt(mean_squared_error(x_3Darray_np_1d, y_3Darray_np_1d))
+    text = 'R^2=' + str(round(r2, 3)) + '\ny=' + str(round(b, 2)) + '*x+' + str(round(a, 3)) + '\nRMSE=' + str(round(rmse, 3))
+    plt.text(x=0.01, y=max_axs-max_axs/5, s=text, fontsize=12)
+
+    plt.title(figure_title)
+    minorLocator = MultipleLocator(0.02)
+    majorLocator = MultipleLocator(0.1)
+    ax.xaxis.set_minor_locator(minorLocator)
+    ax.yaxis.set_minor_locator(minorLocator)
+    ax.xaxis.set_major_locator(majorLocator)
+    ax.yaxis.set_major_locator(majorLocator)
+    plt.rcParams['xtick.direction'] = 'in'
+    plt.rcParams['ytick.direction'] = 'in'
+    plt.xlim((0, max_axs))
+    plt.ylim((0, max_axs))
+    plt.xlabel('MISR SR')
+    plt.ylabel('MODIS SR')
+    plt.grid(which='both', linestyle='--', alpha=0.3, linewidth=0.5)
+    plt.legend(loc='lower right')
+    # fig_filename = os.path.join(workspace, figure_title + '.png')
+    # plt.savefig(fig_filename)
+    plt.show()
+    plt.clf()
+
+
+if __name__ == "__main__":
+    ws = r'D:\Work_PhD\MISR_AHI_WS\220630\MISR_MODIS'
+    # ROI: 0.0_60
+    roi_name = '0.0_60'
+    # roi_extent: (ullat, ullon, lrlat, lrlon)
+    roi_extent = [-13.723, 142.529, -13.899, 142.709]
+
+    # obs. date
+    obs_time_s = ['201708110057', '201709120057', '201804240058', '201808300058', '201809150058', '201904110057', '201908170057', '201909020056', '201909180056']
+
+    b3_modis_roi_3D = []
+    b4_modis_roi_3D = []
+    b3_misr2modis_roi_3D = []
+    b4_misr2modis_roi_3D = []
+    for idx in range(len(obs_time_s)):
+        obs_time = obs_time_s[idx]
+        print(obs_time)
+        # MOD09A1061 folder
+        modis_folder = os.path.join(ws, 'MOD09A1061/0_60_buff_' + obs_time)
+        vza_modis_tiff_filename = os.path.join(modis_folder, 'MOD09A1.061_sur_refl_vzen.tif')
+        sza_modis_tiff_filename = os.path.join(modis_folder, 'MOD09A1.061_sur_refl_szen.tif')
+        raa_modis_tiff_filename = os.path.join(modis_folder, 'MOD09A1.061_sur_refl_raz.tif')
+        sr3_modis_tiff_filename = os.path.join(modis_folder, 'MOD09A1.061_sur_refl_b01.tif')     # MODIS band1 <-> MISR band3
+        sr4_modis_tiff_filename = os.path.join(modis_folder, 'MOD09A1.061_sur_refl_b02.tif')     # MODIS band2 <-> MISR band4
+        # MIL2ASLS.003 folder
+        misr_folder = os.path.join(ws, 'MISR_v3')
+        misr_v3_nc_filename = os.path.join(misr_folder, obs_time + '.nc')
+        # SR at ROI from MISR and MODIS
+        b3_modis_roi, b3_misr2modis_roi, b4_modis_roi, b4_misr2modis_roi = misr_modis_comparison(vza_modis_tiff_filename, sza_modis_tiff_filename, raa_modis_tiff_filename, sr3_modis_tiff_filename, sr4_modis_tiff_filename, misr_v3_nc_filename)
+        b3_modis_roi_3D.append(b3_modis_roi)
+        b3_misr2modis_roi_3D.append(b3_misr2modis_roi)
+        b4_modis_roi_3D.append(b4_modis_roi)
+        b4_misr2modis_roi_3D.append(b4_misr2modis_roi)
+    # mapping
+    color_s = []
+    for i in range(len(obs_time_s)):
+        color_random = list(matplotlib.colors.XKCD_COLORS.items())[int(random.random()*900)][1]
+        color_s.append(color_random)
+    mapping_scatter_all(b3_misr2modis_roi_3D, b3_modis_roi_3D, color_s, obs_time_s, roi_name + '_band3')     # band3
+    mapping_scatter_all(b4_misr2modis_roi_3D, b4_modis_roi_3D, color_s, obs_time_s, roi_name + '_band4')     # band4
