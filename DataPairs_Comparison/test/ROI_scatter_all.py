@@ -14,7 +14,7 @@ def mapping_scatter_all(x_3Darray, y_3Darray, color_array, ahi_obs_time_record, 
     max_axs = 0.5
     band_name = figure_title[-5:]
     if band_name == 'band3':
-        max_axs = 0.2
+        max_axs = 0.3
     ax = plt.axes()
     for idx in range(len(x_3Darray)):
         x_2Darray = x_3Darray[idx]
@@ -69,19 +69,19 @@ if __name__ == "__main__":
     # # 0.0_120
     # roi_name = '0.0_120'
     # roi_matched_npy = r'D:\Work_PhD\MISR_AHI_WS\220629\0.0_120_matched_sr.npy'
-    # # 60.0_80
-    # roi_name = '60.0_80'
-    # roi_matched_npy = r'D:\Work_PhD\MISR_AHI_WS\220629\60.0_80_matched_sr.npy'
-    # 60.0_130
-    roi_name = '60.0_130'
-    roi_matched_npy = r'D:\Work_PhD\MISR_AHI_WS\220629\60.0_130_matched_sr.npy'
+    # 60.0_80
+    roi_name = '60.0_80'
+    roi_matched_npy = r'D:\Work_PhD\MISR_AHI_WS\220629\60.0_80_matched_sr.npy'
+    # # 60.0_130
+    # roi_name = '60.0_130'
+    # roi_matched_npy = r'D:\Work_PhD\MISR_AHI_WS\220629\60.0_130_matched_sr.npy'
     # remove noise data
     remove_times = []
     # remove_times = ['201706220040', '201907140100', '201912140100']     # 0.0_50
     # remove_times = ['201708110040']     # 0.0_60
     # remove_times = []   # 0.0_120
-    # remove_times = ['201701070320', '201710150320', '201710310310', '201801100320', '201810020320', '201812050310', '201812280310', '201910210310', '201912080320', '201912150300', '201912310310']  # 60.0_80
-    remove_times = []   # 60.0_130
+    remove_times = ['201701070320', '201710150320', '201710310310', '201801100320', '201810020320', '201812050310', '201812280310', '201910210310', '201912080320', '201912150300', '201912310310']  # 60.0_80
+    # remove_times = ['201704010420', '201709260420', '201710120410', '201710190410', '201712060350', '201712150410', '201801140400', '201801230410', '201802150420', '201802240410', '201803280440', '201809290410', '201810060420', '201810150410', '201810220400', '201810310410', '201904230440', '201910180410', '201911030410', '201911260350']   # 60.0_130
 
     roi_matched_record = numpy.load(roi_matched_npy, allow_pickle=True)
     color_s = []
@@ -102,5 +102,5 @@ if __name__ == "__main__":
         ahi_obs_time = [ahi_obs_time[i] for i in range(len(ahi_obs_time)) if (i not in r_index)]
         roi_misr_record = [roi_misr_record[i] for i in range(len(roi_misr_record)) if (i not in r_index)]
         roi_ahi_record = [roi_ahi_record[i] for i in range(len(roi_ahi_record)) if (i not in r_index)]
-        print(len(ahi_obs_time))
+        print('count:', len(ahi_obs_time))
         mapping_scatter_all(roi_ahi_record, roi_misr_record, color_s, ahi_obs_time, roi_name + '_' + band_name)

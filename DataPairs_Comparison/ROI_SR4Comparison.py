@@ -283,12 +283,13 @@ if __name__ == "__main__":
                     matched_info = roi_misr_info['matched_info']
                     ahi_obs_time = matched_info[3]
                     ahi_ac_npy = os.path.join(AHI_AC_FOLDER, str(ahi_obs_time) + '_ac_' + band_name + '.npy')
-                    roi_misr, roi_ahi = get_roi_misr_ahi(roi_name, misr_path_orbit_camera, ahi_ac_npy)
-                    if len(roi_misr) > 0:
-                        roi_misr_record.append(roi_misr)
-                        roi_ahi_record.append(roi_ahi)
-                        ahi_obs_time_record.append(str(ahi_obs_time))
-                    print(str(ahi_obs_time) + '_' + band_name)
+                    if os.path.exists(ahi_ac_npy):
+                        roi_misr, roi_ahi = get_roi_misr_ahi(roi_name, misr_path_orbit_camera, ahi_ac_npy)
+                        if len(roi_misr) > 0:
+                            roi_misr_record.append(roi_misr)
+                            roi_ahi_record.append(roi_ahi)
+                            ahi_obs_time_record.append(str(ahi_obs_time))
+                        print(str(ahi_obs_time) + '_' + band_name)
                 roi_matched_misr_roi['band_name'] = band_name
                 roi_matched_misr_roi['ahi_obs_time'] = ahi_obs_time_record
                 roi_matched_misr_roi['misr_sr_3d'] = roi_misr_record

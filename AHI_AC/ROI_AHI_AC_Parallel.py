@@ -8,6 +8,7 @@ from ftplib import FTP
 import xarray
 import shutil
 import time
+from joblib import Parallel, delayed
 
 # workspace
 ws = os.getcwd()
@@ -38,6 +39,8 @@ CAMS_RESOLUTION = 0.75  # degree
 JAXA_RESOLUTION = 0.375  # degree
 AHI_ANGLE_RESOLUTION = 0.04  # degree
 AHI_RESOLUTION = 0.01  # degree
+
+BAND_SRF = None
 
 
 # Calculate CAMS time for AHI Obs.
@@ -332,12 +335,12 @@ def roi_ahi_geo(r_extent, ahi_obs_t):
     return roi_ahi_vza, roi_ahi_raa, roi_ahi_sza
 
 
-def atmospheric_correction_6s(band_RF, VZA, SZA, RAA, AOT, aerosol_type, ozone, water_vapour, altitude=0.):
+def atmospheric_correction_6s(VZA, SZA, RAA, AOT, aerosol_type, ozone, water_vapour, altitude=0.):
     s = SixS()
     s.atmos_profile = AtmosProfile.UserWaterAndOzone(water_vapour, ozone)
     s.aero_profile = AeroProfile.PredefinedType(aerosol_type)
     s.aot550 = AOT
-    s.wavelength = Wavelength(band_RF[0, 0], band_RF[len(band_RF) - 1, 0], band_RF[:, 1])
+    s.wavelength = Wavelength(BAND_SRF[0, 0], BAND_SRF[len(BAND_SRF) - 1, 0], BAND_SRF[:, 1])
     s.altitudes.set_sensor_satellite_level()
     s.altitudes.set_target_custom_altitude(altitude)
     s.geometry = Geometry.User()
@@ -356,18 +359,30 @@ def atmospheric_correction_6s(band_RF, VZA, SZA, RAA, AOT, aerosol_type, ozone, 
     x2 = s.outputs.coef_xb
     x3 = s.outputs.coef_xc
     del s
-    return f1, x1, x2, x3
+    return (f1, x1, x2, x3)
 
 
-def ac_roi_parameter(band_RF, VZA_ar, SZA_ar, RAA_ar, AOT_ar, aerosol_type_ar, ozone_ar, water_vapour_ar):
-    ac_fa = numpy.zeros_like(VZA_ar)
-    ac_xa = numpy.zeros_like(VZA_ar)
-    ac_xb = numpy.zeros_like(VZA_ar)
-    ac_xc = numpy.zeros_like(VZA_ar)
-    for lat in range(len(VZA_ar)):
-        for lon in range(len(VZA_ar[0])):
-            ac_fa[lat][lon], ac_xa[lat][lon], ac_xb[lat][lon], ac_xc[lat][lon] = atmospheric_correction_6s(band_RF, VZA_ar[lat][lon], SZA_ar[lat][lon], RAA_ar[lat][lon], AOT_ar[lat][lon], aerosol_type_ar[lat][lon], ozone_ar[lat][lon],
-                                                                                                           water_vapour_ar[lat][lon])
+def ac_roi_parameter(VZA_ar, SZA_ar, RAA_ar, AOT_ar, aerosol_type_ar, ozone_ar, water_vapour_ar):
+    global BAND_SRF
+    VZA_ar = numpy.array(VZA_ar).flatten()
+    SZA_ar = numpy.array(SZA_ar).flatten()
+    RAA_ar = numpy.array(RAA_ar).flatten()
+    AOT_ar = numpy.array(AOT_ar).flatten()
+    aerosol_type_ar = numpy.array(aerosol_type_ar).flatten()
+    ozone_ar = numpy.array(ozone_ar).flatten()
+    water_vapour_ar = numpy.array(water_vapour_ar).flatten()
+    AC_output = Parallel(n_jobs=16)(delayed(atmospheric_correction_6s)(VZA, SZA, RAA, AOT, aerosol_type, ozone, water_vapour) for VZA in VZA_ar for SZA in SZA_ar for RAA in RAA_ar for AOT in AOT_ar for aerosol_type in aerosol_type_ar for ozone in ozone_ar for water_vapour in water_vapour_ar)
+
+    AC_output = numpy.array(AC_output)
+    ac_fa = AC_output[:, 0]
+    ac_xa = AC_output[:, 1]
+    ac_xb = AC_output[:, 2]
+    ac_xc = AC_output[:, 3]
+    ac_fa = ac_fa.reshape(VZA_ar.shape)
+    ac_xa = ac_fa.reshape(VZA_ar.shape)
+    ac_xb = ac_fa.reshape(VZA_ar.shape)
+    ac_xc = ac_fa.reshape(VZA_ar.shape)
+
     return ac_fa, ac_xa, ac_xb, ac_xc
 
 
@@ -454,6 +469,7 @@ def calculate_SR(roi_xa, roi_xb, roi_xc, roi_obs_r):
 
 # Record the data in ROI, and calculate the AC parameters
 def record_roi_data_AC_parameters_sr(r_extent, ahi_obs_t, band_jma):
+    global BAND_SRF
     folder_path = os.path.join(ws, 'AHI_AC_PARAMETER')
     if not os.path.exists(folder_path):
         os.makedirs(folder_path)
@@ -479,8 +495,8 @@ def record_roi_data_AC_parameters_sr(r_extent, ahi_obs_t, band_jma):
             # Get Atmospheric Correction Parameters using
             filename = BAND_RF_CSV[band_jma]
             band_rf_csv_path = os.path.join(BAND_RF_FOLDER, filename)
-            band_rf = numpy.loadtxt(band_rf_csv_path, delimiter=",")
-            ac_roi_fa, ac_roi_xa, ac_roi_xb, ac_roi_xc = ac_roi_parameter(band_rf, roi_ahi_vza, roi_ahi_sza, roi_ahi_raa, aot_ahi_roi, aero_type_ahi_roi, oz_ahi_roi, wv_ahi_roi)
+            BAND_SRF = numpy.loadtxt(band_rf_csv_path, delimiter=",")
+            ac_roi_fa, ac_roi_xa, ac_roi_xb, ac_roi_xc = ac_roi_parameter(roi_ahi_vza, roi_ahi_sza, roi_ahi_raa, aot_ahi_roi, aero_type_ahi_roi, oz_ahi_roi, wv_ahi_roi)
 
             # GET ROI AHI data
             ahi_data_roi = roi_ahi_data(r_extent, ahi_obs_time, band_jma)
@@ -561,10 +577,11 @@ if __name__ == "__main__":
     ]
     # Bands
     band_names = ['band3', 'band4']
-
-    for ahi_obs_time in ahi_obs_times:
+    total_c = len(ahi_obs_times)
+    for idx in range(total_c):
+        ahi_obs_time = ahi_obs_times[idx]
         for band_name in band_names:
-            print(ahi_obs_time + '_' + band_name)
+            print(str(idx+1) + '/' + str(total_c), ahi_obs_time + '_' + band_name)
             # Record data and AC parameter at ROI
             record_roi_data_AC_parameters_sr(roi_extent, ahi_obs_time, band_name)
 
