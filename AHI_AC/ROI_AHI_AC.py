@@ -561,10 +561,11 @@ if __name__ == "__main__":
     ]
     # Bands
     band_names = ['band3', 'band4']
-
-    for ahi_obs_time in ahi_obs_times:
+    total_c = len(ahi_obs_times)
+    for idx in range(total_c):
+        ahi_obs_time = ahi_obs_times[idx]
         for band_name in band_names:
-            print(ahi_obs_time + '_' + band_name)
+            print(str(idx+1) + '/' + str(total_c), ahi_obs_time + '_' + band_name)
             # Record data and AC parameter at ROI
             record_roi_data_AC_parameters_sr(roi_extent, ahi_obs_time, band_name)
 
