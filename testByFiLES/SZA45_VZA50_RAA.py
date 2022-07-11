@@ -1,5 +1,8 @@
 import csv
+import numpy
 import matplotlib.pyplot as plt
+from scipy.interpolate import make_interp_spline
+from matplotlib.ticker import MultipleLocator
 
 # BRF_type = 'BRF TOC'
 # BRF_index = 4
@@ -8,10 +11,10 @@ BRF_index = 5
 # BRF_type = 'BRF TOA'
 # BRF_index = 6
 # VZAs = [30, 40, 50, 60]
-VZA = 60
+VZA = 50
 RAAs = [0, 18, 36, 54, 72, 90, 108, 126, 144, 162, 180]
 # SZAs = [10, 20, 30, 40, 45, 55, 60, 75, 80, 90]
-SZA = 55
+SZA = 45
 # land cover type
 type_names = ['Droadleaved', 'Needleleaved', 'Cropland', 'Grassland', 'Sparse vegetation']
 # LAIs = ['0.01', '0.1', '0.5', '1', '2', '3', '4', '5', '6', '7']
@@ -48,8 +51,9 @@ if __name__ == "__main__":
         mapping_RAA.append(type_RAA[:])
         mapping_SRF.append(type_SRF[:])
 
-    line_colors = ['g^-', 'c>-', 'mv-', 'y<-', 'b.-']
+    line_colors = ['g-', 'c-', 'm-', 'y-', 'b-']
 
+    ax = plt.axes()
     for index in range(len(type_names)):
         type_name = type_names[index]
         type_LAI = LAIs[index]
@@ -57,24 +61,30 @@ if __name__ == "__main__":
         type_SRF = mapping_SRF[index][:]
         line_color = line_colors[index]
         type_label = type_name + " LAI=" + LAIs[index]
-        plt.plot(type_RAA, type_SRF, line_color, label=type_label)
+        # plt.plot(type_RAA, type_SRF, line_color, label=type_label, alpha=0.7, linewidth=1.5)
 
-    plt.grid(which="major",
-             axis="x",
-             color="gray",
-             alpha=0.5,
-             linestyle="-",
-             linewidth=0.5)
-    plt.grid(which="major",
-             axis="y",
-             color="gray",
-             alpha=0.5,
-             linestyle="-",
-             linewidth=0.5)
-    plt.xlabel('RAA')
+        interp_model = make_interp_spline(type_RAA, type_SRF)
+
+        xs = numpy.linspace(0, 180, 500)
+        ys = interp_model(xs)
+
+        plt.plot(xs, ys, line_color, label=type_label, alpha=0.7, linewidth=1.5)
+
+    plt.xlabel('RAA (°)')
     plt.ylabel(BRF_type)
-    plt.title('SZA=' + str(SZA) + ' VZA=' + str(VZA))
-    # plt.ylim(0, 1.5)
-    # plt.xlim(20, 40)
+    plt.title('SZA=' + str(SZA) + '°' + ' VZA=' + str(VZA) + '°')
+    x_minorLocator = MultipleLocator(5.)
+    x_majorLocator = MultipleLocator(20.)
+    y_minorLocator = MultipleLocator(0.005)
+    y_majorLocator = MultipleLocator(0.01)
+    ax.xaxis.set_minor_locator(x_minorLocator)
+    ax.xaxis.set_major_locator(x_majorLocator)
+    ax.yaxis.set_minor_locator(y_minorLocator)
+    ax.yaxis.set_major_locator(y_majorLocator)
+    plt.rcParams['xtick.direction'] = 'in'
+    plt.rcParams['ytick.direction'] = 'in'
+    plt.grid(which='both', linestyle='--', alpha=0.3, linewidth=0.5)
+    plt.xlim((0, 180))
+    plt.ylim((0.21, 0.425))
     plt.legend()
     plt.show()
