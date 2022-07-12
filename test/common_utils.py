@@ -21,8 +21,8 @@ if __name__ == "__main__":
     # geojson_to_shp(geoj, shp)
     
     ws = r'D:\Work_PhD\MISR_AHI_WS\220630'
-    geoj = ws + '/45_60.json'
-    shp = ws + '/ROI_shp/45.6_60.shp'
+    geoj = ws + '/70_80.json'
+    shp = ws + '/ROI_shp/70.5_80.shp'
     shp_to_geojson(shp, geoj)
     # shp = ws + '/0_50_roi.shp'
     # geojson_to_shp(geoj, shp)
