@@ -15,9 +15,14 @@ if __name__ == "__main__":
     # png_folder = r'D:\Work_PhD\MISR_AHI_WS\220712\26.1_150_scatters'
     # roi_name = '60.0_130'
     # png_folder = r'D:\Work_PhD\MISR_AHI_WS\220712\60.0_130_scatters'
-    roi_name = '60.0_200'
-    png_folder = r'D:\Work_PhD\MISR_AHI_WS\220712\60.0_200_scatters'
-    storage_folder = r'D:\Work_PhD\MISR_AHI_WS\220712'
+    # roi_name = '60.0_200'
+    # png_folder = r'D:\Work_PhD\MISR_AHI_WS\220712\60.0_200_scatters'
+    # storage_folder = r'D:\Work_PhD\MISR_AHI_WS\220712'
+
+    roi_name = '26.1_150'
+    png_folder = r'D:\Work_PhD\MISR_AHI_WS\220714\26.1_150_scatters_fm'
+    storage_folder = r'D:\Work_PhD\MISR_AHI_WS\220714'
+
     file_list = os.listdir(png_folder)
     band_names = ['band3', 'band4']
     for band_name in band_names:

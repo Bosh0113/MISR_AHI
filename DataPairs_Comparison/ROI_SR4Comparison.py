@@ -103,6 +103,8 @@ def mapping(array, figure_title):
     if not os.path.exists(figure_folder):
         os.makedirs(figure_folder)
     fig_filename = os.path.join(figure_folder, figure_title + '.png')
+    plt.rcParams['xtick.direction'] = 'in'
+    plt.rcParams['ytick.direction'] = 'in'
     plt.savefig(fig_filename)
     print(fig_filename)
     # plt.show()
@@ -120,6 +122,8 @@ def mapping_scatter(x_arrray, y_array, figure_title):
     if not os.path.exists(figure_folder):
         os.makedirs(figure_folder)
     fig_filename = os.path.join(figure_folder, figure_title + '.png')
+    plt.rcParams['xtick.direction'] = 'in'
+    plt.rcParams['ytick.direction'] = 'in'
     plt.savefig(fig_filename)
     plt.clf()
     print(fig_filename)
