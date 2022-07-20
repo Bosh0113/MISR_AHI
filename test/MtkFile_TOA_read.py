@@ -16,7 +16,8 @@ if __name__ == "__main__":
     m_grid22 = m_file.grid('ReflectingLevelParameters_2.2_km')
     toa_field = m_grid22.field('BRFTop_Mean[2][1]')  # band, camera
     roi_r = MtkRegion(roi_extent[0], roi_extent[1], roi_extent[2], roi_extent[3])
-    toa_roi = toa_field.read(roi_r).data()
+    # toa_roi = toa_field.read(roi_r).data()
+    toa_roi = toa_field.read(62, 62)[0]
 
     toa_roi_1d = numpy.array(toa_roi).flatten()
     toa_roi_1d = toa_roi_1d[toa_roi_1d > 0.]
