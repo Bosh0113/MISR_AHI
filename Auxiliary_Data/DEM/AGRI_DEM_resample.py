@@ -1,8 +1,12 @@
-import os
 import numpy
+import xarray
+from osgeo import osr
+from osgeo import gdal
 
 
-AGRI_EXTENT = ['n60', 'e044', 's60', 'e164']     # lulat, lulon, rblat, rblon
+AGRI_EXTENT = ['n60', 'e044', 's60', 'e164']     # ullat, ullon, lrlat, lrlon
+
+AGRI_RESOLUTION = 0.01      # degree
 
 
 def get_dem_tiffs():
@@ -34,5 +38,30 @@ def get_dem_tiffs():
     print(tif_tiles_files)
 
 
+def clip_resampled_dem(merged_dem_tif, resample_dem_tif):
+    dem_ds = xarray.open_rasterio(merged_dem_tif)
+    argi_lats = numpy.arange(60. - AGRI_RESOLUTION / 2, -60, -AGRI_RESOLUTION)
+    argi_lons = numpy.arange(44. + AGRI_RESOLUTION / 2, 164, AGRI_RESOLUTION)
+    res_ds = dem_ds.interp(x=argi_lons, y=argi_lats, method="nearest", kwargs={"fill_value": "extrapolate"})
+    dem_array = numpy.array(res_ds[0])
+    no_data_value = -9999
+    file_format = "GTiff"
+    full_geotransform = [44., AGRI_RESOLUTION, 0, 60, 0, -AGRI_RESOLUTION]
+    driver = gdal.GetDriverByName(file_format)
+    pre_ds = driver.Create(resample_dem_tif, 120*int(1./AGRI_RESOLUTION), 120*int(1./AGRI_RESOLUTION), 1, gdal.GDT_Float32)
+    pre_ds.SetGeoTransform(full_geotransform)
+    srs = osr.SpatialReference()
+    srs.ImportFromEPSG(4326)
+    pre_ds.SetProjection(srs.ExportToWkt())
+    pre_ds.GetRasterBand(1).SetNoDataValue(no_data_value)
+    pre_ds.GetRasterBand(1).WriteArray(dem_array)
+    del pre_ds
+
+
 if __name__ == "__main__":
-    get_dem_tiffs()
+    ws = '/data01/people/beichen/workspace/20220803'
+
+    # get_dem_tiffs()
+    # python gdal_merge.py -o input.tif output.tif
+    # gdal_translate -t_srs EPSG:4326 -tr 0.01 0.01 -r average  input.tif output.tif
+    clip_resampled_dem(ws + '/merged_dem4AGRI_1km.tif', ws + '/MERIT_DEM_AGRI_1km.tif')
