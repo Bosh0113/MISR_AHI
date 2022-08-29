@@ -15,67 +15,67 @@ MISR_NC_FOLDER = '/disk1/Data/MISR4AHI2015070120210630_3'
 AHI_AC_FOLDER = '/disk1/workspace/20220629/AHI_AC_PARAMETER'
 
 # https://www-pm.larc.nasa.gov/cgi-bin/site/showdoc?mnemonic=SBAF
-AHI2MISR_roi_slope = {
-    '0.0_60_band1': 0.938,
-    '0.0_60_band2': 1.056,
-    '0.0_60_band3': 1.073,
-    '0.0_60_band4': 1.009,
-    '0.0_50_band1': 0.922,
-    '0.0_50_band2': 1.111,
-    '0.0_50_band3': 1.173,
-    '0.0_50_band4': 1.002,
-    '0.0_120_band1': 1.013,
-    '0.0_120_band2': 0.915,
-    '0.0_120_band3': 0.963,
-    '0.0_120_band4': 1.015,
-    '26.1_150_band1': 0.992,
-    '26.1_150_band2': 1.002,
-    '26.1_150_band3': 0.981,
-    '26.1_150_band4': 1.008,
-    '26.1_10_band1': 0.962,
-    '26.1_10_band2': 1.032,
-    '26.1_10_band3': 1.026,
-    '26.1_10_band4': 1.008,
-    '26.1_50_band1': 0.922,
-    '26.1_50_band2': 1.111,
-    '26.1_50_band3': 1.173,
-    '26.1_50_band4': 1.002,
-    '45.6_60_band1': 0.938,
-    '45.6_60_band2': 1.056,
-    '45.6_60_band3': 1.073,
-    '45.6_60_band4': 1.009,
-    '45.6_20_band1': 0.981,
-    '45.6_20_band2': 1.031,
-    '45.6_20_band3': 1.020,
-    '45.6_20_band4': 1.010,
-    '45.6_10_band1': 0.962,
-    '45.6_10_band2': 1.032,
-    '45.6_10_band3': 1.026,
-    '45.6_10_band4': 1.008,
-    '60.0_200_band1': 1.074,
-    '60.0_200_band2': 0.823,
-    '60.0_200_band3': 0.967,
-    '60.0_200_band4': 1.017,
-    '60.0_80_band1': 0.921,
-    '60.0_80_band2': 1.056,
-    '60.0_80_band3': 1.126,
-    '60.0_80_band4': 1.011,
-    '60.0_130_band1': 1.022,
-    '60.0_130_band2': 0.987,
-    '60.0_130_band3': 0.986,
-    '60.0_130_band4': 1.013,
-    '70.5_200_band1': 1.074,
-    '70.5_200_band2': 0.823,
-    '70.5_200_band3': 0.967,
-    '70.5_200_band4': 1.017,
-    '70.5_80_band1': 0.921,
-    '70.5_80_band2': 1.056,
-    '70.5_80_band3': 1.126,
-    '70.5_80_band4': 1.011,
-    '70.5_10_band1': 0.962,
-    '70.5_10_band2': 1.032,
-    '70.5_10_band3': 1.026,
-    '70.5_10_band4': 1.008
+AHI2MISR_SBAF = {   # slope offset
+    '0.0_60_band1': [0.917, -0.003954],
+    '0.0_60_band2': [0.927, 0.007418],
+    '0.0_60_band3': [0.893, 0.006822],
+    '0.0_60_band4': [0.988, 0.000655],
+    '0.0_50_band1': [0.943, -0.00786],
+    '0.0_50_band2': [1.173, -0.004505],
+    '0.0_50_band3': [1.005, 0.003925],
+    '0.0_50_band4': [0.977, 0.0003521],
+    '0.0_120_band1': [0.960, -0.003769],
+    '0.0_120_band2': [0.854, 0.008167],
+    '0.0_120_band3': [0.848, 0.008863],
+    '0.0_120_band4': [0.989, -0.0006129],
+    '26.1_150_band1': [1.001, -0.008206],
+    '26.1_150_band2': [0.870, 0.01107],
+    '26.1_150_band3': [0.879, 0.005276],
+    '26.1_150_band4': [0.985, -0.00009905],
+    '26.1_10_band1': [0.973, -0.006968],
+    '26.1_10_band2': [0.923, 0.00685],
+    '26.1_10_band3': [0.891, 0.005697],
+    '26.1_10_band4': [0.985, -0.00001046],
+    '26.1_50_band1': [0.943, -0.00786],
+    '26.1_50_band2': [1.173, -0.004505],
+    '26.1_50_band3': [1.005, 0.003925],
+    '26.1_50_band4': [0.977, 0.0003521],
+    '45.6_60_band1': [0.917, -0.003954],
+    '45.6_60_band2': [0.927, 0.007418],
+    '45.6_60_band3': [0.893, 0.006822],
+    '45.6_60_band4': [0.988, 0.000655],
+    '45.6_20_band1': [1.006, -0.009999],
+    '45.6_20_band2': [0.969, 0.004433],
+    '45.6_20_band3': [0.905, 0.005546],
+    '45.6_20_band4': [0.986, 0.00009912],
+    '45.6_10_band1': [0.973, -0.006968],
+    '45.6_10_band2': [0.923, 0.00685],
+    '45.6_10_band3': [0.891, 0.005697],
+    '45.6_10_band4': [0.985, -0.00001046],
+    '60.0_200_band1': [1.049, -0.007923],
+    '60.0_200_band2': [0.754, 0.01243],
+    '60.0_200_band3': [0.898, 0.003822],
+    '60.0_200_band4': [0.990, 0.001283],
+    '60.0_80_band1': [0.836, 0.001566],
+    '60.0_80_band2': [0.759, 0.01408],
+    '60.0_80_band3': [0.887, 0.006347],
+    '60.0_80_band4': [0.989, -0.0001306],
+    '60.0_130_band1': [1.019, -0.007898],
+    '60.0_130_band2': [0.932, 0.004422],
+    '60.0_130_band3': [0.908, 0.002736],
+    '60.0_130_band4': [0.991, -0.0002034],
+    '70.5_200_band1': [1.049, -0.007923],
+    '70.5_200_band2': [0.754, 0.01243],
+    '70.5_200_band3': [0.898, 0.003822],
+    '70.5_200_band4': [0.990, 0.001283],
+    '70.5_80_band1': [0.836, 0.001566],
+    '70.5_80_band2': [0.759, 0.01408],
+    '70.5_80_band3': [0.887, 0.006347],
+    '70.5_80_band4': [0.989, -0.0001306],
+    '70.5_10_band1': [0.973, -0.006968],
+    '70.5_10_band2': [0.923, 0.00685],
+    '70.5_10_band3': [0.891, 0.005697],
+    '70.5_10_band4': [0.985, -0.00001046]
 }
 
 
@@ -91,8 +91,12 @@ def BRF_TrueValue(o_value, scale, offset):
         return y
 
 
-def ahi_sr2misr_sr(ahi_sr_array, slope):
-    return ahi_sr_array/slope
+def ahi_sr2misr_sr(ahi_sr_array, AHI2MISR_para):
+    slope = AHI2MISR_para[0]
+    offset = AHI2MISR_para[1]
+    offset_array = numpy.ones_like(ahi_sr_array)
+    offset_array = offset_array * offset
+    return (ahi_sr_array - offset_array)/slope
 
 
 def mapping(array, figure_title):
@@ -129,7 +133,7 @@ def mapping_scatter(x_arrray, y_array, figure_title):
     print(fig_filename)
 
 
-def record_roi_misr_ahi(roi_name, band_index, misr_orbit, misr_camera_index, ahi_obs_time, misr_nc_filename, ahi_ac_npy, AHI2MISR_slope):
+def record_roi_misr_ahi(roi_name, band_index, misr_orbit, misr_camera_index, ahi_obs_time, misr_nc_filename, ahi_ac_npy, AHI2MISR_para):
     ac_info = numpy.load(ahi_ac_npy, allow_pickle=True)[0]
     roi_lats = ac_info['roi_lats']
     roi_lons = ac_info['roi_lons']
@@ -179,7 +183,7 @@ def record_roi_misr_ahi(roi_name, band_index, misr_orbit, misr_camera_index, ahi
         # mapping(ahi_toa_misr, figure_title)
 
         # SR(AHI2MISR)
-        ahi_sr_misr = ahi_sr2misr_sr(roi_ahi_sr, AHI2MISR_slope)
+        ahi_sr_misr = ahi_sr2misr_sr(roi_ahi_sr, AHI2MISR_para)
         # print(ahi_sr_misr)
         ahi_sr_misr = ahi_sr_misr*mask_array
         figure_title = roi_name + '_' + ahi_obs_time + '_band_' + str(band_index + 1) + '_ahi_sr'
@@ -213,11 +217,11 @@ def get_roi_misr_ahi(roi_name, misr_path_orbit_camera, ahi_ac_npy):
     misr_orbit = int(misr_path_orbit[-6:])
     band_index = int(ahi_ac_npy[-5:-4]) - 1
     band_name = 'band' + str(band_index + 1)
-    AHI2MISR_slope = AHI2MISR_roi_slope[roi_name + '_' + band_name]
+    AHI2MISR_para = AHI2MISR_SBAF[roi_name + '_' + band_name]
     misr_camera_index = int(misr_path_orbit_camera[-1:])
     ahi_obs_time = ahi_ac_npy[-25:-13]
     misr_nc_filename = os.path.join(MISR_NC_FOLDER, 'MISR_AM1_AS_LAND_' + misr_path_orbit + '_F08_0023.nc')
-    roi_misr_sr, roi_ahi_sr_misr = record_roi_misr_ahi(roi_name, band_index, misr_orbit, misr_camera_index, ahi_obs_time, misr_nc_filename, ahi_ac_npy, AHI2MISR_slope)
+    roi_misr_sr, roi_ahi_sr_misr = record_roi_misr_ahi(roi_name, band_index, misr_orbit, misr_camera_index, ahi_obs_time, misr_nc_filename, ahi_ac_npy, AHI2MISR_para)
     return roi_misr_sr, roi_ahi_sr_misr
 
 
