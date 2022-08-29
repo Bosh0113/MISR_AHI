@@ -419,7 +419,8 @@ def roi_ahi_data(r_extent, ahi_obs_t, band_jma):
     ahi_ftp_folder1 = ahi_obs_t[:6]
     ahi_ftp_folder2 = band_info_[0]
     ahi_ftp_suffix = band_info_[2]
-    ftp_filename = '/gridded/FD/V20190123/' + ahi_ftp_folder1 + '/' + ahi_ftp_folder2 + '/' + obs_time + ahi_ftp_suffix
+    # ftp_filename = '/gridded/FD/V20190123/' + ahi_ftp_folder1 + '/' + ahi_ftp_folder2 + '/' + obs_time + ahi_ftp_suffix
+    ftp_filename = '/gridded/FD/V20151105/' + ahi_ftp_folder1 + '/' + ahi_ftp_folder2 + '/' + obs_time + ahi_ftp_suffix
     resolution = float(band_info_[1])
     roi_ahi_dn = roi_ahi_data_dn(r_extent, ftp_filename, resolution)
     # DN to Tbb
