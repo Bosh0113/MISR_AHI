@@ -11,7 +11,7 @@ import subprocess
 import datetime as dt
 
 target = '/data01/people/liwei/Data/AHI_Validation/'
-ws = ''
+ws = '/data01/people/beichen/workspace/20220903'
 
 SZA_PATH = '/data01/GEO/INPUT/ANGLE/Solar_Zenith_Angle_u2/'
 SAA_PATH = '/data01/GEO/INPUT/ANGLE/Solar_Azimuth_Angle_u2/'
@@ -100,7 +100,7 @@ class CAMS_data:
 
         return np.array(OZ).reshape(row_AHI, col_AHI), np.array(WV).reshape(row_AHI, col_AHI), np.array(AOT550).reshape(row_AHI, col_AHI)
 
-    def read_CAMS_AERO(self, lat ,lon):
+    def read_CAMS_AERO(self, lat, lon):
 
         dtime = dt.datetime(int(self.YYYY), int(self.MM), int(self.DD), int(self.HH), int(self.MIN) + 5)
 
