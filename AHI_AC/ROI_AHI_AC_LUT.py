@@ -252,101 +252,98 @@ if __name__ == "__main__":
     ftp.close()
 
     for ahi_obs_t in ahi_obs_times:
-        try:
-            start_time = T.time()
-            ahi_obs_t_obj = datetime.datetime.strptime(ahi_obs_t, "%Y%m%d%H%M")
-            YYYY, MM, DD, HH, MIN, date = Time_split(ahi_obs_t_obj)
-            print("Start processing {}".format(date))
-            # Download AHI
-            with open(TEMP_FOLDER + '/{}.vis.03.fld.geoss'.format(date), 'rb') as fp:
-                data = np.frombuffer(fp.read(), dtype='>u2').reshape(12000, 12000)
-                data = DN2TBB(data)
-                data = data / 100
+        start_time = T.time()
+        ahi_obs_t_obj = datetime.datetime.strptime(ahi_obs_t, "%Y%m%d%H%M")
+        YYYY, MM, DD, HH, MIN, date = Time_split(ahi_obs_t_obj)
+        print("Start processing {}".format(date))
+        # Download AHI
+        with open(TEMP_FOLDER + '/{}.vis.03.fld.geoss'.format(date), 'rb') as fp:
+            data = np.frombuffer(fp.read(), dtype='>u2').reshape(12000, 12000)
+            data = DN2TBB(data)
+            data = data / 100
 
-            AHI_data = data[find_nearest_index(ahi_lats, roi_ullat):find_nearest_index(ahi_lats, roi_lrlat) + 1, find_nearest_index(ahi_lons, roi_ullon):find_nearest_index(ahi_lons, roi_lrlon) + 1]
+        AHI_data = data[find_nearest_index(ahi_lats, roi_ullat):find_nearest_index(ahi_lats, roi_lrlat) + 1, find_nearest_index(ahi_lons, roi_ullon):find_nearest_index(ahi_lons, roi_lrlon) + 1]
 
-            # Solar angle
-            print('Start reading Angle data')
-            AHI_SZA, AHI_SAA = AHI_angle(date).read_angle_data(roi_extent)
+        # Solar angle
+        print('Start reading Angle data')
+        AHI_SZA, AHI_SAA = AHI_angle(date).read_angle_data(roi_extent)
 
-            RAA = abs(AHI_SAA - AHI_VAA)
-            RAA[RAA > 180] = 360 - RAA[RAA > 180]
+        RAA = abs(AHI_SAA - AHI_VAA)
+        RAA[RAA > 180] = 360 - RAA[RAA > 180]
 
-            print('Angle data read finished')
-            print('Start reading Atmospheric data')
-            OZ, WV, AOT550 = CAMS_data(YYYY, MM, DD, HH, MIN).read_CAMS(n_lats, n_lons)
-            Aerosol_type = CAMS_data(YYYY, MM, DD, HH, MIN).read_CAMS_AERO(n_lats, n_lons)
-            print('Atmospheric data read finished')
+        print('Angle data read finished')
+        print('Start reading Atmospheric data')
+        OZ, WV, AOT550 = CAMS_data(YYYY, MM, DD, HH, MIN).read_CAMS(n_lats, n_lons)
+        Aerosol_type = CAMS_data(YYYY, MM, DD, HH, MIN).read_CAMS_AERO(n_lats, n_lons)
+        print('Atmospheric data read finished')
 
-            results = Parallel(n_jobs=-1)(delayed(calculate_6s_band4)(i) for i in range(row_AHI))
-            X = np.array(results)
-            AHI_TOA = X[:, 0]
-            Xa = X[:, 1]
-            Xb = X[:, 2]
-            Xc = X[:, 3]
-            SR = X[:, 4] 
-            # Save file and remove download input data
-            ahi_data_roi = np.array(AHI_TOA).reshape(row_AHI, col_AHI)
-            ac_roi_xa = np.array(Xa).reshape(row_AHI, col_AHI)
-            ac_roi_xb = np.array(Xb).reshape(row_AHI, col_AHI)
-            ac_roi_xc = np.array(Xc).reshape(row_AHI, col_AHI)
-            roi_ahi_sr = np.array(SR).reshape(row_AHI, col_AHI)
+        results = Parallel(n_jobs=-1)(delayed(calculate_6s_band4)(i) for i in range(row_AHI))
+        X = np.array(results)
+        AHI_TOA = X[:, 0]
+        Xa = X[:, 1]
+        Xb = X[:, 2]
+        Xc = X[:, 3]
+        SR = X[:, 4] 
+        # Save file and remove download input data
+        ahi_data_roi = np.array(AHI_TOA).reshape(row_AHI, col_AHI)
+        ac_roi_xa = np.array(Xa).reshape(row_AHI, col_AHI)
+        ac_roi_xb = np.array(Xb).reshape(row_AHI, col_AHI)
+        ac_roi_xc = np.array(Xc).reshape(row_AHI, col_AHI)
+        roi_ahi_sr = np.array(SR).reshape(row_AHI, col_AHI)
 
-            # record AC SR
-            # Template of record
-            #############################
-            # demo = [
-            #     {
-            #         'obs_time': '201608230450',
-            #         'roi_lats': [60.0, 59.99, ..., -60.0],
-            #         'roi_lons': [85.0, 85.01, ..., 205.0],
-            #         'roi_vza': [[..., ..., ...], ...],
-            #         'roi_sza': [[..., ..., ...], ...],
-            #         'roi_raa': [[..., ..., ...], ...],
-            #         'roi_aot': [[..., ..., ...], ...],
-            #         'roi_aero_type': [[..., ..., ...], ...],
-            #         'roi_oz': [[..., ..., ...], ...],
-            #         'roi_wv': [[..., ..., ...], ...],
-            #         'roi_ac_fa': [[..., ..., ...], ...],
-            #         'roi_ac_xa': [[..., ..., ...], ...],
-            #         'roi_ac_xb': [[..., ..., ...], ...],
-            #         'roi_ac_xc': [[..., ..., ...], ...],
-            #         'roi_ahi_data': [[..., ..., ...], ...],
-            #         'roi_ahi_sr': [[..., ..., ...], ...],
-            #     }
-            # ]
-            #############################
-            
-            record_info = [{
-                'obs_time': ahi_obs_t,
-                'roi_lats': n_lats,
-                'roi_lons': n_lons,
-                'roi_vza': AHI_VZA,
-                'roi_sza': AHI_SZA,
-                'roi_raa': RAA,
-                'roi_aot': AOT550,
-                'roi_aero_type': Aerosol_type,
-                'roi_oz': OZ,
-                'roi_wv': WV,
-                'roi_ac_fa': [],
-                'roi_ac_xa': ac_roi_xa,
-                'roi_ac_xb': ac_roi_xb,
-                'roi_ac_xc': ac_roi_xc,
-                'roi_ahi_data': ahi_data_roi,
-                'roi_ahi_sr': roi_ahi_sr,
-            }]
-            
-            folder_path = os.path.join(ws, 'AHI_AC_PARAMETER')
-            if not os.path.exists(folder_path):
-                os.makedirs(folder_path)
-            record_npy = os.path.join(folder_path, ahi_obs_t + '_ac_band4.npy')
-            np.save(record_npy, record_info)
+        # record AC SR
+        # Template of record
+        #############################
+        # demo = [
+        #     {
+        #         'obs_time': '201608230450',
+        #         'roi_lats': [60.0, 59.99, ..., -60.0],
+        #         'roi_lons': [85.0, 85.01, ..., 205.0],
+        #         'roi_vza': [[..., ..., ...], ...],
+        #         'roi_sza': [[..., ..., ...], ...],
+        #         'roi_raa': [[..., ..., ...], ...],
+        #         'roi_aot': [[..., ..., ...], ...],
+        #         'roi_aero_type': [[..., ..., ...], ...],
+        #         'roi_oz': [[..., ..., ...], ...],
+        #         'roi_wv': [[..., ..., ...], ...],
+        #         'roi_ac_fa': [[..., ..., ...], ...],
+        #         'roi_ac_xa': [[..., ..., ...], ...],
+        #         'roi_ac_xb': [[..., ..., ...], ...],
+        #         'roi_ac_xc': [[..., ..., ...], ...],
+        #         'roi_ahi_data': [[..., ..., ...], ...],
+        #         'roi_ahi_sr': [[..., ..., ...], ...],
+        #     }
+        # ]
+        #############################
+        
+        record_info = [{
+            'obs_time': ahi_obs_t,
+            'roi_lats': n_lats,
+            'roi_lons': n_lons,
+            'roi_vza': AHI_VZA,
+            'roi_sza': AHI_SZA,
+            'roi_raa': RAA,
+            'roi_aot': AOT550,
+            'roi_aero_type': Aerosol_type,
+            'roi_oz': OZ,
+            'roi_wv': WV,
+            'roi_ac_fa': [],
+            'roi_ac_xa': ac_roi_xa,
+            'roi_ac_xb': ac_roi_xb,
+            'roi_ac_xc': ac_roi_xc,
+            'roi_ahi_data': ahi_data_roi,
+            'roi_ahi_sr': roi_ahi_sr,
+        }]
+        
+        folder_path = os.path.join(ws, 'AHI_AC_PARAMETER')
+        if not os.path.exists(folder_path):
+            os.makedirs(folder_path)
+        record_npy = os.path.join(folder_path, ahi_obs_t + '_ac_band4.npy')
+        np.save(record_npy, record_info)
 
-            end_time = T.time()
-            TIME = end_time - start_time
-            print('time: {:.1f} secs, {:.1f} mins,{:.1f} hours'.format(TIME, TIME / 60, TIME / 3600))
-        except:
-            pass
+        end_time = T.time()
+        TIME = end_time - start_time
+        print('time: {:.1f} secs, {:.1f} mins,{:.1f} hours'.format(TIME, TIME / 60, TIME / 3600))
 
     shutil.rmtree(TEMP_FOLDER)
     print("delete folder finish.")
