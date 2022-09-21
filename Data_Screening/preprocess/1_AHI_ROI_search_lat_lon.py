@@ -65,7 +65,7 @@ if __name__ == "__main__":
             lon = lon4search[idx]
             point_cood = [lon, lat]     # lon, lat
             search_cood.append(point_cood)
-        print(len(search_cood))
+        # print(len(search_cood))
         point_locations_npy_filename = os.path.join(workspace, str(MISRVZAs[vza_idx]) + '_point4search.npy')
         numpy.save(point_locations_npy_filename, numpy.array(search_cood))
 
