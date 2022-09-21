@@ -179,9 +179,12 @@ def misr_ahi_raa_matching(roi_geoj_file, misr_ls_file, ahi_vaa_file, ahi_saa_fil
             # show raa diff
             raa_diff = abs(roi_misr_raa - roi_ahi_raa)
 
-            # angle standard
-            roi_misr_vaa = azimuth_angle_misr2ahi(roi_misr_vaa)
-            roi_misr_saa = azimuth_angle_misr2ahi(roi_misr_saa)
+            # # angle standard
+            # roi_misr_vaa = azimuth_angle_misr2ahi(roi_misr_vaa)
+            # roi_misr_saa = azimuth_angle_misr2ahi(roi_misr_saa)
+            roi_misr_vaa = roi_misr_vaa
+            roi_misr_saa = roi_misr_saa
+
             # misr_vaa, ahi_vaa, misr_saa, ahi_saa, misr_raa, ahi_raa, raa_diff
             return roi_misr_vaa, roi_ahi_vaa, roi_misr_saa, roi_ahi_saa, roi_misr_raa, roi_ahi_raa, raa_diff
         except Exception as e:

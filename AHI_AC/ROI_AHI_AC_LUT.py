@@ -14,8 +14,6 @@ import shutil
 # workspace
 ws = os.getcwd()
 TEMP_FOLDER = os.path.join(ws, 'temp')
-if not os.path.exists(TEMP_FOLDER):
-    os.makedirs(TEMP_FOLDER)
 
 SZA_PATH = '/data01/GEO/INPUT/ANGLE/Solar_Zenith_Angle_u2/'
 SAA_PATH = '/data01/GEO/INPUT/ANGLE/Solar_Azimuth_Angle_u2/'
@@ -37,8 +35,11 @@ raa = np.linspace(0, 180, 19)
 al = np.linspace(0, 8, 5)
 aero_type = np.array([0, 1])
 
-AHI_RESOLUTION = 0.01  # degree
-AHI_ANGLE_RESOLUTION = 0.04  # degree
+AHI_RESOLUTION = 0.01  # degree: band3 0.005, band4 0.01
+PIXEL_NUM = 12000   # band3: 12000, band4 24000
+FN_1 = None
+FN_2 = None
+FN_3 = None
 
 
 class AHI_angle:
@@ -62,12 +63,12 @@ class AHI_angle:
 
         with open(SZA_PATH + sza_file_name, 'rb') as fp:
             AHI_SZA = np.frombuffer(fp.read(), dtype='u2').reshape(3000, 3000)
-            AHI_SZA = cv2.resize(np.array(AHI_SZA, dtype='float64'), (12000, 12000), interpolation=cv2.INTER_NEAREST)
+            AHI_SZA = cv2.resize(np.array(AHI_SZA, dtype='float64'), (PIXEL_NUM, PIXEL_NUM), interpolation=cv2.INTER_NEAREST)
             AHI_SZA = AHI_SZA[find_nearest_index(ahi_lats, r_ullat):find_nearest_index(ahi_lats, r_lrlat) + 1, find_nearest_index(ahi_lons, r_ullon):find_nearest_index(ahi_lons, r_lrlon) + 1] / 100
 
         with open(SAA_PATH + saa_file_name, 'rb') as fp:
             AHI_SAA = np.frombuffer(fp.read(), dtype='u2').reshape(3000, 3000)
-            AHI_SAA = cv2.resize(np.array(AHI_SAA, dtype='float64'), (12000, 12000), interpolation=cv2.INTER_NEAREST)
+            AHI_SAA = cv2.resize(np.array(AHI_SAA, dtype='float64'), (PIXEL_NUM, PIXEL_NUM), interpolation=cv2.INTER_NEAREST)
             AHI_SAA = AHI_SAA[find_nearest_index(ahi_lats, r_ullat):find_nearest_index(ahi_lats, r_lrlat) + 1, find_nearest_index(ahi_lons, r_ullon):find_nearest_index(ahi_lons, r_lrlon) + 1] / 100
 
         return AHI_SZA, AHI_SAA
@@ -142,7 +143,7 @@ class LUT_interpolation:
     def __init__(self, LUT_PATH):
         self.LUT_path = LUT_PATH
 
-    def LUT_interpolation(self):
+    def LUT_interpolation_band4(self):
         X1 = np.loadtxt(self.LUT_path + "01_band4.csv", delimiter=",").reshape(2, 8, 12, 5, 17, 17, 19)
         X2 = np.loadtxt(self.LUT_path + "02_band4.csv", delimiter=",").reshape(2, 8, 12, 5, 17, 17, 19)
         X3 = np.loadtxt(self.LUT_path + "03_band4.csv", delimiter=",").reshape(2, 8, 12, 5, 17, 17, 19)
@@ -153,8 +154,16 @@ class LUT_interpolation:
         fn3 = RegularGridInterpolator((aero_type, water, AOT, al, sza, vza, raa), X3, bounds_error=False, fill_value=np.nan)
         return fn1, fn2, fn3
 
+    def LUT_interpolation_band3(self):
+        X1 = np.loadtxt(self.LUT_path + "01_band3.csv", delimiter=",").reshape(2, 8, 5, 12, 5, 17, 17, 19)
+        X2 = np.loadtxt(self.LUT_path + "02_band3.csv", delimiter=",").reshape(2, 8, 5, 12, 5, 17, 17, 19)
+        X3 = np.loadtxt(self.LUT_path + "03_band3.csv", delimiter=",").reshape(2, 8, 5, 12, 5, 17, 17, 19)
+        # return X1, X2, X3
 
-fn1, fn2, fn3 = LUT_interpolation(LUT_PATH).LUT_interpolation()
+        fn1 = RegularGridInterpolator((aero_type, water, ozone, AOT, al, sza, vza, raa), X1, bounds_error=False, fill_value=np.nan)
+        fn2 = RegularGridInterpolator((aero_type, water, ozone, AOT, al, sza, vza, raa), X2, bounds_error=False, fill_value=np.nan)
+        fn3 = RegularGridInterpolator((aero_type, water, ozone, AOT, al, sza, vza, raa), X3, bounds_error=False, fill_value=np.nan)
+        return fn1, fn2, fn3
 
 
 def Time_split(time):
@@ -177,16 +186,41 @@ def calculate_6s_band4(i):
     AL_input = AHI_AL[i, :]
     xi = np.array([Aero_input, WV_input, AOT550_input, AL_input, SZA_input, VZA_input, RAA_input])
     xi = xi.T
-    xa = fn1(xi)
-    xb = fn2(xi)
-    xc = fn3(xi)
+    xa = FN_1(xi)
+    xb = FN_2(xi)
+    xc = FN_3(xi)
     ahi_toa = AHI_data[i, :]
     y = xa * ahi_toa - xb
     SR = y / (1 + xc * y)
     return (ahi_toa, xa, xb, xc, SR)
 
 
-def DN2TBB(data):
+def calculate_6s_band3(i):
+    Aero_input = Aerosol_type[i, :]
+    WV_input = WV[i, :]
+    OZ_input = OZ[i, :]
+    AOT550_input = AOT550[i, :]
+    RAA_input = RAA[i, :]
+    SZA_input = AHI_SZA[i, :]
+    VZA_input = AHI_VZA[i, :]
+    AL_input = AHI_AL[i, :]
+    xi = np.array([Aero_input, WV_input, OZ_input, AOT550_input, AL_input, SZA_input, VZA_input, RAA_input])
+    xi = xi.T
+    xa = FN_1(xi)
+    xb = FN_2(xi)
+    xc = FN_3(xi)
+    ahi_toa = AHI_data[i, :]
+    y = xa * ahi_toa - xb
+    SR = y / (1 + xc * y)
+    return (ahi_toa, xa, xb, xc, SR)
+
+
+def DN2TBB_band3(data):
+    LUT = np.loadtxt(DN_PATH + 'count2tbb_v102/ext.01')
+    return LUT[data, 1]
+
+
+def DN2TBB_band4(data):
     LUT = np.loadtxt(DN_PATH + 'count2tbb_v102/vis.03')
     return LUT[data, 1]
 
@@ -203,147 +237,188 @@ if __name__ == "__main__":
     # roi_extent: (ullat, ullon, lrlat, lrlon)
     roi_extent = [-13.723, 142.529, -13.899, 142.709]
     # Matched AHI Obs. Time
-    ahi_obs_times = [
-        '201704050100', '201704210050', '201708270100', '201709120100', '201804080100', '201808300100', '201809150100', '201904110100', '201908170050', '201909020100'
-    ]
-    
-    roi_ullat = roi_extent[0]
-    roi_ullon = roi_extent[1]
-    roi_lrlat = roi_extent[2]
-    roi_lrlon = roi_extent[3]
-    ahi_lats = np.arange(60. - AHI_RESOLUTION / 2, -60, -AHI_RESOLUTION)
-    ahi_lons = np.arange(85. + AHI_RESOLUTION / 2, 205, AHI_RESOLUTION)
-    n_lats = ahi_lats[find_nearest_index(ahi_lats, roi_ullat):find_nearest_index(ahi_lats, roi_lrlat) + 1]
-    n_lons = ahi_lons[find_nearest_index(ahi_lons, roi_ullon):find_nearest_index(ahi_lons, roi_lrlon) + 1]
-    row_AHI = len(n_lats)
-    col_AHI = len(n_lons)
+    ahi_obs_times = ['201704050100', '201704210050', '201708270100', '201709120100', '201804080100', '201808300100', '201809150100', '201904110100', '201908170050', '201909020100']
 
-    with open(VZA_PATH, 'rb') as fp:
-        AHI_VZA = np.frombuffer(fp.read(), dtype='u2').reshape(12000, 12000)[find_nearest_index(ahi_lats, roi_ullat):find_nearest_index(ahi_lats, roi_lrlat) + 1, find_nearest_index(ahi_lons, roi_ullon):find_nearest_index(ahi_lons, roi_lrlon) + 1]
-        AHI_VZA = AHI_VZA / 100
-    with open(VAA_PATH, 'rb') as fp:
-        AHI_VAA = np.frombuffer(fp.read(), dtype='u2').reshape(12000, 12000)[find_nearest_index(ahi_lats, roi_ullat):find_nearest_index(ahi_lats, roi_lrlat) + 1, find_nearest_index(ahi_lons, roi_ullon):find_nearest_index(ahi_lons, roi_lrlon) + 1]
-        AHI_VAA = AHI_VAA / 100
-    with open(AL_PATH, 'rb') as fp:
-        AHI_AL = np.frombuffer(fp.read(), dtype='u2').reshape(12000, 12000)[find_nearest_index(ahi_lats, roi_ullat):find_nearest_index(ahi_lats, roi_lrlat) + 1, find_nearest_index(ahi_lons, roi_ullon):find_nearest_index(ahi_lons, roi_lrlon) + 1]
-        AHI_AL = AHI_AL / 1000
-        AHI_AL[AHI_AL >= max(al)] = max(al) - (1 / 10000)
-        AHI_AL[AHI_AL <= min(al)] = min(al) + (1 / 10000)
+    for band_name in ['band3', 'band4']:
+        if band_name == 'band3':
+            AHI_RESOLUTION = 0.005
+            PIXEL_NUM = 24000
+            FN_1, FN_2, FN_3 = LUT_interpolation(LUT_PATH).LUT_interpolation_band3()
+        elif band_name == 'band4':
+            AHI_RESOLUTION = 0.01
+            PIXEL_NUM = 12000
+            FN_1, FN_2, FN_3 = LUT_interpolation(LUT_PATH).LUT_interpolation_band4()
 
-    ftp = FTP()
-    ftp.connect('hmwr829gr.cr.chiba-u.ac.jp', 21)
-    ftp.login()
-
-    for date in ahi_obs_times:
-        ahi_data_time = date
-        ahi_data_folder1 = ahi_data_time[:6]
-        ahi_data_folder2 = ahi_data_folder1[:8]
-        ahi_saa_filename = ahi_data_time + '.vis.03.fld.geoss.bz2'
-        ahi_saa_path = '/gridded/FD/V20151105/' + ahi_data_folder1 + '/VIS/' + ahi_saa_filename
-        ftp_dl_url = 'ftp://hmwr829gr.cr.chiba-u.ac.jp' + ahi_saa_path
-        print(ftp_dl_url)
-        local_file = TEMP_FOLDER + '/' + ahi_saa_filename
-        if not os.path.exists(local_file):
-            with open(local_file, 'wb') as f:
-                ftp.retrbinary('RETR ' + ahi_saa_path, f.write, 1024 * 1024)
-            p = subprocess.Popen('lbzip2 -d {}'.format(local_file), shell=True)
-            p.communicate()
-
-    ftp.close()
-
-    for ahi_obs_t in ahi_obs_times:
-        start_time = T.time()
-        ahi_obs_t_obj = datetime.datetime.strptime(ahi_obs_t, "%Y%m%d%H%M")
-        YYYY, MM, DD, HH, MIN, date = Time_split(ahi_obs_t_obj)
-        print("Start processing {}".format(date))
-        # Download AHI
-        with open(TEMP_FOLDER + '/{}.vis.03.fld.geoss'.format(date), 'rb') as fp:
-            data = np.frombuffer(fp.read(), dtype='>u2').reshape(12000, 12000)
-            data = DN2TBB(data)
-            data = data / 100
-
-        AHI_data = data[find_nearest_index(ahi_lats, roi_ullat):find_nearest_index(ahi_lats, roi_lrlat) + 1, find_nearest_index(ahi_lons, roi_ullon):find_nearest_index(ahi_lons, roi_lrlon) + 1]
-
-        # Solar angle
-        print('Start reading Angle data')
-        AHI_SZA, AHI_SAA = AHI_angle(date).read_angle_data(roi_extent)
-
-        RAA = abs(AHI_SAA - AHI_VAA)
-        RAA[RAA > 180] = 360 - RAA[RAA > 180]
-
-        print('Angle data read finished')
-        print('Start reading Atmospheric data')
-        OZ, WV, AOT550 = CAMS_data(YYYY, MM, DD, HH, MIN).read_CAMS(n_lats, n_lons)
-        Aerosol_type = CAMS_data(YYYY, MM, DD, HH, MIN).read_CAMS_AERO(n_lats, n_lons)
-        print('Atmospheric data read finished')
-
-        results = Parallel(n_jobs=-1)(delayed(calculate_6s_band4)(i) for i in range(row_AHI))
-        X = np.array(results)
-        AHI_TOA = X[:, 0]
-        Xa = X[:, 1]
-        Xb = X[:, 2]
-        Xc = X[:, 3]
-        SR = X[:, 4] 
-        # Save file and remove download input data
-        ahi_data_roi = np.array(AHI_TOA).reshape(row_AHI, col_AHI)
-        ac_roi_xa = np.array(Xa).reshape(row_AHI, col_AHI)
-        ac_roi_xb = np.array(Xb).reshape(row_AHI, col_AHI)
-        ac_roi_xc = np.array(Xc).reshape(row_AHI, col_AHI)
-        roi_ahi_sr = np.array(SR).reshape(row_AHI, col_AHI)
-
-        # record AC SR
-        # Template of record
-        #############################
-        # demo = [
-        #     {
-        #         'obs_time': '201608230450',
-        #         'roi_lats': [60.0, 59.99, ..., -60.0],
-        #         'roi_lons': [85.0, 85.01, ..., 205.0],
-        #         'roi_vza': [[..., ..., ...], ...],
-        #         'roi_sza': [[..., ..., ...], ...],
-        #         'roi_raa': [[..., ..., ...], ...],
-        #         'roi_aot': [[..., ..., ...], ...],
-        #         'roi_aero_type': [[..., ..., ...], ...],
-        #         'roi_oz': [[..., ..., ...], ...],
-        #         'roi_wv': [[..., ..., ...], ...],
-        #         'roi_ac_fa': [[..., ..., ...], ...],
-        #         'roi_ac_xa': [[..., ..., ...], ...],
-        #         'roi_ac_xb': [[..., ..., ...], ...],
-        #         'roi_ac_xc': [[..., ..., ...], ...],
-        #         'roi_ahi_data': [[..., ..., ...], ...],
-        #         'roi_ahi_sr': [[..., ..., ...], ...],
-        #     }
-        # ]
-        #############################
+        roi_ullat = roi_extent[0]
+        roi_ullon = roi_extent[1]
+        roi_lrlat = roi_extent[2]
+        roi_lrlon = roi_extent[3]
+        ahi_lats = np.arange(60. - AHI_RESOLUTION / 2, -60, -AHI_RESOLUTION)
+        ahi_lons = np.arange(85. + AHI_RESOLUTION / 2, 205, AHI_RESOLUTION)
+        n_lats = ahi_lats[find_nearest_index(ahi_lats, roi_ullat):find_nearest_index(ahi_lats, roi_lrlat) + 1]
+        n_lons = ahi_lons[find_nearest_index(ahi_lons, roi_ullon):find_nearest_index(ahi_lons, roi_lrlon) + 1]
+        row_AHI = len(n_lats)
+        col_AHI = len(n_lons)
         
-        record_info = [{
-            'obs_time': ahi_obs_t,
-            'roi_lats': n_lats,
-            'roi_lons': n_lons,
-            'roi_vza': AHI_VZA,
-            'roi_sza': AHI_SZA,
-            'roi_raa': RAA,
-            'roi_aot': AOT550,
-            'roi_aero_type': Aerosol_type,
-            'roi_oz': OZ,
-            'roi_wv': WV,
-            'roi_ac_fa': [],
-            'roi_ac_xa': ac_roi_xa,
-            'roi_ac_xb': ac_roi_xb,
-            'roi_ac_xc': ac_roi_xc,
-            'roi_ahi_data': ahi_data_roi,
-            'roi_ahi_sr': roi_ahi_sr,
-        }]
-        
-        folder_path = os.path.join(ws, 'AHI_AC_PARAMETER')
-        if not os.path.exists(folder_path):
-            os.makedirs(folder_path)
-        record_npy = os.path.join(folder_path, ahi_obs_t + '_ac_band4.npy')
-        np.save(record_npy, record_info)
+        if band_name == 'band3':
+            VZA_PATH = '/data01/GEO/INPUT/ANGLE/Viewer_Zenith_Angle/AHI_VZA_05.dat'
+            VAA_PATH = '/data01/GEO/INPUT/ANGLE/Viewer_Azimuth_Angle/AHI_VAA_05.dat'
+            AL_PATH = '/data01/GEO/INPUT/ELEVATION_GEO/AHI/MERIT_DEM_AHI_05km.dat'
+        elif band_name == 'band4':
+            VZA_PATH = '/data01/GEO/INPUT/ANGLE/Viewer_Zenith_Angle/AHI_VZA_10.dat'
+            VAA_PATH = '/data01/GEO/INPUT/ANGLE/Viewer_Azimuth_Angle/AHI_VAA_10.dat'
+            AL_PATH = '/data01/GEO/INPUT/ELEVATION_GEO/AHI/MERIT_DEM_AHI_10km.dat'
 
-        end_time = T.time()
-        TIME = end_time - start_time
-        print('time: {:.1f} secs, {:.1f} mins,{:.1f} hours'.format(TIME, TIME / 60, TIME / 3600))
+        with open(VZA_PATH, 'rb') as fp:
+            AHI_VZA = np.frombuffer(fp.read(), dtype='u2').reshape(PIXEL_NUM, PIXEL_NUM)[find_nearest_index(ahi_lats, roi_ullat):find_nearest_index(ahi_lats, roi_lrlat) + 1,
+                                                                                 find_nearest_index(ahi_lons, roi_ullon):find_nearest_index(ahi_lons, roi_lrlon) + 1]
+            AHI_VZA = AHI_VZA / 100
+        with open(VAA_PATH, 'rb') as fp:
+            AHI_VAA = np.frombuffer(fp.read(), dtype='u2').reshape(PIXEL_NUM, PIXEL_NUM)[find_nearest_index(ahi_lats, roi_ullat):find_nearest_index(ahi_lats, roi_lrlat) + 1,
+                                                                                 find_nearest_index(ahi_lons, roi_ullon):find_nearest_index(ahi_lons, roi_lrlon) + 1]
+            AHI_VAA = AHI_VAA / 100
+        with open(AL_PATH, 'rb') as fp:
+            AHI_AL = np.frombuffer(fp.read(), dtype='u2').reshape(PIXEL_NUM, PIXEL_NUM)[find_nearest_index(ahi_lats, roi_ullat):find_nearest_index(ahi_lats, roi_lrlat) + 1,
+                                                                                find_nearest_index(ahi_lons, roi_ullon):find_nearest_index(ahi_lons, roi_lrlon) + 1]
+            AHI_AL = AHI_AL / 1000
+            AHI_AL[AHI_AL >= max(al)] = max(al) - (1 / 10000)
+            AHI_AL[AHI_AL <= min(al)] = min(al) + (1 / 10000)
+
+        ftp = FTP()
+        ftp.connect('hmwr829gr.cr.chiba-u.ac.jp', 21)
+        ftp.login()
+
+        for date in ahi_obs_times:
+            ahi_data_time = date
+            ahi_data_folder1 = ahi_data_time[:6]
+            ahi_data_folder2 = ahi_data_folder1[:8]
+            ahi_saa_path = ''
+            if band_name == 'band3':
+                ahi_saa_filename = ahi_data_time + '.ext.01.fld.geoss.bz2'
+                ahi_saa_path = '/gridded/FD/V20151105/' + ahi_data_folder1 + '/EXT/' + ahi_saa_filename
+            elif band_name == 'band4':
+                ahi_saa_filename = ahi_data_time + '.vis.03.fld.geoss.bz2'
+                ahi_saa_path = '/gridded/FD/V20151105/' + ahi_data_folder1 + '/VIS/' + ahi_saa_filename
+
+            ftp_dl_url = 'ftp://hmwr829gr.cr.chiba-u.ac.jp' + ahi_saa_path
+
+            print(ftp_dl_url)
+            if not os.path.exists(TEMP_FOLDER):
+                os.makedirs(TEMP_FOLDER)
+            local_file = TEMP_FOLDER + '/' + ahi_saa_filename
+            if not os.path.exists(local_file):
+                with open(local_file, 'wb') as f:
+                    ftp.retrbinary('RETR ' + ahi_saa_path, f.write, 1024 * 1024)
+                p = subprocess.Popen('lbzip2 -d {}'.format(local_file), shell=True)
+                p.communicate()
+
+        ftp.close()
+
+        for ahi_obs_t in ahi_obs_times:
+            start_time = T.time()
+            ahi_obs_t_obj = datetime.datetime.strptime(ahi_obs_t, "%Y%m%d%H%M")
+            YYYY, MM, DD, HH, MIN, date = Time_split(ahi_obs_t_obj)
+            print("Start processing {}".format(date))
+            # Download AHI
+            file_suffix = ''
+            if band_name == 'band3':
+                file_suffix = '/{}.ext.01.fld.geoss'
+            elif band_name == 'band4':
+                file_suffix = '/{}.vis.03.fld.geoss'
+            with open(TEMP_FOLDER + file_suffix.format(date), 'rb') as fp:
+                data = np.frombuffer(fp.read(), dtype='>u2').reshape(PIXEL_NUM, PIXEL_NUM)
+                if band_name == 'band3':
+                    data = DN2TBB_band3(data)
+                elif band_name == 'band4':
+                    data = DN2TBB_band4(data)
+                data = data / 100
+
+            AHI_data = data[find_nearest_index(ahi_lats, roi_ullat):find_nearest_index(ahi_lats, roi_lrlat) + 1, find_nearest_index(ahi_lons, roi_ullon):find_nearest_index(ahi_lons, roi_lrlon) + 1]
+
+            # Solar angle
+            print('Start reading Angle data')
+            AHI_SZA, AHI_SAA = AHI_angle(date).read_angle_data(roi_extent)
+
+            RAA = abs(AHI_SAA - AHI_VAA)
+            RAA[RAA > 180] = 360 - RAA[RAA > 180]
+
+            print('Angle data read finished')
+            print('Start reading Atmospheric data')
+            OZ, WV, AOT550 = CAMS_data(YYYY, MM, DD, HH, MIN).read_CAMS(n_lats, n_lons)
+            Aerosol_type = CAMS_data(YYYY, MM, DD, HH, MIN).read_CAMS_AERO(n_lats, n_lons)
+            print('Atmospheric data read finished')
+
+            results = None
+            if band_name == 'band3':
+                results = Parallel(n_jobs=-1)(delayed(calculate_6s_band3)(i) for i in range(row_AHI))
+            elif band_name == 'band4':
+                results = Parallel(n_jobs=-1)(delayed(calculate_6s_band4)(i) for i in range(row_AHI))
+            X = np.array(results)
+            AHI_TOA = X[:, 0]
+            Xa = X[:, 1]
+            Xb = X[:, 2]
+            Xc = X[:, 3]
+            SR = X[:, 4]
+            # Save file and remove download input data
+            ahi_data_roi = np.array(AHI_TOA).reshape(row_AHI, col_AHI)
+            ac_roi_xa = np.array(Xa).reshape(row_AHI, col_AHI)
+            ac_roi_xb = np.array(Xb).reshape(row_AHI, col_AHI)
+            ac_roi_xc = np.array(Xc).reshape(row_AHI, col_AHI)
+            roi_ahi_sr = np.array(SR).reshape(row_AHI, col_AHI)
+
+            # record AC SR
+            # Template of record
+            #############################
+            # demo = [
+            #     {
+            #         'obs_time': '201608230450',
+            #         'roi_lats': [60.0, 59.99, ..., -60.0],
+            #         'roi_lons': [85.0, 85.01, ..., 205.0],
+            #         'roi_vza': [[..., ..., ...], ...],
+            #         'roi_sza': [[..., ..., ...], ...],
+            #         'roi_raa': [[..., ..., ...], ...],
+            #         'roi_aot': [[..., ..., ...], ...],
+            #         'roi_aero_type': [[..., ..., ...], ...],
+            #         'roi_oz': [[..., ..., ...], ...],
+            #         'roi_wv': [[..., ..., ...], ...],
+            #         'roi_ac_fa': [[..., ..., ...], ...],
+            #         'roi_ac_xa': [[..., ..., ...], ...],
+            #         'roi_ac_xb': [[..., ..., ...], ...],
+            #         'roi_ac_xc': [[..., ..., ...], ...],
+            #         'roi_ahi_data': [[..., ..., ...], ...],
+            #         'roi_ahi_sr': [[..., ..., ...], ...],
+            #     }
+            # ]
+            #############################
+
+            record_info = [{
+                'obs_time': ahi_obs_t,
+                'roi_lats': n_lats,
+                'roi_lons': n_lons,
+                'roi_vza': AHI_VZA,
+                'roi_sza': AHI_SZA,
+                'roi_raa': RAA,
+                'roi_aot': AOT550,
+                'roi_aero_type': Aerosol_type,
+                'roi_oz': OZ,
+                'roi_wv': WV,
+                'roi_ac_fa': [],
+                'roi_ac_xa': ac_roi_xa,
+                'roi_ac_xb': ac_roi_xb,
+                'roi_ac_xc': ac_roi_xc,
+                'roi_ahi_data': ahi_data_roi,
+                'roi_ahi_sr': roi_ahi_sr,
+            }]
+
+            folder_path = os.path.join(ws, 'AHI_AC_PARAMETER')
+            if not os.path.exists(folder_path):
+                os.makedirs(folder_path)
+            record_npy = os.path.join(folder_path, ahi_obs_t + '_ac_' + band_name + '.npy')
+            np.save(record_npy, record_info)
+
+            end_time = T.time()
+            TIME = end_time - start_time
+            print('time: {:.1f} secs, {:.1f} mins,{:.1f} hours'.format(TIME, TIME / 60, TIME / 3600))
 
     shutil.rmtree(TEMP_FOLDER)
     print("delete folder finish.")
