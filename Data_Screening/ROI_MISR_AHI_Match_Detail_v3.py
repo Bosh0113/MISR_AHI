@@ -379,7 +379,6 @@ if __name__ == "__main__":
                                                 misr_nc = netCDF4.Dataset(misr_nc_filename)
                                                 misr_nc_44 = misr_nc.groups['4.4_KM_PRODUCTS']
                                                 misr_block_var = misr_nc_44.variables['Block_Number']
-                                                misr_block_var = misr_nc_44.variables['Block_Number']
                                                 misr_time_var = misr_nc_44.variables['Time']
                                                 misr_units = misr_time_var.units
                                                 start_time = misr_units[14:-8]+'Z'

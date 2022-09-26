@@ -5,11 +5,11 @@ import time
 # import matplotlib.pyplot as plt
 
 ANGLE_RESOLUTION = 0.04
-ROI_DISTANCE = 0.5
+ROI_DISTANCE = 0.1
 
 if __name__ == "__main__":
     start = time.perf_counter()
-    workspace = r'D:\Work_PhD\MISR_AHI_WS\220920'
+    workspace = r'D:\Work_PhD\MISR_AHI_WS\220926'
     MISRVZAs = [0.0, 26.1, 45.6, 60.0, 70.5]
 
     ahi_lats = numpy.arange(60. - ANGLE_RESOLUTION / 2, -60, -ANGLE_RESOLUTION)
@@ -66,7 +66,7 @@ if __name__ == "__main__":
             point_cood = [lon, lat]     # lon, lat
             search_cood.append(point_cood)
         # print(len(search_cood))
-        point_locations_npy_filename = os.path.join(workspace, str(MISRVZAs[vza_idx]) + '_point4search.npy')
+        point_locations_npy_filename = os.path.join(workspace, str(MISRVZAs[vza_idx]) + '_point4search_' + str(ROI_DISTANCE) + '.npy')
         numpy.save(point_locations_npy_filename, numpy.array(search_cood))
 
     end = time.perf_counter()
