@@ -170,7 +170,7 @@ def get_scattering_angle(misr_vza, misr_vaa, ahi_vza, ahi_vaa):
     return scattering_angle
 
 
-def roi_full_match(cood_point, misr_vza_str):
+def roi_full_match(roi_name, cood_point, misr_vza_str):
     # search full matching
     geocond_record_str = 'MISR_path MISR_orbit camera_idx MISR_roi_time AHI_roi_time MISR_VZA AHI_VZA MISR_VAA AHI_VAA Scattering_Angle(GEO-LEO)\n'
     print('MISR VZAs', misr_vza_str)
@@ -182,7 +182,7 @@ def roi_full_match(cood_point, misr_vza_str):
 
     # loc_info
     loc_record = {}
-    loc_record['location'] = cood_point
+    loc_record['roi_name'] = roi_name
     matched_infos = []
 
     lon4search = cood_point[0]
@@ -270,14 +270,28 @@ def roi_full_match(cood_point, misr_vza_str):
                             matched_info = [str(path), str(orbit), str(camera_idx), misr_roi_block_time, ahi_obs_time, str(misr_roi_vza), str(ahi_roi_vza), str(misr_roi_vaa), str(ahi_roi_vaa), str(scattering_angle)]
                             print(matched_info)
                             geocond_record_str += str(path) + '\t' + str(orbit) + '\t' + str(camera_idx) + '\t' + misr_roi_block_time + '\t' + ahi_obs_time + '\t' + str(misr_roi_vza) + '\t' + str(ahi_roi_vza) + '\t' + str(misr_roi_vaa) + '\t' + str(ahi_roi_vaa) + '\t' + str(scattering_angle) + '\n'
-
-                            matched_infos.append(matched_info)
+                            match_info_record = {}
+                            misr_path_orbit_camera = 'P' + (3 - len(str(path))) * '0' + str(path) + '_O' + (6 - len(str(orbit))) * '0' + str(orbit) + '_' + str(camera_idx)
+                            match_info_record['misr_path_orbit_camera'] = misr_path_orbit_camera
+                            match_info_record['matched_info'] = matched_info
+                            matched_infos.append(match_info_record)
                 except Exception as e:
                     print('orbit:', orbit)
                     print(e)
-    loc_record['matched_infos'] = matched_infos
+    loc_record['roi_misr_infos'] = matched_infos
     if len(matched_infos) > 0:
         matched_record.append(loc_record)
+    ###############################################
+    # demo: [{
+    #     "roi_name": "45.6_1",
+    #     "roi_misr_infos": [{
+    #         "misr_path_orbit_camera": "P099_O088273_4",
+    #         "matched_info": [...]
+    #     },
+    #     ...]
+    # },
+    # ...]
+    ###############################################
     numpy.save(misr_vza_matched_npy_filename, numpy.array(matched_record))
 
     # save result as txt
@@ -286,6 +300,24 @@ def roi_full_match(cood_point, misr_vza_str):
 
 
 if __name__ == "__main__":
-    cood_point = [0.0, 0.0]
-    misr_vza_str = ''
-    roi_full_match(cood_point, misr_vza_str)
+    # roi_name = '45_1'
+    # cood_point = [140.25, 40.75]
+    # misr_vza_str = '45.6'
+
+    # roi_name = '45_2'
+    # cood_point = [117.25, -34.75]
+    # misr_vza_str = '45.6'
+
+    # roi_name = '60_1'
+    # cood_point = [143.25, 52.75]
+    # misr_vza_str = '60.0'
+
+    # roi_name = '60_2'
+    # cood_point = [156.25, 50.75]
+    # misr_vza_str = '60.0'
+
+    roi_name = '70_1'
+    cood_point = [161.75, 59.75]
+    misr_vza_str = '70.5'
+
+    roi_full_match(roi_name, cood_point, misr_vza_str)

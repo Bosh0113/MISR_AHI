@@ -37,7 +37,8 @@ aero_type = np.array([0, 1])
 
 AHI_RESOLUTION = 0.01
 AHI_DATA_RESOLUTION = 0.01  # degree: band3 0.005, band4 0.01
-PIXEL_NUM = 12000   # band3: 12000, band4 24000
+PIXEL_NUM = 12000
+AHI_DATA_PIXEL_NUM = 12000   # band3: 12000, band4 24000
 FN_1 = None
 FN_2 = None
 FN_3 = None
@@ -243,11 +244,11 @@ if __name__ == "__main__":
     for band_name in ['band3', 'band4']:
         if band_name == 'band3':
             AHI_DATA_RESOLUTION = 0.005
-            PIXEL_NUM = 24000
+            AHI_DATA_PIXEL_NUM = 24000
             FN_1, FN_2, FN_3 = LUT_interpolation(LUT_PATH).LUT_interpolation_band3()
         elif band_name == 'band4':
             AHI_DATA_RESOLUTION = 0.01
-            PIXEL_NUM = 12000
+            AHI_DATA_PIXEL_NUM = 12000
             FN_1, FN_2, FN_3 = LUT_interpolation(LUT_PATH).LUT_interpolation_band4()
 
         roi_ullat = roi_extent[0]
@@ -260,15 +261,10 @@ if __name__ == "__main__":
         n_lons = ahi_lons[find_nearest_index(ahi_lons, roi_ullon):find_nearest_index(ahi_lons, roi_lrlon) + 1]
         row_AHI = len(n_lats)
         col_AHI = len(n_lons)
-        
-        if band_name == 'band3':
-            VZA_PATH = '/data01/GEO/INPUT/ANGLE/Viewer_Zenith_Angle/AHI_VZA_05.dat'
-            VAA_PATH = '/data01/GEO/INPUT/ANGLE/Viewer_Azimuth_Angle/AHI_VAA_05.dat'
-            AL_PATH = '/data01/GEO/INPUT/ELEVATION_GEO/AHI/MERIT_DEM_AHI_05km.dat'
-        elif band_name == 'band4':
-            VZA_PATH = '/data01/GEO/INPUT/ANGLE/Viewer_Zenith_Angle/AHI_VZA_10.dat'
-            VAA_PATH = '/data01/GEO/INPUT/ANGLE/Viewer_Azimuth_Angle/AHI_VAA_10.dat'
-            AL_PATH = '/data01/GEO/INPUT/ELEVATION_GEO/AHI/MERIT_DEM_AHI_10km.dat'
+
+        VZA_PATH = '/data01/GEO/INPUT/ANGLE/Viewer_Zenith_Angle/AHI_VZA_10.dat'
+        VAA_PATH = '/data01/GEO/INPUT/ANGLE/Viewer_Azimuth_Angle/AHI_VAA_10.dat'
+        AL_PATH = '/data01/GEO/INPUT/ELEVATION_GEO/AHI/MERIT_DEM_AHI_10km.dat'
 
         with open(VZA_PATH, 'rb') as fp:
             AHI_VZA = np.frombuffer(fp.read(), dtype='u2').reshape(PIXEL_NUM, PIXEL_NUM)[find_nearest_index(ahi_lats, roi_ullat):find_nearest_index(ahi_lats, roi_lrlat) + 1,
@@ -331,15 +327,32 @@ if __name__ == "__main__":
                 file_suffix = '/{}.vis.03.fld.geoss'
             ahi_data_filename = TEMP_FOLDER + file_suffix.format(date)
             if os.path.exists(ahi_data_filename):
+                data = None
                 with open(ahi_data_filename, 'rb') as fp:
-                    data = np.frombuffer(fp.read(), dtype='>u2').reshape(PIXEL_NUM, PIXEL_NUM)
+                    data = np.frombuffer(fp.read(), dtype='>u2').reshape(AHI_DATA_PIXEL_NUM, AHI_DATA_PIXEL_NUM)
                     if band_name == 'band3':
                         data = DN2TBB_band3(data)
                     elif band_name == 'band4':
                         data = DN2TBB_band4(data)
                     data = data / 100
-
-                AHI_data = data[find_nearest_index(ahi_lats, roi_ullat):find_nearest_index(ahi_lats, roi_lrlat) + 1, find_nearest_index(ahi_lons, roi_ullon):find_nearest_index(ahi_lons, roi_lrlon) + 1]
+                
+                AHI_data = None
+                if band_name == 'band3':
+                    ahi_lats_3 = np.arange(60. - AHI_DATA_RESOLUTION / 2, -60, -AHI_DATA_RESOLUTION)
+                    ahi_lons_3 = np.arange(85. + AHI_DATA_RESOLUTION / 2, 205, AHI_DATA_RESOLUTION)
+                    ex_ds = xr.Dataset(
+                        data_vars={
+                            "values": (("latitude", "longitude"), data),
+                        },
+                        coords={
+                            "latitude": ahi_lats_3,
+                            "longitude": ahi_lons_3
+                        },
+                    )
+                    n_ex_ds = ex_ds.interp(longitude=n_lons, latitude=n_lats, method="linear", kwargs={"fill_value": "extrapolate"})
+                    AHI_data = n_ex_ds['values']
+                else:
+                    AHI_data = data[find_nearest_index(ahi_lats, roi_ullat):find_nearest_index(ahi_lats, roi_lrlat) + 1, find_nearest_index(ahi_lons, roi_ullon):find_nearest_index(ahi_lons, roi_lrlon) + 1]
 
                 # Solar angle
                 print('Start reading Angle data')
@@ -426,5 +439,5 @@ if __name__ == "__main__":
                 TIME = end_time - start_time
                 print('time: {:.1f} secs, {:.1f} mins,{:.1f} hours'.format(TIME, TIME / 60, TIME / 3600))
 
-    shutil.rmtree(TEMP_FOLDER)
-    print("delete folder finish.")
+    # shutil.rmtree(TEMP_FOLDER)
+    # print("delete folder finish.")
