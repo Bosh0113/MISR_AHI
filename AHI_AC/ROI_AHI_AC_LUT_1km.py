@@ -369,9 +369,9 @@ if __name__ == "__main__":
 
                 results = None
                 if band_name == 'band3':
-                    results = Parallel(n_jobs=-1)(delayed(calculate_6s_band3)(i) for i in range(row_AHI))
+                    results = Parallel(n_jobs=30)(delayed(calculate_6s_band3)(i) for i in range(row_AHI))
                 elif band_name == 'band4':
-                    results = Parallel(n_jobs=-1)(delayed(calculate_6s_band4)(i) for i in range(row_AHI))
+                    results = Parallel(n_jobs=30)(delayed(calculate_6s_band4)(i) for i in range(row_AHI))
                 X = np.array(results)
                 AHI_TOA = X[:, 0]
                 Xa = X[:, 1]
