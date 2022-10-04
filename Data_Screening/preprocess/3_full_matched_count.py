@@ -15,6 +15,8 @@ def get_full_matched_count(misr_camera_angle, record_npy_filename):
         pt_lat = pt_location[1]
         full_matched_record_array = matched_record['matched_infos']
         pt_full_match_count = len(full_matched_record_array)
+        pt_lon = '%.3f' % pt_lon
+        pt_lat = '%.3f' % pt_lat
         info_record_str += str(pt_lon) + ',' + str(pt_lat) + ',' + str(pt_full_match_count) + '\n'
     # save result as txt
     with open(count_record_txt_filename, 'w') as f:
