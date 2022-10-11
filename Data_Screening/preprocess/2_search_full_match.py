@@ -110,7 +110,7 @@ def get_misr_obs_angle(roi_extent, orbit, camera_idx):
         roi_misr_vaa_list = f_vaa_data.flatten()
         roi_misr_vaa_list = roi_misr_vaa_list[roi_misr_vaa_list > 0.]
         # has available values?
-        if len(roi_misr_vza_list) > 0:
+        if len(roi_misr_vaa_list) > 0:
             roi_misr_vaa = roi_misr_vaa_list.mean()
         else:
             return 0.0, 0.0

@@ -301,23 +301,23 @@ def roi_full_match(roi_name, cood_point, misr_vza_str):
 
 if __name__ == "__main__":
     # roi_name = '45_1'
-    # cood_point = [140.25, 40.75]
+    # cood_point = [140.45, 40.75]
     # misr_vza_str = '45.6'
 
     # roi_name = '45_2'
-    # cood_point = [117.25, -34.75]
+    # cood_point = [119.25, -34.35]
     # misr_vza_str = '45.6'
 
     # roi_name = '60_1'
-    # cood_point = [143.25, 52.75]
+    # cood_point = [139.95, 52.75]
     # misr_vza_str = '60.0'
 
     # roi_name = '60_2'
-    # cood_point = [156.25, 50.75]
+    # cood_point = [142.95, 52.25]
     # misr_vza_str = '60.0'
 
     roi_name = '70_1'
-    cood_point = [161.75, 59.75]
+    cood_point = [163.25, 59.35]
     misr_vza_str = '70.5'
 
     roi_full_match(roi_name, cood_point, misr_vza_str)

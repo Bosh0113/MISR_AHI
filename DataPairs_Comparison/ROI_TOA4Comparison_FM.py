@@ -1,6 +1,6 @@
 # for python 3.6
 import os
-from MisrToolkit import MtkFile, orbit_to_path, latlon_to_bls
+from MisrToolkit import MtkFile, orbit_to_path, orbit_to_time_range, latlon_to_bls
 import netCDF4
 import numpy
 import random
@@ -9,10 +9,15 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import MultipleLocator
 from sklearn.metrics import mean_squared_error, r2_score
 import math
+import urllib.request
+import ssl
+import re
+
+ssl._create_default_https_context = ssl._create_unverified_context
 
 workspace = os.getcwd()
-MISR_NC_FOLDER = '/disk1/Data/MISR4AHI2015070120210630_3'
-AHI_AC_FOLDER = os.path.join(workspace, 'AHI_AC_PARAMETER')
+# MISR_NC_FOLDER = '/disk1/Data/MISR4AHI2015070120210630_3'
+AHI_AC_FOLDER = '/disk1/workspace/20220629/AHI_AC_PARAMETER'
 
 # https://www-pm.larc.nasa.gov/cgi-bin/site/showdoc?mnemonic=SBAF
 # LandCover=* ReferenceSRF=AHI TargetSRF=MISR Units=PseudoScaledRadiance Regression=Linear
@@ -21,28 +26,6 @@ AHI2MISR_SBAF = {   # slope offset
     '45_1_band3': [1.113, -0.005765],
     '45_1_band4': [1.015, 0.00005084],
 }
-# AHI2MISR_SBAF = {   # slope offset
-#     '45_1_band1': [1.002, 0.01074],
-#     '45_1_band2': [0.962, -0.00243],
-#     '45_1_band3': [1.026, -0.003329],
-#     '45_1_band4': [1.008, 0.0009491],
-#     '45_2_band1': [1.057, 0.008603],
-#     '45_2_band2': [0.842, 0.0045],
-#     '45_2_band3': [1.011, -0.003679],
-#     '45_2_band4': [1.022, -0.0001949],
-#     '60_1_band1': [1.043, 0.006883],
-#     '60_1_band2': [0.968, -0.002409],
-#     '60_1_band3': [1.100, -0.006074],
-#     '60_1_band4': [1.019, -0.0001292],
-#     '60_2_band1': [1.034, 0.004636],
-#     '60_2_band2': [1.126, -0.005602],
-#     '60_2_band3': [1.175, -0.009857],
-#     '60_2_band4': [1.011, 0.0006747],
-#     '70_1_band1': [0.977, 0.008145],
-#     '70_1_band2': [1.011, 0.0008929],
-#     '70_1_band3': [1.099, -0.002729],
-#     '70_1_band4': [1.009, 0.0002536],
-# }
 
 
 def BRF_TrueValue(o_value, scale, offset):
@@ -99,7 +82,37 @@ def mapping_scatter(x_arrray, y_array, figure_title):
     print(fig_filename)
 
 
-def record_roi_misr_ahi(roi_name, band_index, misr_orbit, misr_camera_index, ahi_obs_time, misr_nc_filename, ahi_ac_npy, AHI2MISR_para):
+def download_MISR_MIL2TCST02_HDF(folder, path, orbit):
+    time_range = orbit_to_time_range(orbit)
+    s_time = time_range[0]
+    matchObj = re.search(r'(\d+)-(\d+)-(\d+)T', str(s_time))
+    yy = matchObj.group(1)
+    mm = matchObj.group(2)
+    dd = matchObj.group(3)
+    t = str(yy) + '.' + str(mm) + '.' + str(dd)
+    P = 'P' + (3-len(str(path)))*'0' + str(path)
+    O_ = 'O' + (6-len(str(orbit)))*'0' + str(orbit)
+    F = 'F' + '05'
+    v = '0011'
+    base_url = 'https://opendap.larc.nasa.gov/opendap/MISR/MIL2TCAL.002'
+    filename = 'MISR_AM1_TC_ALBEDO_' + P + '_' + O_ + '_' + F + '_' + v + '.hdf'
+
+    download_url = base_url + '/' + t + '/' + filename
+    storage_path = folder + '/' + filename
+
+    if os.path.exists(storage_path):
+        return storage_path
+    else:
+        try:
+            urllib.request.urlretrieve(download_url, filename=storage_path)
+            return storage_path
+        except Exception as e:
+            print('Error: ' + download_url)
+            print(e)
+            return ''
+
+
+def record_roi_misr_ahi(roi_name, band_index, misr_orbit, misr_camera_index, ahi_obs_time, misr_hdf_filename, ahi_ac_npy, AHI2MISR_para):
     ac_info = numpy.load(ahi_ac_npy, allow_pickle=True)[0]
     roi_lats = ac_info['roi_lats']
     roi_lons = ac_info['roi_lons']
@@ -107,44 +120,37 @@ def record_roi_misr_ahi(roi_name, band_index, misr_orbit, misr_camera_index, ahi
     roi_ahi_toa = ac_info['roi_ahi_data']
     # print(roi_ahi_sr)
     misr_path = orbit_to_path(misr_orbit)
-    # MISR v3 netCDF4
-    misr_nc = netCDF4.Dataset(misr_nc_filename)
-    misr_nc_11 = misr_nc.groups['1.1_KM_PRODUCTS']
-    misr_brf_var = misr_nc_11.variables['Bidirectional_Reflectance_Factor']
-    misr_brf_scalev3 = misr_brf_var.scale_factor
-    misr_brf_offsetv3 = misr_brf_var.add_offset
-    misr_nc.close()
-    m_file2 = MtkFile(misr_nc_filename)
-    m_grid11 = m_file2.grid('1.1_KM_PRODUCTS')
-    misr_resolutionv3 = m_grid11.resolution
-    m_field11 = m_grid11.field('Bidirectional_Reflectance_Factor[' + str(band_index) + ']'+'[' + str(misr_camera_index) + ']')
+    # MISR TOA HDF
+    m_file = MtkFile(misr_hdf_filename)
+    m_grid22 = m_file.grid('ReflectingLevelParameters_2.2_km')
+    misr_resolution = m_grid22.resolution
+    toa_field = m_grid22.field('BRFTop_Mean[' + str(band_index) + ']'+'[' + str(misr_camera_index) + ']')  # band, camera
     # MISR data at ROI
-    roi_misr_brfv3 = numpy.zeros_like(roi_ahi_sr)
+    roi_misr_toa = numpy.zeros_like(roi_ahi_sr)
     for lat_index in range(len(roi_lats)):
         for lon_index in range(len(roi_lons)):
             lat = roi_lats[lat_index]
             lon = roi_lons[lon_index]
-            misr_blsv3 = latlon_to_bls(misr_path, misr_resolutionv3, lat, lon)
+            misr_blsv3 = latlon_to_bls(misr_path, misr_resolution, lat, lon)
             block_llv3 = misr_blsv3[0]
             b_lat_idxv3 = round(misr_blsv3[1])
             b_lon_idxv3 = round(misr_blsv3[2])
-            block_brf_dnv3 = m_field11.read(block_llv3, block_llv3)[0]
-            roi_brf_dnv3 = block_brf_dnv3[b_lat_idxv3][b_lon_idxv3]
-            roi_brf_tv3 = BRF_TrueValue(roi_brf_dnv3, misr_brf_scalev3, misr_brf_offsetv3)
-            roi_misr_brfv3[lat_index][lon_index] = roi_brf_tv3
+            block_brf_dnv3 = toa_field.read(block_llv3, block_llv3)[0]
+            roi_brf_tv3 = block_brf_dnv3[b_lat_idxv3][b_lon_idxv3]
+            roi_misr_toa[lat_index][lon_index] = roi_brf_tv3
 
     # if any cloud-free obs. is existed
-    if roi_misr_brfv3.max() > 0.0:
+    if roi_misr_toa.max() > 0.0:
         # MISR BRF v3
-        roi_misr_brfv3[roi_misr_brfv3 <= 0.0] = numpy.NaN
+        roi_misr_toa[roi_misr_toa <= 0.0] = numpy.NaN
         figure_title = roi_name + '_' + ahi_obs_time + '_band_' + str(band_index + 1) + '_misr_sr'
-        mapping(roi_misr_brfv3, figure_title)
+        mapping(roi_misr_toa, figure_title)
 
-        mask_array = numpy.copy(roi_misr_brfv3)
+        mask_array = numpy.copy(roi_misr_toa)
         mask_array[mask_array > 0.0] = 1.
 
-        # # TOA(AHI)
-        # ahi_toa_misr = roi_ahi_toa*mask_array
+        # TOA(AHI)
+        ahi_toa_misr = roi_ahi_toa*mask_array
         # figure_title = roi_name + '_' + ahi_obs_time + '_band_' + str(band_index + 1) + '_ahi_toa'
         # mapping(ahi_toa_misr, figure_title)
 
@@ -157,7 +163,7 @@ def record_roi_misr_ahi(roi_name, band_index, misr_orbit, misr_camera_index, ahi
 
         # # y=SR(MISR) / x=SR(AHI)
         figure_title = roi_name + '_' + ahi_obs_time + '_band_' + str(band_index + 1) + '_scatter_sr'
-        mapping_scatter(ahi_sr_misr, roi_misr_brfv3, figure_title)
+        mapping_scatter(ahi_sr_misr, roi_misr_toa, figure_title)
 
         # record as npy file
         record_info = [
@@ -166,29 +172,34 @@ def record_roi_misr_ahi(roi_name, band_index, misr_orbit, misr_camera_index, ahi
                 'band_index': band_index,
                 'misr_orbit': misr_orbit,
                 'misr_camera_index': misr_camera_index,
-                'misr_v3': roi_misr_brfv3,
+                'misr_toa': roi_misr_toa,
                 'ahi_toa': roi_ahi_toa,
+                'ahi_toa2misr': ahi_toa_misr,
                 'ahi_sr': roi_ahi_sr,
                 'ahi_sr2misr': ahi_sr_misr
             }
         ]
         file_path = os.path.join(workspace, ahi_obs_time + '_sr_band' + str(band_index + 1) + '.npy')
         numpy.save(file_path, record_info)
-        return roi_misr_brfv3, ahi_sr_misr
+        return roi_misr_toa, ahi_toa_misr
     return [], []
 
 
 def get_roi_misr_ahi(roi_name, misr_path_orbit_camera, ahi_ac_npy):
     misr_path_orbit = misr_path_orbit_camera[:12]
+    misr_path = int(misr_path_orbit[1:4])
     misr_orbit = int(misr_path_orbit[-6:])
     band_index = int(ahi_ac_npy[-5:-4]) - 1
     band_name = 'band' + str(band_index + 1)
     AHI2MISR_para = AHI2MISR_SBAF[roi_name + '_' + band_name]
     misr_camera_index = int(misr_path_orbit_camera[-1:])
     ahi_obs_time = ahi_ac_npy[-25:-13]
-    misr_nc_filename = os.path.join(MISR_NC_FOLDER, 'MISR_AM1_AS_LAND_' + misr_path_orbit + '_F08_0023.nc')
-    roi_misr_sr, roi_ahi_sr_misr = record_roi_misr_ahi(roi_name, band_index, misr_orbit, misr_camera_index, ahi_obs_time, misr_nc_filename, ahi_ac_npy, AHI2MISR_para)
-    return roi_misr_sr, roi_ahi_sr_misr
+    temp_folder = os.path.join(workspace, 'temp')
+    if not os.path.exists(temp_folder):
+        os.makedirs(temp_folder)
+    misr_nc_filename = download_MISR_MIL2TCST02_HDF(temp_folder, misr_path, misr_orbit)
+    roi_misr_toa, roi_ahi_toa_misr = record_roi_misr_ahi(roi_name, band_index, misr_orbit, misr_camera_index, ahi_obs_time, misr_nc_filename, ahi_ac_npy, AHI2MISR_para)
+    return roi_misr_toa, roi_ahi_toa_misr
 
 
 def mapping_scatter_all(x_3Darray, y_3Darray, color_array, ahi_obs_time_record, figure_title):
@@ -238,19 +249,9 @@ def mapping_scatter_all(x_3Darray, y_3Darray, color_array, ahi_obs_time_record, 
 
 
 if __name__ == "__main__":
-    misr_misr_vza = '45.6'
-    roi_name = '45_1'
-    # misr_misr_vza = '45.6'
-    # roi_name = '45_2'
-    # misr_misr_vza = '60.0'
-    # roi_name = '60_1'
-    # misr_misr_vza = '60.0'
-    # roi_name = '60_2'
-    # misr_misr_vza = '70.5'
-    # roi_name = '70_1'
-
     band_names = ['band3', 'band4']
-    matched_record_npy = os.path.join(workspace, misr_misr_vza + '_matched_record.npy')
+    roi_name = '45_1'
+    matched_record_npy = '/disk1/workspace/20221004/45_1/45.6_matched_record.npy'
     matched_record = numpy.load(matched_record_npy, allow_pickle=True)
     roi_matched_misr_roi_s = []
     for matched_roi_info in matched_record:
@@ -265,7 +266,7 @@ if __name__ == "__main__":
                 for roi_misr_info in roi_misr_infos:
                     misr_path_orbit_camera = roi_misr_info['misr_path_orbit_camera']
                     matched_info = roi_misr_info['matched_info']
-                    ahi_obs_time = matched_info[4]
+                    ahi_obs_time = matched_info[3]
                     ahi_ac_npy = os.path.join(AHI_AC_FOLDER, str(ahi_obs_time) + '_ac_' + band_name + '.npy')
                     if os.path.exists(ahi_ac_npy):
                         roi_misr, roi_ahi = get_roi_misr_ahi(roi_name, misr_path_orbit_camera, ahi_ac_npy)
@@ -276,8 +277,8 @@ if __name__ == "__main__":
                         print(str(ahi_obs_time) + '_' + band_name)
                 roi_matched_misr_roi['band_name'] = band_name
                 roi_matched_misr_roi['ahi_obs_time'] = ahi_obs_time_record
-                roi_matched_misr_roi['misr_sr_3d'] = roi_misr_record
-                roi_matched_misr_roi['ahi_sr_3d'] = roi_ahi_record
+                roi_matched_misr_roi['misr_toa_3d'] = roi_misr_record
+                roi_matched_misr_roi['ahi_toa_3d'] = roi_ahi_record
                 roi_matched_misr_roi_s.append(roi_matched_misr_roi)
             break
     color_s = []
@@ -287,7 +288,7 @@ if __name__ == "__main__":
     for roi_matched_record_item in roi_matched_misr_roi_s:
         band_name = roi_matched_record_item['band_name']
         ahi_obs_time = roi_matched_record_item['ahi_obs_time']
-        roi_misr_record = roi_matched_record_item['misr_sr_3d']
-        roi_ahi_record = roi_matched_record_item['ahi_sr_3d']
+        roi_misr_record = roi_matched_record_item['misr_toa_3d']
+        roi_ahi_record = roi_matched_record_item['ahi_toa_3d']
         mapping_scatter_all(roi_ahi_record, roi_misr_record, color_s, ahi_obs_time, roi_name + '_' + band_name)
-    numpy.save(os.path.join(workspace, roi_name + '_matched_sr.npy'), roi_matched_misr_roi_s)
+    numpy.save(os.path.join(workspace, roi_name + '_matched_toa.npy'), roi_matched_misr_roi_s)
