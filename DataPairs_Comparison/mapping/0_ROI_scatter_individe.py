@@ -10,9 +10,10 @@ import math
 # workspace = os.getcwd()
 # workspace = r'D:\Work_PhD\MISR_AHI_WS\220712\26.1_150_scatters'
 # workspace = r'D:\Work_PhD\MISR_AHI_WS\220712\45.6_10_scatters'
-workspace = r'D:\Work_PhD\MISR_AHI_WS\220712\45.6_20_scatters'
+# workspace = r'D:\Work_PhD\MISR_AHI_WS\220712\45.6_20_scatters'
 # workspace = r'D:\Work_PhD\MISR_AHI_WS\220712\60.0_130_scatters'
 # workspace = r'D:\Work_PhD\MISR_AHI_WS\220712\60.0_200_scatters'
+workspace = r'D:\Work_PhD\MISR_AHI_WS\221012'
 
 
 def mapping_scatter_individe(x_2Darray, y_2Darray, color, ahi_obs_time, figure_title):
@@ -66,15 +67,18 @@ if __name__ == "__main__":
     # # 45.6_10
     # roi_name = '45.6_10'
     # roi_matched_npy = r'D:\Work_PhD\MISR_AHI_WS\220629\45.6_10_matched_sr.npy'
-    # 45.6_20
-    roi_name = '45.6_20'
-    roi_matched_npy = r'D:\Work_PhD\MISR_AHI_WS\220629\45.6_20_matched_sr.npy'
+    # # 45.6_20
+    # roi_name = '45.6_20'
+    # roi_matched_npy = r'D:\Work_PhD\MISR_AHI_WS\220629\45.6_20_matched_sr.npy'
     # # 60.0_130
     # roi_name = '60.0_130'
     # roi_matched_npy = r'D:\Work_PhD\MISR_AHI_WS\220629\60.0_130_matched_sr.npy'
     # # 60.0_200
     # roi_name = '60.0_200'
     # roi_matched_npy = r'D:\Work_PhD\MISR_AHI_WS\220629\60.0_200_matched_sr.npy'
+    # 45_1
+    roi_name = '45_1'
+    roi_matched_npy = r'D:\Work_PhD\MISR_AHI_WS\221012\45_1_matched_sr.npy'
 
     # remove noise data
     # remove_times = ['201701220110', '201704280110', '201705300110', '201707080140', '201710120140', '201711220110', '201711290110', '201712080110', '201712310110', '201806250120', '201811090110', '201811250110', '201812020110', '201901120110', '201906120130', '201907070120', '201909250110', '201910020140', '201911030140', '201911280110']   # 26.1_150 (Free-Sky)

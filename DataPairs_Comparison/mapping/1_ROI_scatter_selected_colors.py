@@ -7,7 +7,7 @@ from matplotlib.ticker import MultipleLocator
 from sklearn.metrics import mean_squared_error, r2_score
 import math
 
-WORK_SPACE = r'D:\Work_PhD\MISR_AHI_WS\220909'
+WORK_SPACE = r'D:\Work_PhD\MISR_AHI_WS\221012'
 
 
 def mapping_scatter_all(x_3Darray, y_3Darray, color_array, ahi_obs_time_record, figure_title):
@@ -66,8 +66,8 @@ if __name__ == "__main__":
     # selected_times = ['201808300100', '201809150100', '201904110100']
     # roi_name = '0.0_120'
     # selected_times = ['201704050100', '201709120100', '201809150100', '201909180100']
-    roi_name = '26.1_150'
-    selected_times = ['201712240110', '201801090110', '201801250110', '201802260110', '201812180110', '201902130110']
+    # roi_name = '26.1_150'
+    # selected_times = ['201712240110', '201801090110', '201801250110', '201802260110', '201812180110', '201902130110']
     # roi_name = '45.6_10'
     # selected_times = ['201712210340']
     # roi_name = '45.6_20'
@@ -78,6 +78,8 @@ if __name__ == "__main__":
     # selected_times = ['201709180320', '201810160310', '201909080320', '201909240310', '201910100310']
     # roi_name = '60.0_200'
     # selected_times = ['201803140400']
+    roi_name = '45_1'
+    selected_times = ['201705150140', '201907080140']
 
     roi_matched_npy = os.path.join(WORK_SPACE, roi_name + '_matched_sr.npy')
 
@@ -102,3 +104,4 @@ if __name__ == "__main__":
         roi_ahi_record = [roi_ahi_record[i] for i in range(len(roi_ahi_record)) if (i in r_index)]
         print('count:', len(ahi_obs_time))
         mapping_scatter_all(roi_misr_record, roi_ahi_record, color_s, ahi_obs_time, roi_name + '_' + band_name)
+        mapping_scatter_all(roi_ahi_record, roi_misr_record, color_s, ahi_obs_time, roi_name + '_' + band_name)

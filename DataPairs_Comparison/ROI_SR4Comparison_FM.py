@@ -273,7 +273,7 @@ if __name__ == "__main__":
                             roi_misr_record.append(roi_misr)
                             roi_ahi_record.append(roi_ahi)
                             ahi_obs_time_record.append(str(ahi_obs_time))
-                        print(str(ahi_obs_time) + '_' + band_name)
+                        # print(str(ahi_obs_time) + '_' + band_name)
                 roi_matched_misr_roi['band_name'] = band_name
                 roi_matched_misr_roi['ahi_obs_time'] = ahi_obs_time_record
                 roi_matched_misr_roi['misr_sr_3d'] = roi_misr_record
