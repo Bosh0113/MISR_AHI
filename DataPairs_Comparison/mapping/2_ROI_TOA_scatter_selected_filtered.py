@@ -9,8 +9,17 @@ import os
 WORK_SPACE = r'D:\Work_PhD\MISR_AHI_WS\221012'
 
 
-def pearson(array_x, array_y):
-    print(pearsonr(array_x, array_y))
+def identifer(li):
+    result = []
+    for a in li:
+        mean = np.nanmean(a)
+        std = np.nanstd(a)
+        down = mean - 3 * std
+        up = mean + 3 * std
+        n_a = np.where(a < down, np.nan, a)
+        n_a = np.where(n_a > up, np.nan, n_a)
+        result.append(n_a)
+    return result
 
 
 def add_right_cax(ax, pad, width):
@@ -78,11 +87,20 @@ def make_fig(roi_name, X, Y, band_name, axis_min=0.0, axis_max=0.5):
     ax1.plot(xx, yy, color='r', linewidth=2, linestyle='-')
 
     text_x = axis_min + (axis_max - axis_min) * 0.07
-    text_y = axis_max - (axis_max - axis_min) * 0.2
+    text_y = axis_max - (axis_max - axis_min) * 0.3
 
-    label_str = label_str = 'N = {}\nRMSE = {}\ny = {}x + {}'.format(N, round(rmse, 3), round(k, 2), round(b, 2))
+    v, p = pearsonr(X, Y)
+    p_s = str(p).split('e')
+    p_f = round(float(p_s[0][:5]), 1)
+    p_str = str(p_f) + 'e' + p_s[1]
+
+    # print('count of pixel: ', N)
+    # label_str = label_str = 'N = {}\nRMSE = {}\ny = {}x + {}'.format(N, round(rmse, 3), round(k, 2), round(b, 2))
+    # if b < 0:
+    #     label_str = 'N = {}\nRMSE = {}\ny = {}x - {}'.format(N, round(rmse, 3), round(k, 2), abs(round(b, 2)))
+    label_str = label_str = 'Pearson correlation = {}\n(p-value = {})\ny = {}x + {}\nRMSE = {}\n'.format(round(v, 2), p_str, round(k, 2), round(b, 2), round(rmse, 3))
     if b < 0:
-        label_str = 'N = {}\nRMSE = {}\ny = {}x - {}'.format(N, round(rmse, 3), round(k, 2), abs(round(b, 2)))
+        label_str = label_str = 'Pearson correlation = {}\n(p-value = {})\ny = {}x - {}\nRMSE = {}\n'.format(round(v, 2), p_str, round(k, 2), abs(round(b, 2)), round(rmse, 3))
 
     ax1.text(text_x, text_y, s=label_str, fontsize=12)
 
@@ -147,9 +165,12 @@ if __name__ == "__main__":
         y_3Darray_np_1d = y_3Darray_np_1d[~np.isnan(y_3Darray_np_1d)]
         misr4show.extend(x_3Darray_np_1d)
         ahi4show.extend(y_3Darray_np_1d)
-        array_x = np.array(misr4show)
-        array_y = np.array(ahi4show)
-        pearson(array_x, array_y)
-        print(misr4show)
-        print(ahi4show)
-        # make_fig(roi_name, array_x, array_y, band_name)
+        # filter
+        slope_array = list(np.array(ahi4show)/np.array(misr4show))
+        slope_array_filtered = np.array(identifer([slope_array])[0])
+        array1_n = (slope_array_filtered*0+1)*np.array(misr4show)
+        array2_n = (slope_array_filtered*0+1)*np.array(ahi4show)
+        array_x = array1_n[~np.isnan(array1_n)]
+        array_y = array2_n[~np.isnan(array2_n)]
+
+        make_fig(roi_name, array_x, array_y, band_name)
