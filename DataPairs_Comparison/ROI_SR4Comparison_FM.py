@@ -18,8 +18,16 @@ AHI_AC_FOLDER = os.path.join(workspace, 'AHI_AC_PARAMETER')
 # LandCover=* ReferenceSRF=AHI TargetSRF=MISR Units=PseudoScaledRadiance Regression=Linear
 # SR(MISR2AHI) = SR(MISR)*Slope+Offset
 AHI2MISR_SBAF = {   # slope offset
-    '45_1_band3': [1.113, -0.005765],
+    '45_1_band3': [1.113, -0.005765],   # Cropland/Natural Vegetation Mosaics
     '45_1_band4': [1.015, 0.00005084],
+    '45_2_band3': [1.113, -0.005765],   # Cropland/Natural Vegetation Mosaics
+    '45_2_band4': [1.015, 0.00005084],
+    '60_1_band3': [1.113, -0.001823],   # Open Shrublands
+    '60_1_band4': [1.008, 0.00004747],
+    '60_2_band3': [1.113, -0.001823],   # Open Shrublands
+    '60_2_band4': [1.008, 0.00004747],
+    '70_1_band3': [1.113, -0.001823],   # Open Shrublands
+    '70_1_band4': [1.008, 0.00004747],
 }
 # AHI2MISR_SBAF = {   # slope offset
 #     '45_1_band1': [1.002, 0.01074],
@@ -124,14 +132,17 @@ def record_roi_misr_ahi(roi_name, band_index, misr_orbit, misr_camera_index, ahi
         for lon_index in range(len(roi_lons)):
             lat = roi_lats[lat_index]
             lon = roi_lons[lon_index]
-            misr_blsv3 = latlon_to_bls(misr_path, misr_resolutionv3, lat, lon)
-            block_llv3 = misr_blsv3[0]
-            b_lat_idxv3 = round(misr_blsv3[1])
-            b_lon_idxv3 = round(misr_blsv3[2])
-            block_brf_dnv3 = m_field11.read(block_llv3, block_llv3)[0]
-            roi_brf_dnv3 = block_brf_dnv3[b_lat_idxv3][b_lon_idxv3]
-            roi_brf_tv3 = BRF_TrueValue(roi_brf_dnv3, misr_brf_scalev3, misr_brf_offsetv3)
-            roi_misr_brfv3[lat_index][lon_index] = roi_brf_tv3
+            try:
+                misr_blsv3 = latlon_to_bls(misr_path, misr_resolutionv3, lat, lon)
+                block_llv3 = misr_blsv3[0]
+                b_lat_idxv3 = round(misr_blsv3[1])
+                b_lon_idxv3 = round(misr_blsv3[2])
+                block_brf_dnv3 = m_field11.read(block_llv3, block_llv3)[0]
+                roi_brf_dnv3 = block_brf_dnv3[b_lat_idxv3][b_lon_idxv3]
+                roi_brf_tv3 = BRF_TrueValue(roi_brf_dnv3, misr_brf_scalev3, misr_brf_offsetv3)
+                roi_misr_brfv3[lat_index][lon_index] = roi_brf_tv3
+            except Exception as e:
+                roi_misr_brfv3[lat_index][lon_index] = 0.
 
     # if any cloud-free obs. is existed
     if roi_misr_brfv3.max() > 0.0:
@@ -281,7 +292,7 @@ if __name__ == "__main__":
                 roi_matched_misr_roi_s.append(roi_matched_misr_roi)
             break
     color_s = []
-    for i in range(len(roi_matched_misr_roi_s[0]['ahi_obs_time'])):
+    for i in range(len(roi_matched_misr_roi_s[0]['ahi_obs_time'])*2):
         color_random = list(matplotlib.colors.XKCD_COLORS.items())[int(random.random()*900)][1]
         color_s.append(color_random)
     for roi_matched_record_item in roi_matched_misr_roi_s:

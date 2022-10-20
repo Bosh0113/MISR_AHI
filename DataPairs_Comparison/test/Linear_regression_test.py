@@ -6,8 +6,12 @@ import numpy as np
 import math
 
 
-def pearson(array_x, array_y):
-    print(pearsonr(array_x, array_y))
+def pearson_slope_offset(array_x, array_y):
+    slope = 1
+    offset = 0
+    v, p = pearsonr(array_x, array_y)
+    
+    return slope, offset
 
 
 def identifer(li):
@@ -23,12 +27,13 @@ def identifer(li):
     return result
 
 
-def mean_slope_mapping(roi_name, X, Y, x_label, y_label, axis_min=0.0, axis_max=0.5):
+def pearson_slope_mapping(roi_name, X, Y, x_label, y_label, axis_min=0.0, axis_max=0.5):
     fig = plt.figure(figsize=(4, 4))
     ax1 = fig.add_subplot(111, aspect='equal')
 
     # k, b = np.polyfit(X, Y, deg=1)
-    k, b, r, p, std_err = linregress(X, Y)
+    # k, b, r, p, std_err = linregress(X, Y)
+    k, b = pearson_slope_offset(X, Y)
     
     rmse = math.sqrt(mean_squared_error(X, Y))
     N = len(X)
@@ -236,11 +241,10 @@ if __name__ == "__main__":
     array2_n = (slope_array_filtered*0+1)*np.array(array2)
     array1_n = array1_n[~np.isnan(array1_n)]
     array2_n = array2_n[~np.isnan(array2_n)]
-    
+
     make_fig('', np.array(array1_n), np.array(array2_n))
 
     # make_fig('', np.array(array1), np.array(array2))
     # make_fig('', np.array(array2), np.array(array1))
     # scipy_linearRegression('', np.array(array1), np.array(array2), 'Array_MISR', 'Array_AHI')
     # scipy_linearRegression('', np.array(array2), np.array(array1), 'Array_AHI', 'Array_MISR')
-    # pearson(array1, array2)

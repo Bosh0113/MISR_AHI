@@ -307,7 +307,7 @@ if __name__ == "__main__":
                 roi_matched_misr_roi_s.append(roi_matched_misr_roi)
             break
     color_s = []
-    for i in range(len(roi_matched_misr_roi_s[0]['ahi_obs_time'])):
+    for i in range(len(roi_matched_misr_roi_s[0]['ahi_obs_time'])*2):
         color_random = list(matplotlib.colors.XKCD_COLORS.items())[int(random.random()*900)][1]
         color_s.append(color_random)
     for roi_matched_record_item in roi_matched_misr_roi_s:

@@ -24,8 +24,16 @@ MISR_TOA_FOLDER = os.path.join(workspace, '45_1_MISR_TOA')
 # LandCover=* ReferenceSRF=AHI TargetSRF=MISR Units=PseudoScaledRadiance Regression=Linear
 # SR(MISR2AHI) = SR(MISR)*Slope+Offset
 AHI2MISR_SBAF = {   # slope offset
-    '45_1_band3': [1.113, -0.005765],
+    '45_1_band3': [1.113, -0.005765],   # Cropland/Natural Vegetation Mosaics
     '45_1_band4': [1.015, 0.00005084],
+    '45_2_band3': [1.113, -0.005765],   # Cropland/Natural Vegetation Mosaics
+    '45_2_band4': [1.015, 0.00005084],
+    '60_1_band3': [1.113, -0.001823],   # Open Shrublands
+    '60_1_band4': [1.008, 0.00004747],
+    '60_2_band3': [1.113, -0.001823],   # Open Shrublands
+    '60_2_band4': [1.008, 0.00004747],
+    '70_1_band3': [1.113, -0.001823],   # Open Shrublands
+    '70_1_band4': [1.008, 0.00004747],
 }
 
 
@@ -284,7 +292,7 @@ if __name__ == "__main__":
                 roi_matched_misr_roi_s.append(roi_matched_misr_roi)
             break
     color_s = []
-    for i in range(len(roi_matched_misr_roi_s[0]['ahi_obs_time'])):
+    for i in range(len(roi_matched_misr_roi_s[0]['ahi_obs_time'])*2):
         color_random = list(matplotlib.colors.XKCD_COLORS.items())[int(random.random()*900)][1]
         color_s.append(color_random)
     for roi_matched_record_item in roi_matched_misr_roi_s:

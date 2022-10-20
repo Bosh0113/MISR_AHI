@@ -157,13 +157,16 @@ def record_roi_misr_ahi(roi_name, band_index, misr_orbit, misr_camera_index, ahi
         for lon_index in range(len(roi_lons)):
             lat = roi_lats[lat_index]
             lon = roi_lons[lon_index]
-            misr_blsv3 = latlon_to_bls(misr_path, misr_resolution, lat, lon)
-            block_llv3 = misr_blsv3[0]
-            b_lat_idxv3 = round(misr_blsv3[1])
-            b_lon_idxv3 = round(misr_blsv3[2])
-            block_brf_dnv3 = toa_field.read(block_llv3, block_llv3)[0]
-            roi_brf_tv3 = block_brf_dnv3[b_lat_idxv3][b_lon_idxv3]
-            roi_misr_toa[lat_index][lon_index] = roi_brf_tv3
+            try:
+                misr_blsv3 = latlon_to_bls(misr_path, misr_resolution, lat, lon)
+                block_llv3 = misr_blsv3[0]
+                b_lat_idxv3 = round(misr_blsv3[1])
+                b_lon_idxv3 = round(misr_blsv3[2])
+                block_brf_dnv3 = toa_field.read(block_llv3, block_llv3)[0]
+                roi_brf_tv3 = block_brf_dnv3[b_lat_idxv3][b_lon_idxv3]
+                roi_misr_toa[lat_index][lon_index] = roi_brf_tv3
+            except Exception as e:
+                roi_misr_brfv3[lat_index][lon_index] = 0.
 
     # if any cloud-free obs. is existed
     if roi_misr_toa.max() > 0.0:
@@ -338,7 +341,7 @@ if __name__ == "__main__":
                 roi_matched_misr_roi_s.append(roi_matched_misr_roi)
             break
     color_s = []
-    for i in range(len(roi_matched_misr_roi_s[0]['ahi_obs_time'])):
+    for i in range(len(roi_matched_misr_roi_s[0]['ahi_obs_time'])*2):
         color_random = list(matplotlib.colors.XKCD_COLORS.items())[int(random.random()*900)][1]
         color_s.append(color_random)
     for roi_matched_record_item in roi_matched_misr_roi_s:
