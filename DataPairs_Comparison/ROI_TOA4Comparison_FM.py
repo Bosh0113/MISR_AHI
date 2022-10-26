@@ -140,13 +140,16 @@ def record_roi_misr_ahi(roi_name, band_index, misr_orbit, misr_camera_index, ahi
         for lon_index in range(len(roi_lons)):
             lat = roi_lats[lat_index]
             lon = roi_lons[lon_index]
-            misr_blsv3 = latlon_to_bls(misr_path, misr_resolution, lat, lon)
-            block_llv3 = misr_blsv3[0]
-            b_lat_idxv3 = round(misr_blsv3[1])
-            b_lon_idxv3 = round(misr_blsv3[2])
-            block_brf_dnv3 = toa_field.read(block_llv3, block_llv3)[0]
-            roi_brf_tv3 = block_brf_dnv3[b_lat_idxv3][b_lon_idxv3]
-            roi_misr_toa[lat_index][lon_index] = roi_brf_tv3
+            try:
+                misr_blsv3 = latlon_to_bls(misr_path, misr_resolution, lat, lon)
+                block_llv3 = misr_blsv3[0]
+                b_lat_idxv3 = round(misr_blsv3[1])
+                b_lon_idxv3 = round(misr_blsv3[2])
+                block_brf_dnv3 = toa_field.read(block_llv3, block_llv3)[0]
+                roi_brf_tv3 = block_brf_dnv3[b_lat_idxv3][b_lon_idxv3]
+                roi_misr_toa[lat_index][lon_index] = roi_brf_tv3
+            except Exception as e:
+                roi_misr_toa[lat_index][lon_index] = 0.
 
     # if any cloud-free obs. is existed
     if roi_misr_toa.max() > 0.0:
