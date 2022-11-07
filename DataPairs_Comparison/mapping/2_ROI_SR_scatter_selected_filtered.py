@@ -49,17 +49,17 @@ WORK_SPACE = r'D:\Work_PhD\MISR_AHI_WS\221024\RAA\SR\60.0_200'
 # selected_times = ['201901160350']
 # roi_name = '45.6_20'
 # selected_times = ['201809230310']
-# roi_name = '60.0_80'
+# roi_name = '60.0_80'  # ×
 # selected_times = []
 # roi_name = '60.0_130'
 # selected_times = ['201709180320', '201810160310', '201909080320', '201909240310', '201910100310']
 roi_name = '60.0_200'
 selected_times = ['201803140400']
-# roi_name = '70.5_10'
+# roi_name = '70.5_10'  # ×
 # selected_times = []
-# roi_name = '70.5_80'
+# roi_name = '70.5_80'  # ×
 # selected_times = []
-# roi_name = '70.5_200'
+# roi_name = '70.5_200'  # ×
 # selected_times = []
 
 
