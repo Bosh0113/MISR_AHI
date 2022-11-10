@@ -8,37 +8,37 @@ import os
 
 # WORK_SPACE = r'D:\Work_PhD\MISR_AHI_WS\221024\FM\TOA\45_1'
 # WORK_SPACE = r'D:\Work_PhD\MISR_AHI_WS\221024\FM\TOA\45_2'
-# WORK_SPACE = r'D:\Work_PhD\MISR_AHI_WS\221024\FM\TOA\60_1'
+WORK_SPACE = r'D:\Work_PhD\MISR_AHI_WS\221024\FM\TOA\60_1'
 # WORK_SPACE = r'D:\Work_PhD\MISR_AHI_WS\221024\FM\TOA\60_2'
-WORK_SPACE = r'D:\Work_PhD\MISR_AHI_WS\221024\FM\TOA\70_1'
-# WORK_SPACE = r'D:\Work_PhD\MISR_AHI_WS\221024\RAA\SR\0.0_60'
-# WORK_SPACE = r'D:\Work_PhD\MISR_AHI_WS\221024\RAA\SR\0.0_120'
-# WORK_SPACE = r'D:\Work_PhD\MISR_AHI_WS\221024\RAA\SR\26.1_10'
-# WORK_SPACE = r'D:\Work_PhD\MISR_AHI_WS\221024\RAA\SR\26.1_150'
-# WORK_SPACE = r'D:\Work_PhD\MISR_AHI_WS\221024\RAA\SR\45.6_10'
-# WORK_SPACE = r'D:\Work_PhD\MISR_AHI_WS\221024\RAA\SR\45.6_20'
-# WORK_SPACE = r'D:\Work_PhD\MISR_AHI_WS\221024\RAA\SR\60.0_80'
-# WORK_SPACE = r'D:\Work_PhD\MISR_AHI_WS\221024\RAA\SR\60.0_130'
-# WORK_SPACE = r'D:\Work_PhD\MISR_AHI_WS\221024\RAA\SR\60.0_200'
-# WORK_SPACE = r'D:\Work_PhD\MISR_AHI_WS\221024\RAA\SR\70.5_10'
-# WORK_SPACE = r'D:\Work_PhD\MISR_AHI_WS\221024\RAA\SR\70.5_80'
-# WORK_SPACE = r'D:\Work_PhD\MISR_AHI_WS\221024\RAA\SR\70.5_200'
+# WORK_SPACE = r'D:\Work_PhD\MISR_AHI_WS\221024\FM\TOA\70_1'
+# WORK_SPACE = r'D:\Work_PhD\MISR_AHI_WS\221024\RAA\TOA\0.0_60'
+# WORK_SPACE = r'D:\Work_PhD\MISR_AHI_WS\221024\RAA\TOA\0.0_120'
+# WORK_SPACE = r'D:\Work_PhD\MISR_AHI_WS\221024\RAA\TOA\26.1_10'
+# WORK_SPACE = r'D:\Work_PhD\MISR_AHI_WS\221024\RAA\TOA\26.1_150'
+# WORK_SPACE = r'D:\Work_PhD\MISR_AHI_WS\221024\RAA\TOA\45.6_10'
+# WORK_SPACE = r'D:\Work_PhD\MISR_AHI_WS\221024\RAA\TOA\45.6_20'
+# WORK_SPACE = r'D:\Work_PhD\MISR_AHI_WS\221024\RAA\TOA\60.0_80'
+# WORK_SPACE = r'D:\Work_PhD\MISR_AHI_WS\221024\RAA\TOA\60.0_130'
+# WORK_SPACE = r'D:\Work_PhD\MISR_AHI_WS\221024\RAA\TOA\60.0_200'
+# WORK_SPACE = r'D:\Work_PhD\MISR_AHI_WS\221024\RAA\TOA\70.5_10'
+# WORK_SPACE = r'D:\Work_PhD\MISR_AHI_WS\221024\RAA\TOA\70.5_80'
+# WORK_SPACE = r'D:\Work_PhD\MISR_AHI_WS\221024\RAA\TOA\70.5_200'
 
 # roi_name = '45_1'
 # selected_times = ['201907080140']   # 107	104001	6	201907080135	201907080140	45.961	47.099	186.284	179.752	175.126
 # roi_name = '45_2'
 # selected_times = ['201912290200']   # 109	106535	2	201912290200	201912290200	47.000	45.985	28.253	34.734	175.192
-# roi_name = '60_1'
-# selected_times = ['201707090140']   # 108	93385	7	201707090140	201707090140	60.577	59.779	186.994	181.667	175.311
+roi_name = '60_1'
+selected_times = ['201707090140']   # 108	93385	7	201707090140	201707090140	60.577	59.779	186.994	181.667	175.311
 # roi_name = '60_2'
 # selected_times = ['201808060140']   # 107	99108	7	201808060135	201808060140	60.669	59.805	185.950	182.931	177.241
-roi_name = '70_1'
-selected_times = ['201706150050']   # 100	93035	8	201706150050	201706150050	70.975	70.098	208.578	205.865	177.296
+# roi_name = '70_1'
+# selected_times = ['201706150050']   # 100	93035	8	201706150050	201706150050	70.975	70.098	208.578	205.865	177.296
 # roi_name = '0.0_60'
 # selected_times = ['201808300100', '201809150100', '201904110100']
 # roi_name = '0.0_120'
 # selected_times = ['201709120100', '201809150100', '201909180100']
-# roi_name = '26.1_10'
+# roi_name = '26.1_10'  # no good
 # selected_times = ['201705050250']
 # roi_name = '26.1_150'
 # selected_times = ['201712240110', '201801090110', '201801250110', '201802260110', '201812180110', '201902130110']
@@ -46,17 +46,17 @@ selected_times = ['201706150050']   # 100	93035	8	201706150050	201706150050	70.9
 # selected_times = ['201901160350']
 # roi_name = '45.6_20'
 # selected_times = ['201809230310']
-# roi_name = '60.0_80'
+# roi_name = '60.0_80'  # ×
 # selected_times = []
 # roi_name = '60.0_130'
 # selected_times = ['201709180320', '201810160310', '201909080320', '201909240310', '201910100310']
 # roi_name = '60.0_200'
 # selected_times = ['201803140400']
-# roi_name = '70.5_10'
+# roi_name = '70.5_10'  # ×
 # selected_times = []
-# roi_name = '70.5_80'
+# roi_name = '70.5_80'  # ×
 # selected_times = []
-# roi_name = '70.5_200'
+# roi_name = '70.5_200'  # ×
 # selected_times = []
 
 
@@ -144,6 +144,7 @@ def make_fig(roi_name, X, Y, band_name, axis_min=0.0, axis_max=0.5):
     p_s = str(p).split('e')
     p_f = round(float(p_s[0][:5]), 1)
     p_str = str(p_f) + 'e' + p_s[1]
+    # p_str = ''
 
     # print('count of pixel: ', N)
     # label_str = label_str = 'N = {}\nRMSE = {}\ny = {}x + {}'.format(N, round(rmse, 3), round(k, 2), round(b, 2))
@@ -160,8 +161,8 @@ def make_fig(roi_name, X, Y, band_name, axis_min=0.0, axis_max=0.5):
     # cb.ax.set_xlabel('Count', rotation=360)
     ax1.set_xlim(axis_min, axis_max)
     ax1.set_ylim(axis_min, axis_max)
-    fig.savefig(os.path.join(WORK_SPACE, '{} '.format(roi_name) + band_label[band_name] + ' TOA.jpg'), dpi=1000, bbox_inches='tight')
-    # plt.show()
+    # fig.savefig(os.path.join(WORK_SPACE, '{} '.format(roi_name) + band_label[band_name] + ' TOA.jpg'), dpi=1000, bbox_inches='tight')
+    plt.show()
     plt.clf()
 
 

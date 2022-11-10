@@ -16,7 +16,7 @@ AHI_AC_FOLDER = '/disk1/workspace/20220629/AHI_AC_PARAMETER'
 
 # https://www-pm.larc.nasa.gov/cgi-bin/site/showdoc?mnemonic=SBAF
 # LandCover=* ReferenceSRF=AHI TargetSRF=MISR Units=PseudoScaledRadiance Regression=Linear
-# SR(MISR2AHI) = SR(MISR)*Slope+Offset
+# SR(AHI2MISR) = SR(AHI)*Slope+Offset
 AHI2MISR_SBAF = {   # slope offset
     '0.0_60_band1': [1.075, 0.005536],
     '0.0_60_band2': [1.015, -0.003977],

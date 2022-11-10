@@ -6,8 +6,8 @@ import numpy as np
 import math
 import os
 
-SAVE_FIGURE_FLAG = True
-# SAVE_FIGURE_FLAG = False
+# SAVE_FIGURE_FLAG = True
+SAVE_FIGURE_FLAG = False
 
 # WORK_SPACE = r'D:\Work_PhD\MISR_AHI_WS\221024\FM\SR\45_1'
 # WORK_SPACE = r'D:\Work_PhD\MISR_AHI_WS\221024\FM\SR\45_2'
@@ -16,13 +16,13 @@ SAVE_FIGURE_FLAG = True
 # WORK_SPACE = r'D:\Work_PhD\MISR_AHI_WS\221024\FM\SR\70_1'
 # WORK_SPACE = r'D:\Work_PhD\MISR_AHI_WS\221024\RAA\SR\0.0_60'
 # WORK_SPACE = r'D:\Work_PhD\MISR_AHI_WS\221024\RAA\SR\0.0_120'
-# WORK_SPACE = r'D:\Work_PhD\MISR_AHI_WS\221024\RAA\SR\26.1_10'
+WORK_SPACE = r'D:\Work_PhD\MISR_AHI_WS\221024\RAA\SR\26.1_10'
 # WORK_SPACE = r'D:\Work_PhD\MISR_AHI_WS\221024\RAA\SR\26.1_150'
 # WORK_SPACE = r'D:\Work_PhD\MISR_AHI_WS\221024\RAA\SR\45.6_10'
 # WORK_SPACE = r'D:\Work_PhD\MISR_AHI_WS\221024\RAA\SR\45.6_20'
 # WORK_SPACE = r'D:\Work_PhD\MISR_AHI_WS\221024\RAA\SR\60.0_80'
 # WORK_SPACE = r'D:\Work_PhD\MISR_AHI_WS\221024\RAA\SR\60.0_130'
-WORK_SPACE = r'D:\Work_PhD\MISR_AHI_WS\221024\RAA\SR\60.0_200'
+# WORK_SPACE = r'D:\Work_PhD\MISR_AHI_WS\221024\RAA\SR\60.0_200'
 # WORK_SPACE = r'D:\Work_PhD\MISR_AHI_WS\221024\RAA\SR\70.5_10'
 # WORK_SPACE = r'D:\Work_PhD\MISR_AHI_WS\221024\RAA\SR\70.5_80'
 # WORK_SPACE = r'D:\Work_PhD\MISR_AHI_WS\221024\RAA\SR\70.5_200'
@@ -41,8 +41,8 @@ WORK_SPACE = r'D:\Work_PhD\MISR_AHI_WS\221024\RAA\SR\60.0_200'
 # selected_times = ['201808300100', '201809150100', '201904110100']
 # roi_name = '0.0_120'
 # selected_times = ['201709120100', '201809150100', '201909180100']
-# roi_name = '26.1_10'
-# selected_times = ['201705050250']
+roi_name = '26.1_10'
+selected_times = ['201705050250']
 # roi_name = '26.1_150'
 # selected_times = ['201712240110', '201801090110', '201801250110', '201802260110', '201812180110', '201902130110']
 # roi_name = '45.6_10'
@@ -53,8 +53,8 @@ WORK_SPACE = r'D:\Work_PhD\MISR_AHI_WS\221024\RAA\SR\60.0_200'
 # selected_times = []
 # roi_name = '60.0_130'
 # selected_times = ['201709180320', '201810160310', '201909080320', '201909240310', '201910100310']
-roi_name = '60.0_200'
-selected_times = ['201803140400']
+# roi_name = '60.0_200'
+# selected_times = ['201803140400']
 # roi_name = '70.5_10'  # ×
 # selected_times = []
 # roi_name = '70.5_80'  # ×

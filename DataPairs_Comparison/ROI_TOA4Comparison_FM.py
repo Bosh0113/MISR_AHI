@@ -22,7 +22,7 @@ MISR_TOA_FOLDER = os.path.join(workspace, '45_1_MISR_TOA')
 
 # https://www-pm.larc.nasa.gov/cgi-bin/site/showdoc?mnemonic=SBAF
 # LandCover=* ReferenceSRF=AHI TargetSRF=MISR Units=PseudoScaledRadiance Regression=Linear
-# SR(MISR2AHI) = SR(MISR)*Slope+Offset
+# SR(AHI2MISR) = SR(AHI)*Slope+Offset
 AHI2MISR_SBAF = {   # slope offset
     '45_1_band3': [1.113, -0.005765],   # Cropland/Natural Vegetation Mosaics
     '45_1_band4': [1.015, 0.00005084],
