@@ -30,8 +30,8 @@ MODIS_DATA_FOLDER = '/disk1/workspace/20221103/MOD09_AHI_2017'
 AHI_VZA_BIN = '/disk1/Data/AHI/VZA/202201010000.sat.zth.fld.4km.bin'
 AHI_VAA_BIN = '/disk1/Data/AHI/VAA/202201010000.sat.azm.fld.4km.bin'
 
-point_locations_npy_filename = '/disk1/workspace/20221103/MODIS_FM/AHI_180_50km_onland_lonlat.npy'
-GRO_OBS_COND_TXT = 'MODIS_AHI_FULL_MATCH_RECORD_50km_fread_simple.txt'
+point_locations_npy_filename = '/disk1/workspace/20221103/MODIS_FM/AHI_180_10km_onland_lonlat.npy'
+GRO_OBS_COND_TXT = 'MODIS_AHI_FULL_MATCH_RECORD_10km_fread_simple.txt'
 
 
 def re_download_MISR_MIL2ASLS03_NC(folder, path, orbit):
@@ -187,10 +187,11 @@ def main():
     geocond_record_str = 'Lon Lat MODIS_roi_time AHI_roi_time MODIS_VZA AHI_VZA MODIS_VAA AHI_VAA Scattering_Angle(GEO-LEO)\n'
     # record
     matched_record = {}
-    modis_matched_npy_filename = os.path.join(WORK_SPACE, 'MODIS_matched_record_50km_fread_simple.npy')
+    modis_matched_npy_filename = os.path.join(WORK_SPACE, 'MODIS_matched_record_10km_fread_simple.npy')
 
     search_cood = numpy.load(point_locations_npy_filename)
-    for year_day in tqdm(range(1, 366, 1), desc='Doy', leave=False):
+    # for year_day in tqdm(range(1, 366, 1), desc='Doy', leave=False):
+    for year_day in tqdm(range(1, 17, 1), desc='Doy', leave=False):
         year_day_str = (3 - len(str(year_day))) * '0' + str(year_day)
 
         modis_vza_file = 'MOD09GA.061_SensorZenith_1_doy2017' + year_day_str + '_aid0001.tif'
@@ -212,8 +213,8 @@ def main():
                 if str(cood_point) in matched_record:
                     loc_matched = matched_record[str(cood_point)]
 
-                lon4search = cood_point[0]
-                lat4search = cood_point[1]
+                lon4search = round(cood_point[0], 3)
+                lat4search = round(cood_point[1], 3)
                 if lat4search > -30 and lat4search < 30:
                     # geocond_record_str += 'Location: (' + str(lon4search) + ', ' + str(lat4search) + ')\n'
                     # ROI extent (ullat, ullon, lrlat, lrlon)
@@ -221,13 +222,11 @@ def main():
 
                     # AHI Obs Condition
                     ahi_vza, ahi_vaa = get_ahi_obs_angle(roi_extent)
-
-                    # Full Match Screening
-                    roi_r = MtkRegion(roi_extent[0], roi_extent[1], roi_extent[2], roi_extent[3])
-
                     misr_path, misr_orbit = get_misr_path_orbit(lon4search, lat4search, year_day)
                     if misr_orbit > 0:
                         try:
+                            # Full Match Screening
+                            roi_r = MtkRegion(roi_extent[0], roi_extent[1], roi_extent[2], roi_extent[3])
                             modis_vza, modis_vaa = get_modis_obs_angle(lon4search, lat4search, modis_vza_value, modis_vaa_value)
                             if modis_vza != 0.0:
                                 # print(modis_vza, modis_vaa)
@@ -295,7 +294,7 @@ def main():
                                     # matched info: MISR_roi_time AHI_roi_time MODIS_VZA AHI_VZA MODIS_VAA AHI_VAA Scattering_Angle(GEO-LEO)
                                     matched_info = [misr_roi_block_time, ahi_obs_time, str(modis_roi_vza), str(ahi_roi_vza), str(modis_roi_vaa), str(ahi_roi_vaa), str(scattering_angle)]
                                     # print(cood_point)
-                                    print(matched_info)
+                                    print([lon4search, lat4search, misr_roi_block_time, ahi_obs_time, str(modis_roi_vza), str(ahi_roi_vza), str(modis_roi_vaa), str(ahi_roi_vaa), str(scattering_angle)])
                                     geocond_record_str += str(lon4search) + '\t' + str(lat4search) + '\t' + misr_roi_block_time + '\t' + ahi_obs_time + '\t' + str(modis_roi_vza) + '\t' + str(ahi_roi_vza) + '\t' + str(modis_roi_vaa) + '\t' + str(ahi_roi_vaa) + '\t' + str(scattering_angle) + '\n'
                                     loc_matched.append(matched_info)
                         except Exception as e:

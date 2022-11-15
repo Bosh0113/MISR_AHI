@@ -5,8 +5,8 @@ import numpy
 WORK_SPACE = os.getcwd()
 
 
-def get_full_matched_count(misr_camera_angle, record_npy_filename):
-    count_record_txt_filename = os.path.join(WORK_SPACE, misr_camera_angle + '_full_matched_point_info.txt')
+def get_full_matched_count(record_npy_filename):
+    count_record_txt_filename = os.path.join(WORK_SPACE, 'MISR_matched_record_50km_count.txt')
     info_record_str = ''
     matched_record_array = numpy.load(record_npy_filename, allow_pickle=True)
     for matched_record in matched_record_array:
@@ -24,7 +24,5 @@ def get_full_matched_count(misr_camera_angle, record_npy_filename):
 
 
 if __name__ == "__main__":
-    misr_camera_angles = ['0.0', '26.1', '45.6', '60.0', '70.5']
-    for misr_camera_angle in misr_camera_angles:
-        record_npy_filename = os.path.join(WORK_SPACE, misr_camera_angle + '_matched_record.npy')
-        get_full_matched_count(misr_camera_angle, record_npy_filename)
+    record_npy_filename = os.path.join(WORK_SPACE, 'MISR_matched_record_50km.npy')
+    get_full_matched_count(record_npy_filename)

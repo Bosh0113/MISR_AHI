@@ -31,7 +31,7 @@ MISR_DATA_FOLDER = '/disk1/Data/MISR4AHI2015070120210630_3'
 AHI_VZA_BIN = '/disk1/Data/AHI/VZA/202201010000.sat.zth.fld.4km.bin'
 AHI_VAA_BIN = '/disk1/Data/AHI/VAA/202201010000.sat.azm.fld.4km.bin'
 
-GRO_OBS_COND_TXT = 'MISR_AHI_FULL_MATCH_RECORD.txt'
+GRO_OBS_COND_TXT = 'MISR_AHI_FULL_MATCH_RECORD_10km.txt'
 
 
 def re_download_MISR_MIL2ASLS03_NC(folder, path, orbit):
@@ -178,39 +178,39 @@ def main():
     # search full matching
     geocond_record_str = 'MISR_path MISR_orbit camera_idx MISR_roi_time AHI_roi_time MISR_VZA AHI_VZA MISR_VAA AHI_VAA Scattering_Angle(GEO-LEO)\n'
     MISRVZAs = [0.0, 26.1, 45.6, 60.0, 70.5]
-    for vza_idx in tqdm(range(len(MISRVZAs)), desc='MISR VZAs'):
-        misr_vza_str = str(MISRVZAs[vza_idx])
-        print('MISR VZAs', misr_vza_str)
-        # record
-        matched_record = []
-        misr_vza_matched_npy_filename = os.path.join(WORK_SPACE, misr_vza_str + '_matched_record.npy')
-        geocond_record_str += '\nMISR_CAMERA_ANGLE:' + misr_vza_str + '\n'
+    # record
+    matched_record = []
+    misr_vza_matched_npy_filename = os.path.join(WORK_SPACE, 'MISR_matched_record_10km.npy')
 
-        # point_locations_npy_filename = os.path.join(loc_folder, misr_vza_str + '_point4search_' + str(ROI_DISTANCE) + '.npy')
-        point_locations_npy_filename = '/disk1/workspace/20221103/MISR_FM/AHI_180_10km_onland_lonlat.npy'
-        search_cood = numpy.load(point_locations_npy_filename)
-        for cood_point_idx in tqdm(range(len(search_cood)), desc='Location', leave=False):
-            cood_point = search_cood[cood_point_idx]
-            # loc_info
-            loc_record = {}
-            loc_record['location'] = cood_point
-            matched_infos = []
+    # point_locations_npy_filename = os.path.join(loc_folder, misr_vza_str + '_point4search_' + str(ROI_DISTANCE) + '.npy')
+    point_locations_npy_filename = '/disk1/workspace/20221103/MISR_FM/AHI_180_10km_onland_lonlat.npy'
+    search_cood = numpy.load(point_locations_npy_filename)
+    for cood_point_idx in tqdm(range(len(search_cood)), desc='Location', leave=False):
+        cood_point = search_cood[cood_point_idx]
+        # loc_info
+        loc_record = {}
+        loc_record['location'] = cood_point
+        matched_infos = []
 
-            lon4search = cood_point[0]
-            lat4search = cood_point[1]
-            geocond_record_str += 'Location: (' + str(lon4search) + ', ' + str(lat4search) + ')\n'
-            # ROI extent (ullat, ullon, lrlat, lrlon)
-            roi_extent = [lat4search + ROI_SIZE / 2, lon4search - ROI_SIZE / 2, lat4search - ROI_SIZE / 2, lon4search + ROI_SIZE / 2]
+        lon4search = cood_point[0]
+        lat4search = cood_point[1]
+        geocond_record_str += 'Location: (' + str(lon4search) + ', ' + str(lat4search) + ')\n'
+        # ROI extent (ullat, ullon, lrlat, lrlon)
+        roi_extent = [lat4search + ROI_SIZE / 2, lon4search - ROI_SIZE / 2, lat4search - ROI_SIZE / 2, lon4search + ROI_SIZE / 2]
 
-            # AHI Obs Condition
-            ahi_vza, ahi_vaa = get_ahi_obs_angle(roi_extent)
+        # AHI Obs Condition
+        ahi_vza, ahi_vaa = get_ahi_obs_angle(roi_extent)
 
-            # Full Match Screening
-            roi_r = MtkRegion(roi_extent[0], roi_extent[1], roi_extent[2], roi_extent[3])
-            pathList = roi_r.path_list
-            for path in pathList:
-                orbits = path_time_range_to_orbit_list(path, START_TIME, END_TIME)
-                for orbit in orbits:
+        # Full Match Screening
+        roi_r = MtkRegion(roi_extent[0], roi_extent[1], roi_extent[2], roi_extent[3])
+        pathList = roi_r.path_list
+        for path in pathList:
+            orbits = path_time_range_to_orbit_list(path, START_TIME, END_TIME)
+            for orbit in orbits:
+                for vza_idx in range(len(MISRVZAs)):
+                    misr_vza_str = str(MISRVZAs[vza_idx])
+                    # print('MISR VZAs', misr_vza_str)
+                    geocond_record_str += '\nMISR_CAMERA_ANGLE:' + misr_vza_str + '\n'
                     camera_idx_array = MISR_CAMERA_INDEX[misr_vza_str]
                     for camera_idx in camera_idx_array:
                         try:
@@ -288,10 +288,10 @@ def main():
                         except Exception as e:
                             print('orbit:', orbit)
                             print(e)
-            loc_record['matched_infos'] = matched_infos
-            if len(matched_infos) > 0:
-                matched_record.append(loc_record)
-        numpy.save(misr_vza_matched_npy_filename, numpy.array(matched_record))
+        loc_record['matched_infos'] = matched_infos
+        if len(matched_infos) > 0:
+            matched_record.append(loc_record)
+    numpy.save(misr_vza_matched_npy_filename, numpy.array(matched_record))
 
     # save result as txt
     with open(os.path.join(WORK_SPACE, GRO_OBS_COND_TXT), 'w') as f:
