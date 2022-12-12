@@ -15,8 +15,8 @@ def find_nearest_index(array, value):
 
 
 def angle_count(matched_info, info_idx):
-    angle_record = numpy.zeros((90*degree_count+1,))
-    angle_list = numpy.arange(0, 90+1/degree_count, 1/degree_count)
+    angle_record = numpy.zeros((360*degree_count+1,))
+    angle_list = numpy.arange(0, 360+1/degree_count, 1/degree_count)
     angle_list = angle_list * 1.
     for pt_item in matched_info:
         pt_matched_info = pt_item['matched_infos']
@@ -34,7 +34,7 @@ def mapping(misr_angle_pixel_record, ahi_angle_pixel_record):
 
     plt.plot(misr_angle_pixel_record)
     plt.plot(ahi_angle_pixel_record)
-    plt.xlim(0, 90*degree_count)
+    plt.xlim(0, 360*degree_count)
     plt.ylim(bottom=0)
     plt.show()
 
