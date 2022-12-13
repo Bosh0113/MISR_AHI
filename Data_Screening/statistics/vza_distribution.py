@@ -74,6 +74,8 @@ def kde_mapping(misr_angle_pixel_record, ahi_angle_pixel_record):
     kde_ahi_list = prepare_kde(ahi_angle_pixel_record)
 
     f, ax1 = plt.subplots()
+    f.set_size_inches(6, 4)
+    f.set_dpi(100)
     ax1.grid(linestyle='--', linewidth=0.6)
     ax1.set_xlabel('VZA (°)', fontsize=18)
 
