@@ -12,7 +12,7 @@ WORK_SPACE = os.getcwd()
 
 ROI_DISTANCE = 0.5
 
-ROI_SIZE = 0.12
+ROI_SIZE = 0.1
 MISR_CAMERA_INDEX = {'0.0': [4], '26.1': [3, 5], '45.6': [2, 6], '60.0': [1, 7], '70.5': [0, 8]}
 
 START_TIME = '2017-01-01T00:00:00Z'

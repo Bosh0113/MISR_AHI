@@ -20,16 +20,13 @@ if __name__ == "__main__":
     # shp = ws + '/AHI_view.shp'
     # geojson_to_shp(geoj, shp)
     
-    # ws = r'D:\Work_PhD\MISR_AHI_WS\220630'
-    # geoj = ws + '/70_80.json'
-    # shp = ws + '/ROI_shp/70.5_80.shp'
-    # shp_to_geojson(shp, geoj)
+    ws = r'D:\Work_PhD\MISR_AHI_WS\221221'
+    roi_name = '0.0_1'
+    geoj = ws + '/ROIs_ex_json/' + roi_name + '.json'
+    shp = ws + '/ROIs_ex_shp/' + roi_name + '_ex.shp'
+    shp_to_geojson(shp, geoj)
     # # shp = ws + '/0_50_roi.shp'
     # # geojson_to_shp(geoj, shp)
-    ws = r'D:\Work_PhD\MISR_AHI_WS\221110'
-    geoj = ws + '/FM_ROIs_geojson/70_1.json'
-    shp = ws + '/FM_ROIs_shp/70_1.shp'
-    geojson_to_shp(geoj, shp)
 
     # ws_folder = r'D:\Work_PhD\MISR_AHI_WS\220331'
     # geoj_folder = os.path.join(ws_folder, 'ROI')

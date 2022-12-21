@@ -30,7 +30,7 @@ WORK_SPACE = os.getcwd()
 VZA_COS_THRESHOLD = 0.02
 
 # time diff
-SZA_TIME_THRESHOLD = 30 * 60  # seconds
+SZA_TIME_THRESHOLD = 10 * 60  # seconds
 
 # degree diff
 RAA_DEGREE_THRESHOLD = 10.
@@ -179,11 +179,11 @@ def misr_ahi_raa_matching(roi_geoj_file, misr_ls_file, ahi_vaa_file, ahi_saa_fil
             # show raa diff
             raa_diff = abs(roi_misr_raa - roi_ahi_raa)
 
-            # # angle standard
-            # roi_misr_vaa = azimuth_angle_misr2ahi(roi_misr_vaa)
-            # roi_misr_saa = azimuth_angle_misr2ahi(roi_misr_saa)
-            roi_misr_vaa = roi_misr_vaa
-            roi_misr_saa = roi_misr_saa
+            # angle standard
+            roi_misr_vaa = azimuth_angle_misr2ahi(roi_misr_vaa)
+            roi_misr_saa = azimuth_angle_misr2ahi(roi_misr_saa)
+            # roi_misr_vaa = roi_misr_vaa
+            # roi_misr_saa = roi_misr_saa
 
             # misr_vaa, ahi_vaa, misr_saa, ahi_saa, misr_raa, ahi_raa, raa_diff
             return roi_misr_vaa, roi_ahi_vaa, roi_misr_saa, roi_ahi_saa, roi_misr_raa, roi_ahi_raa, raa_diff

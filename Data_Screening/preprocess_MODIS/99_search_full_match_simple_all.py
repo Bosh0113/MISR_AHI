@@ -11,7 +11,7 @@ import xarray
 
 WORK_SPACE = os.getcwd()
 
-ROI_SIZE = 0.12
+ROI_SIZE = 0.1
 
 START_TIME = '2017-01-01T00:00:00Z'
 END_TIME = '2017-12-31T23:59:59Z'
