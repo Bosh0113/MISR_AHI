@@ -10,8 +10,6 @@ from tqdm import tqdm
 
 WORK_SPACE = os.getcwd()
 
-ROI_DISTANCE = 0.5
-
 ROI_SIZE = 0.1
 MISR_CAMERA_INDEX = {'0.0': [4], '26.1': [3, 5], '45.6': [2, 6], '60.0': [1, 7], '70.5': [0, 8]}
 
@@ -31,7 +29,7 @@ MISR_DATA_FOLDER = '/disk1/Data/MISR4AHI2015070120210630_3'
 AHI_VZA_BIN = '/disk1/Data/AHI/VZA/202201010000.sat.zth.fld.4km.bin'
 AHI_VAA_BIN = '/disk1/Data/AHI/VAA/202201010000.sat.azm.fld.4km.bin'
 
-GRO_OBS_COND_TXT = 'MISR_AHI_FULL_MATCH_RECORD_10km.txt'
+GRO_OBS_COND_TXT = 'MISR_AHI_RAY_MATCH_RECORD_10km.txt'
 
 
 def re_download_MISR_MIL2ASLS03_NC(folder, path, orbit):
@@ -190,9 +188,8 @@ def main():
     MISRVZAs = [0.0, 26.1, 45.6, 60.0, 70.5]
     # record
     matched_record = []
-    misr_vza_matched_npy_filename = os.path.join(WORK_SPACE, 'MISR_matched_record_10km.npy')
+    misr_ray_matched_npy_filename = os.path.join(WORK_SPACE, 'MISR_matched_record_10km.npy')
 
-    # point_locations_npy_filename = os.path.join(loc_folder, misr_vza_str + '_point4search_' + str(ROI_DISTANCE) + '.npy')
     point_locations_npy_filename = '/disk1/workspace/20221103/MISR_FM/AHI_180_10km_onland_lonlat.npy'
     search_cood = numpy.load(point_locations_npy_filename)
     for cood_point_idx in tqdm(range(len(search_cood)), desc='Location', leave=False):
@@ -301,7 +298,14 @@ def main():
         loc_record['matched_infos'] = matched_infos
         if len(matched_infos) > 0:
             matched_record.append(loc_record)
-    numpy.save(misr_vza_matched_npy_filename, numpy.array(matched_record))
+    numpy.save(misr_ray_matched_npy_filename, numpy.array(matched_record))
+    ###############################################
+    # demo: [{
+    #     'location': [lon, lat],
+    #     "matched_infos": [[...], ...]
+    # },
+    # ...]
+    ###############################################
 
     # save result as txt
     with open(os.path.join(WORK_SPACE, GRO_OBS_COND_TXT), 'w') as f:

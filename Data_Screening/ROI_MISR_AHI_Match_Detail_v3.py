@@ -36,7 +36,7 @@ SZA_TIME_THRESHOLD = 10 * 60  # seconds
 RAA_DEGREE_THRESHOLD = 10.
 
 # record files
-condition = 'vza002raa10sza30min'
+condition = 'vza002raa10sza10min'
 GRO_OBS_COND_TXT = 'geo-obs_cond_' + condition + '.txt'
 MATCHED_INFO_NPY = 'MISR_AHI_matched_info_' + condition + '.npy'
 
