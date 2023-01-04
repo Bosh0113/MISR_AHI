@@ -70,15 +70,6 @@ def get_misr_filename(orbit):
     return misr_nc_filename
 
 
-def azimuth_angle_misr2ahi(misr_azimuth_angle):
-    misr2ahi_azimuth_angle = misr_azimuth_angle
-    if misr_azimuth_angle >= 180:
-        misr2ahi_azimuth_angle = misr2ahi_azimuth_angle - 180
-    else:
-        misr2ahi_azimuth_angle = misr2ahi_azimuth_angle + 180
-    return misr2ahi_azimuth_angle
-
-
 def get_misr_obs_angle(roi_extent, orbit, camera_idx):
     misr_filename = get_misr_filename(orbit)
     roi_r = MtkRegion(roi_extent[0], roi_extent[1], roi_extent[2], roi_extent[3])
@@ -119,7 +110,6 @@ def get_misr_obs_angle(roi_extent, orbit, camera_idx):
         # has available values?
         if len(roi_misr_vaa_list) > 0:
             roi_misr_vaa = roi_misr_vaa_list.mean()
-            roi_misr_vaa = azimuth_angle_misr2ahi(roi_misr_vaa)
         else:
             return 0.0, 0.0
 

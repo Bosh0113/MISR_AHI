@@ -135,61 +135,57 @@ def get_misr_raa(misr_vaa, misr_saa):
     return misr_raa
 
 
-def azimuth_angle_misr2ahi(misr_azimuth_angle):
-    misr2ahi_azimuth_angle = misr_azimuth_angle
-    if misr_azimuth_angle >= 180:
-        misr2ahi_azimuth_angle = misr2ahi_azimuth_angle - 180
-    else:
-        misr2ahi_azimuth_angle = misr2ahi_azimuth_angle + 180
-    return misr2ahi_azimuth_angle
+def misr_saa_true(saa_dn):
+   return (saa_dn + 180) % 360
 
 
-def misr_ahi_raa_matching(roi_geoj_file, misr_ls_file, ahi_vaa_file, ahi_saa_file, camera_index):
-    with open(roi_geoj_file, 'r', encoding='utf-8') as f:
-        geoobj = json.load(f)
-        polygon_pts = geoobj['features'][0]['geometry']['coordinates'][0]
-        roi_extent = get_extent(polygon_pts)
-        # MISR RAA
-        roi_r = MtkRegion(roi_extent[0], roi_extent[1], roi_extent[2], roi_extent[3])
-        m_file = MtkFile(misr_ls_file)
-        m_grid = m_file.grid('4.4_KM_PRODUCTS')
-        m_field_vaa = m_grid.field('GEOMETRY/View_Azimuth_Angle[' + str(camera_index) + ']')
-        m_field_saa = m_grid.field('GEOMETRY/Solar_Azimuth_Angle')
-        # in single array
-        f_vaa_data = m_field_vaa.read(roi_r).data()
-        f_vaa_data = numpy.array(f_vaa_data)
-        roi_misr_vaa_list = f_vaa_data.flatten()
-        f_saa_data = m_field_saa.read(roi_r).data()
-        f_saa_data = numpy.array(f_saa_data)
-        roi_misr_saa_list = f_saa_data.flatten()
-        roi_misr_vaa_list = roi_misr_vaa_list[roi_misr_vaa_list > 0.]
-        roi_misr_saa_list = roi_misr_saa_list[roi_misr_saa_list > 0.]
-        try:
-            f_raa_data = get_misr_raa(roi_misr_vaa_list, roi_misr_saa_list)
-            roi_misr_vaa = roi_misr_vaa_list.mean()
-            roi_misr_saa = roi_misr_saa_list.mean()
-            roi_misr_raa = f_raa_data.mean()
-            # AHI RAA
-            ahi_vaa_dn = numpy.fromfile(ahi_vaa_file, dtype='>f4')
-            ahi_saa_dn = numpy.fromfile(ahi_saa_file, dtype='>f4')
-            roi_ahi_all_vaa, roi_ahi_all_saa, roi_ahi_all_raa = get_region_ahi_raa(roi_extent, ahi_vaa_dn, ahi_saa_dn)
-            roi_ahi_vaa = roi_ahi_all_vaa.mean()
-            roi_ahi_saa = roi_ahi_all_saa.mean()
-            roi_ahi_raa = roi_ahi_all_raa.mean()
-            # show raa diff
-            raa_diff = abs(roi_misr_raa - roi_ahi_raa)
+def misr_saa_true_list(saa_dn_list):
+    saa_list = []
+    for saa_dn in saa_dn_list:
+        misr_saa = misr_saa_true(saa_dn)
+        saa_list.append(misr_saa)
+    return numpy.array(saa_list)
 
-            # angle standard
-            roi_misr_vaa = azimuth_angle_misr2ahi(roi_misr_vaa)
-            roi_misr_saa = azimuth_angle_misr2ahi(roi_misr_saa)
-            # roi_misr_vaa = roi_misr_vaa
-            # roi_misr_saa = roi_misr_saa
 
-            # misr_vaa, ahi_vaa, misr_saa, ahi_saa, misr_raa, ahi_raa, raa_diff
-            return roi_misr_vaa, roi_ahi_vaa, roi_misr_saa, roi_ahi_saa, roi_misr_raa, roi_ahi_raa, raa_diff
-        except Exception as e:
-            print(e)
-            return 0, 0, 0, 0, 0, 0, 0
+def misr_ahi_raa_matching(roi_extent, misr_ls_file, ahi_vaa_file, ahi_saa_file, camera_index):
+        
+    # MISR RAA
+    roi_r = MtkRegion(roi_extent[0], roi_extent[1], roi_extent[2], roi_extent[3])
+    m_file = MtkFile(misr_ls_file)
+    m_grid = m_file.grid('4.4_KM_PRODUCTS')
+    m_field_vaa = m_grid.field('GEOMETRY/View_Azimuth_Angle[' + str(camera_index) + ']')
+    m_field_saa = m_grid.field('GEOMETRY/Solar_Azimuth_Angle')
+    # in single array
+    f_vaa_data = m_field_vaa.read(roi_r).data()
+    f_vaa_data = numpy.array(f_vaa_data)
+    roi_misr_vaa_list = f_vaa_data.flatten()
+    f_saa_data = m_field_saa.read(roi_r).data()
+    f_saa_data = numpy.array(f_saa_data)
+    roi_misr_saa_list = f_saa_data.flatten()
+    roi_misr_vaa_list = roi_misr_vaa_list[roi_misr_vaa_list > 0.]
+    roi_misr_saa_list = roi_misr_saa_list[roi_misr_saa_list > 0.]
+    try:
+        roi_misr_saa_list = misr_saa_true_list(roi_misr_saa_list)
+        f_raa_data = get_misr_raa(roi_misr_vaa_list, roi_misr_saa_list)
+        roi_misr_vaa = roi_misr_vaa_list.mean()
+        roi_misr_saa = roi_misr_saa_list.mean()
+        roi_misr_raa = f_raa_data.mean()
+        # AHI RAA
+        ahi_vaa_dn = numpy.fromfile(ahi_vaa_file, dtype='>f4')
+        ahi_saa_dn = numpy.fromfile(ahi_saa_file, dtype='>f4')
+        roi_ahi_all_vaa, roi_ahi_all_saa, roi_ahi_all_raa = get_region_ahi_raa(roi_extent, ahi_vaa_dn, ahi_saa_dn)
+        roi_ahi_vaa = roi_ahi_all_vaa.mean()
+        roi_ahi_saa = roi_ahi_all_saa.mean()
+        roi_ahi_raa = roi_ahi_all_raa.mean()
+        # show raa diff
+        raa_diff = abs(roi_misr_raa - roi_ahi_raa)
+        
+
+        # misr_vaa, ahi_vaa, misr_saa, ahi_saa, misr_raa, ahi_raa, raa_diff
+        return roi_misr_vaa, roi_ahi_vaa, roi_misr_saa, roi_ahi_saa, roi_misr_raa, roi_ahi_raa, raa_diff
+    except Exception as e:
+        print(e)
+        return 0, 0, 0, 0, 0, 0, 0
 
 
 def get_region_mean_misr_sza(misr_hdf_filename, roi_extent):

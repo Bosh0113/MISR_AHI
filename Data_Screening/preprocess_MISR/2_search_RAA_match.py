@@ -134,13 +134,16 @@ def get_misr_raa(misr_vaa, misr_saa):
     return misr_raa
 
 
-def azimuth_angle_misr2ahi(misr_azimuth_angle):
-    misr2ahi_azimuth_angle = misr_azimuth_angle
-    if misr_azimuth_angle >= 180:
-        misr2ahi_azimuth_angle = misr2ahi_azimuth_angle - 180
-    else:
-        misr2ahi_azimuth_angle = misr2ahi_azimuth_angle + 180
-    return misr2ahi_azimuth_angle
+def misr_saa_true(saa_dn):
+   return (saa_dn + 180) % 360
+
+
+def misr_saa_true_list(saa_dn_list):
+    saa_list = []
+    for saa_dn in saa_dn_list:
+        misr_saa = misr_saa_true(saa_dn)
+        saa_list.append(misr_saa)
+    return numpy.array(saa_list)
 
 
 def misr_ahi_raa_matching(roi_extent, misr_ls_file, ahi_vaa_file, ahi_saa_file, camera_index):
@@ -161,6 +164,7 @@ def misr_ahi_raa_matching(roi_extent, misr_ls_file, ahi_vaa_file, ahi_saa_file, 
     roi_misr_vaa_list = roi_misr_vaa_list[roi_misr_vaa_list > 0.]
     roi_misr_saa_list = roi_misr_saa_list[roi_misr_saa_list > 0.]
     try:
+        roi_misr_saa_list = misr_saa_true_list(roi_misr_saa_list)
         f_raa_data = get_misr_raa(roi_misr_vaa_list, roi_misr_saa_list)
         roi_misr_vaa = roi_misr_vaa_list.mean()
         roi_misr_saa = roi_misr_saa_list.mean()
@@ -174,12 +178,7 @@ def misr_ahi_raa_matching(roi_extent, misr_ls_file, ahi_vaa_file, ahi_saa_file, 
         roi_ahi_raa = roi_ahi_all_raa.mean()
         # show raa diff
         raa_diff = abs(roi_misr_raa - roi_ahi_raa)
-
-        # angle standard
-        roi_misr_vaa = azimuth_angle_misr2ahi(roi_misr_vaa)
-        roi_misr_saa = azimuth_angle_misr2ahi(roi_misr_saa)
-        # roi_misr_vaa = roi_misr_vaa
-        # roi_misr_saa = roi_misr_saa
+        
 
         # misr_vaa, ahi_vaa, misr_saa, ahi_saa, misr_raa, ahi_raa, raa_diff
         return roi_misr_vaa, roi_ahi_vaa, roi_misr_saa, roi_ahi_saa, roi_misr_raa, roi_ahi_raa, raa_diff
