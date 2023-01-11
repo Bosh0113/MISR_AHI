@@ -24,11 +24,11 @@ DIFF_TIME_THRESHOLD = 10 * 60  # seconds
 # angle threshold
 SCATTERING_ANGLE_THRESHOLD = 175
 
-MISR_DATA_FOLDER = '/disk1/Data/MISR4AHI2015070120210630_3'
-AHI_VZA_BIN = '/disk1/Data/AHI/VZA/202201010000.sat.zth.fld.4km.bin'
-AHI_VAA_BIN = '/disk1/Data/AHI/VAA/202201010000.sat.azm.fld.4km.bin'
+AHI_VZA_BIN = '/data01/people/beichen/data/AHI/VZA/202201010000.sat.zth.fld.4km.bin'
+AHI_VAA_BIN = '/data01/people/beichen/data/AHI/VAA/202201010000.sat.azm.fld.4km.bin'
+MISR_DATA_FOLDER = '/data01/people/beichen/data/MISR4AHI2015070120210630_3'
 
-GRO_OBS_COND_TXT = 'MISR_AHI_FULL_MATCH_RECORD.txt'
+GRO_OBS_COND_TXT = 'MISR_AHI_RAY_MATCH_RECORD.txt'
 
 
 def re_download_MISR_MIL2ASLS03_NC(folder, path, orbit):
@@ -170,15 +170,17 @@ def get_scattering_angle(misr_vza, misr_vaa, ahi_vza, ahi_vaa):
     return scattering_angle
 
 
-def roi_full_match(roi_name, cood_point, misr_vza_str):
+def roi_ray_match(roi_name, cood_point, misr_vza_str):
+    print(roi_name)
+    print(cood_point)
     # search full matching
     geocond_record_str = 'MISR_path MISR_orbit camera_idx MISR_roi_time AHI_roi_time MISR_VZA AHI_VZA MISR_VAA AHI_VAA Scattering_Angle(GEO-LEO)\n'
     # print('MISR VZAs', misr_vza_str)
     # print(cood_point)
     # record
     matched_record = []
-    misr_vza_matched_npy_filename = os.path.join(WORK_SPACE, roi_name + '_matched_record.npy')
-    # geocond_record_str += '\nMISR_CAMERA_ANGLE:' + misr_vza_str + '\n'
+    misr_ray_matched_npy_filename = os.path.join(WORK_SPACE, roi_name + '_matched_record.npy')
+    
     geocond_record_str += '\nROI_NAME:' + roi_name + '\n'
 
     # loc_info
@@ -268,9 +270,10 @@ def roi_full_match(roi_name, cood_point, misr_vza_str):
                             ahi_roi_vaa = '%.3f' % ahi_vaa
                             scattering_angle = '%.3f' % scattering_angle
                             # matched info: MISR_path MISR_orbit camera_idx MISR_roi_time AHI_roi_time MISR_VZA AHI_VZA MISR_VAA AHI_VAA Scattering_Angle(GEO-LEO)
+                            record_item = str(path) + '\t' + str(orbit) + '\t' + str(camera_idx) + '\t' + misr_roi_block_time + '\t' + ahi_obs_time + '\t' + str(misr_roi_vza) + '\t' + str(ahi_roi_vza) + '\t' + str(misr_roi_vaa) + '\t' + str(ahi_roi_vaa) + '\t' + str(scattering_angle)
+                            print(record_item)
+                            geocond_record_str += record_item + '\n'
                             matched_info = [str(path), str(orbit), str(camera_idx), misr_roi_block_time, ahi_obs_time, str(misr_roi_vza), str(ahi_roi_vza), str(misr_roi_vaa), str(ahi_roi_vaa), str(scattering_angle)]
-                            print(matched_info)
-                            geocond_record_str += str(path) + '\t' + str(orbit) + '\t' + str(camera_idx) + '\t' + misr_roi_block_time + '\t' + ahi_obs_time + '\t' + str(misr_roi_vza) + '\t' + str(ahi_roi_vza) + '\t' + str(misr_roi_vaa) + '\t' + str(ahi_roi_vaa) + '\t' + str(scattering_angle) + '\n'
                             match_info_record = {}
                             misr_path_orbit_camera = 'P' + (3 - len(str(path))) * '0' + str(path) + '_O' + (6 - len(str(orbit))) * '0' + str(orbit) + '_' + str(camera_idx)
                             match_info_record['misr_path_orbit_camera'] = misr_path_orbit_camera
@@ -293,7 +296,7 @@ def roi_full_match(roi_name, cood_point, misr_vza_str):
     # },
     # ...]
     ###############################################
-    numpy.save(misr_vza_matched_npy_filename, numpy.array(matched_record))
+    numpy.save(misr_ray_matched_npy_filename, numpy.array(matched_record))
 
     # save result as txt
     with open(os.path.join(WORK_SPACE, roi_name + '_' + GRO_OBS_COND_TXT), 'w') as f:
@@ -306,7 +309,7 @@ if __name__ == "__main__":
     # misr_vza_str = '45.6'
 
     roi_names = ['0.0_0', '0.0_1', '26.1_0', '26.1_1', '45.6_0', '45.6_1', '60.0_0', '60.0_1', '70.5_0', '70.5_1']
-    cood_points = [[143.45, -4.05], [138.75, -2.15], [125.15, -16.05], [150.55, -22.75], [140.45, 40.75], [119.05, -33.65], [142.85, 52.35], [157.65, 53.25], [163.25, 59.35], [152.25, 59.65]]
+    cood_points = [[143.45, -4.05], [140.25, -3.25], [125.15, -16.05], [149.05, -21.45], [140.45, 40.75], [116.35, -34.55], [142.45, 52.65], [139.75, 53.75], [162.25, 59.85], [163.25, 59.75]]
     misr_vza_str_s = ['0.0', '0.0', '26.1', '26.1', '45.6', '45.6', '60.0', '60.0', '70.5', '70.5']
 
     for idx in range(len(roi_names)):
@@ -314,4 +317,4 @@ if __name__ == "__main__":
         cood_point = cood_points[idx]
         misr_vza_str = misr_vza_str_s[idx]
 
-        roi_full_match(roi_name, cood_point, misr_vza_str)
+        roi_ray_match(roi_name, cood_point, misr_vza_str)
