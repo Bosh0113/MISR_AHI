@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 import numpy
 import os
 import bz2
-import shutil
+# import shutil
 import netCDF4
 import re
 import urllib.request
@@ -210,18 +210,20 @@ def get_region_mean_ahi_sza(temp_folder, ahi_time, region_extent):
     ahi_sza_server_path = '/data01/people/beichen/data/AHI_ANGLE2017010120201231/hmwr829gr.cr.chiba-u.ac.jp/gridded/FD/V20190123/' + ahi_data_folder1 + '/4KM/' + ahi_data_folder2 + '/' + ahi_sza_file
 
     ahi_sza_bin_bz2 = os.path.join(temp_folder, ahi_sza_file)
-    try:
-        shutil.copy(ahi_sza_server_path, ahi_sza_bin_bz2)
-        zipfile = bz2.BZ2File(ahi_sza_bin_bz2)
-        data = zipfile.read()
-        ahi_sza_bin = ahi_sza_bin_bz2[:-4]
-        with open(ahi_sza_bin, 'wb') as f:
-            f.write(data)
-        zipfile.close()
-    except Exception as e:
-        print(e)
-        os.remove(ahi_sza_bin_bz2)
-        # print(e)
+    ahi_sza_bin = ahi_sza_bin_bz2[:-4]
+    if not os.path.exists(ahi_sza_bin):
+        try:
+            # shutil.copy(ahi_sza_server_path, ahi_sza_bin_bz2)
+            # zipfile = bz2.BZ2File(ahi_sza_bin_bz2)
+            zipfile = bz2.BZ2File(ahi_sza_server_path)
+            data = zipfile.read()
+            with open(ahi_sza_bin, 'wb') as f:
+                f.write(data)
+            zipfile.close()
+        except Exception as e:
+            print(e)
+            os.remove(ahi_sza_bin_bz2)
+            # print(e)
     ahi_sza_DN = numpy.fromfile(ahi_sza_bin, dtype='>f4')
     ahi_sza_DN = ahi_sza_DN.reshape(3000, 3000)
     p_size = 120 / 3000
@@ -268,7 +270,7 @@ def roi_raa_match(roi_name, cood_point, misr_vza_str):
     print(roi_name)
     print(cood_point)
     # search RAA match
-    tab_str = 'misr_path misr_orbit misr_camera_index misr_block_time ahi_time misr_vza ahi_vza misr_vaa ahi_vaa misr_saa ahi_saa misr_raa ahi_raa misr_sza ahi_sza'
+    tab_str = 'misr_path misr_orbit misr_camera_index misr_block_time ahi_time misr_vza ahi_vza misr_vaa ahi_vaa misr_saa ahi_saa misr_raa ahi_raa misr_sza ahi_sza scattering_angle_raa'
     geocond_record_str = tab_str + '\n'
 
     # record
@@ -391,21 +393,22 @@ def roi_raa_match(roi_name, cood_point, misr_vza_str):
                                     filename_parts = ahi_saa_server_path.split('/')
                                     ahi_saa_file = filename_parts[len(filename_parts) - 1]
                                     ahi_saa_bin_bz2 = os.path.join(temp_ws, ahi_saa_file)
-                                    ahi_saa_bin = ''
-                                    try:                                                            
-                                        shutil.copy(ahi_saa_server_path, ahi_saa_bin_bz2)
-                                        zipfile = bz2.BZ2File(ahi_saa_bin_bz2)
-                                        data = zipfile.read()
-                                        ahi_saa_bin = ahi_saa_bin_bz2[:-4]
-                                        with open(ahi_saa_bin, 'wb') as f:
-                                            f.write(data)
-                                        zipfile.close()
-                                    except Exception as e:
-                                        print(e)
-                                        os.remove(ahi_saa_bin_bz2)
-                                    if os.path.exists(ahi_saa_bin_bz2):
+                                    ahi_saa_bin = ahi_saa_bin_bz2[:-4]
+                                    if not os.path.exists(ahi_saa_bin):
+                                        try:                                                            
+                                            # shutil.copy(ahi_saa_server_path, ahi_saa_bin_bz2)
+                                            # zipfile = bz2.BZ2File(ahi_saa_bin_bz2)
+                                            zipfile = bz2.BZ2File(ahi_saa_server_path)
+                                            data = zipfile.read()
+                                            with open(ahi_saa_bin, 'wb') as f:
+                                                f.write(data)
+                                            zipfile.close()
+                                        except Exception as e:
+                                            print(e)
+                                    if os.path.exists(ahi_saa_bin):
                                         m_vaa, ahi_vaa, m_saa, ahi_saa, m_raa, ahi_raa, scattering_angle_raa = misr_ahi_raa_matching(roi_extent, roi_misr_vza, roi_ahi_vza, misr_nc_filename, AHI_VAA_BIN, ahi_saa_bin, camera_idx)
                                         # ## RAA match ###
+                                        scattering_angle_raa = round(scattering_angle_raa, 3)
                                         if scattering_angle_raa > SCATTERING_ANGLE_THRESHOLD:
                                             matched_flag = True
                                             # geo-obs condition
@@ -425,20 +428,20 @@ def roi_raa_match(roi_name, cood_point, misr_vza_str):
                                             misr_roi_sza = '%.3f' % misr_roi_sza
                                             ahi_roi_sza = get_region_mean_ahi_sza(temp_ws, ahi_obs_time, roi_extent)
                                             ahi_roi_sza = '%.3f' % ahi_roi_sza
-                                            # misr_path misr_orbit misr_camera_index misr_block_time ahi_time misr_vza ahi_vza misr_vaa ahi_vaa misr_saa ahi_saa misr_raa ahi_raa misr_sza ahi_sza
-                                            record_item = str(path) + '\t' + str(misr_orbit) + '\t' + str(misr_camera) + '\t' + misr_roi_block_time + '\t' + ahi_obs_time + '\t' + str(misr_roi_vza) + '\t' + str(ahi_roi_vza) + '\t' + str(misr_roi_vaa) + '\t' + str(ahi_roi_vaa) + '\t' + str(misr_roi_saa) + '\t' + str(ahi_roi_saa) + '\t' + str(misr_roi_raa) + '\t' + str(ahi_roi_raa) + '\t' + str(misr_roi_sza) + '\t' + str(ahi_roi_sza)
+                                            # misr_path misr_orbit misr_camera_index misr_block_time ahi_time misr_vza ahi_vza misr_vaa ahi_vaa misr_saa ahi_saa misr_raa ahi_raa misr_sza ahi_sza scattering_angle_raa
+                                            record_item = str(path) + '\t' + str(misr_orbit) + '\t' + str(misr_camera) + '\t' + misr_roi_block_time + '\t' + ahi_obs_time + '\t' + str(misr_roi_vza) + '\t' + str(ahi_roi_vza) + '\t' + str(misr_roi_vaa) + '\t' + str(ahi_roi_vaa) + '\t' + str(misr_roi_saa) + '\t' + str(ahi_roi_saa) + '\t' + str(misr_roi_raa) + '\t' + str(ahi_roi_raa) + '\t' + str(misr_roi_sza) + '\t' + str(ahi_roi_sza) + '\t' + str(scattering_angle_raa)
                                             print(record_item)
                                             geocond_record_str += record_item + '\n'
                                             # record matched info
                                             matched_obs_info = [
-                                                str(path), str(misr_orbit), str(misr_camera), misr_roi_block_time, ahi_obs_time, str(misr_roi_vza), str(ahi_roi_vza), str(misr_roi_vaa), str(ahi_roi_vaa), str(misr_roi_saa), str(ahi_roi_saa), str(misr_roi_raa), str(ahi_roi_raa), str(misr_roi_sza), str(ahi_roi_sza)
+                                                str(path), str(misr_orbit), str(misr_camera), misr_roi_block_time, ahi_obs_time, str(misr_roi_vza), str(ahi_roi_vza), str(misr_roi_vaa), str(ahi_roi_vaa), str(misr_roi_saa), str(ahi_roi_saa), str(misr_roi_raa), str(ahi_roi_raa), str(misr_roi_sza), str(ahi_roi_sza), str(scattering_angle_raa)
                                             ]
                                             match_info_record = {}
                                             misr_path_orbit_camera = 'P' + (3 - len(str(path))) * '0' + str(path) + '_O' + (6 - len(str(orbit))) * '0' + str(orbit) + '_' + str(camera_idx)
                                             match_info_record['misr_path_orbit_camera'] = misr_path_orbit_camera
                                             match_info_record['matched_info'] = matched_obs_info
                                             matched_infos.append(match_info_record)
-                                    shutil.rmtree(temp_ws)
+                                    # shutil.rmtree(temp_ws)
                         except Exception as e:
                             print(e)
 
