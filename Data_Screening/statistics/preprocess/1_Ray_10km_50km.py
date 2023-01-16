@@ -1,7 +1,7 @@
 import os
 import numpy
 
-ws = r'C:\Work\AHI_MISR\20230114'
+ws = r'D:\Work_PhD\MISR_AHI_WS\230116'
 ray_matched_record_npy = os.path.join(ws, 'AHI_MISR_Ray-matched.npy')
 ray_matched_record_npy_50km = os.path.join(ws, 'AHI_MISR_Ray-matched_50km.npy')
 

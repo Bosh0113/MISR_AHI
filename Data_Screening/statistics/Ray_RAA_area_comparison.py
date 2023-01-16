@@ -3,7 +3,7 @@ import numpy
 import matplotlib.pyplot as plt
 from matplotlib.ticker import ScalarFormatter
 
-ws = r'C:\Work\AHI_MISR\20230114'
+ws = r'D:\Work_PhD\MISR_AHI_WS\230116'
 
 ray_matched_record_npy = os.path.join(ws, 'AHI_MISR_Ray-matched_50km.npy')
 raa_matched_record_npy = os.path.join(ws, 'AHI_MISR_RAA-matched_50km.npy')
@@ -22,15 +22,16 @@ CAMERA_ANGLE = {
     8: 70.5
 }
 
+
 def get_bar_record(matched_record, camera_idx_record_idx):
-    bar_record = [[],[],[],[],[],[],[],[],[],[],[],[]]    # latitude range
+    bar_record = [[], [], [], [], [], [], [], [], [], [], [], []]    # latitude range
     for record_item in matched_record:
         roi_loc = record_item['location']
         roi_matched_info = record_item['matched_infos']
         roi_lat = roi_loc[1]
         camera_angle_idx = int(roi_matched_info[0][camera_idx_record_idx])
         camera_angle = CAMERA_ANGLE[camera_angle_idx]
-        lat_array_idx =  int(12 - (roi_lat + 60) /10)   # 12 group with 10° internal
+        lat_array_idx = int(12 - (roi_lat + 60) / 10)   # 12 group with 10° internal
         bar_record[lat_array_idx].append(camera_angle)
     return bar_record
 
@@ -50,8 +51,6 @@ def mapping_double_bar_angle(ray_bar_data, raa_bar_data):
     f, ax1 = plt.subplots()
     f.set_size_inches(6, 4)
     f.set_dpi(100)
-    ax1.grid(linestyle='--', linewidth=0.6, axis='y')
-    ax1.set_xlabel('Latitude Ranges', fontsize=18)
 
     bar_width = 0.35
     x_array = numpy.arange(1, 13, 1)
@@ -62,7 +61,7 @@ def mapping_double_bar_angle(ray_bar_data, raa_bar_data):
 
     ray_bottom_array = numpy.zeros((12,))
     raa_bottom_array = numpy.zeros((12,))
-    bar_hatchs = ['.', '//', '\\\\', '/', '\\']
+    bar_hatchs = ['..', '//', '\\\\', '/', '\\']
     bar_colors = ['lavenderblush', 'lavender', 'lightcyan', 'oldlace', 'mistyrose']
     bar_labels = ['0.0°', '26.1°', '45.6°', '60.0°', '70.5°']
     for bar_lat_idx in range(len(ray_bar_data_T)):
@@ -72,7 +71,10 @@ def mapping_double_bar_angle(ray_bar_data, raa_bar_data):
         ax1.bar(x_array + bar_width/2, raa_bar_lat, width=bar_width, color=bar_colors[bar_lat_idx], bottom=raa_bottom_array, edgecolor='black', hatch=bar_hatchs[bar_lat_idx])
         ray_bottom_array = ray_bottom_array + ray_bar_lat
         raa_bottom_array = raa_bottom_array + raa_bar_lat
-    
+
+    # mapping
+    ax1.grid(linestyle='--', linewidth=0.6, axis='y')
+    ax1.set_xlabel('Latitude Ranges', fontsize=18)
     ax1.minorticks_on()
     x_minor_locator = plt.MultipleLocator(1)
     x_major_locator = plt.MultipleLocator(1)
@@ -87,9 +89,9 @@ def mapping_double_bar_angle(ray_bar_data, raa_bar_data):
     ax1.yaxis.set_minor_locator(y1_minor_locator)
     ax1.tick_params(axis="y", which='minor', length=3, labelsize=10)
     ax1.tick_params(axis="y", which='major', length=5, labelsize=15)
-    ax1.ticklabel_format(style='sci', scilimits=(0,0), axis='y')
+    ax1.ticklabel_format(style='sci', scilimits=(0, 0), axis='y')
     sf1 = ScalarFormatter(useMathText=True)
-    sf1.set_powerlimits((0,0))
+    sf1.set_powerlimits((0, 0))
     ax1.yaxis.set_major_formatter(sf1)
     ax1.yaxis.get_offset_text().set(size=15)
     ax1.tick_params(axis="x", which='minor', length=3, labelsize=10)
@@ -97,6 +99,7 @@ def mapping_double_bar_angle(ray_bar_data, raa_bar_data):
     ax1.set_ylabel('Count of Pixel', fontsize=18)
     ax1.set_ylim(0, 700)
     ax1.legend(loc=2, fontsize='large', title='Camera angle of MISR')
+    # 2K monitor
     plt.show()
 
 

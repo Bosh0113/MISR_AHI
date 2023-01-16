@@ -1,8 +1,9 @@
 import os
 import numpy
 
-misr_matched_info_folder = r'C:\Work\AHI_MISR\20221210\MISR_matched_parts'
-merged_npy_filename = r'C:\Work\AHI_MISR\20221210\AHI_MISR_Ray-matched.npy'
+misr_matched_info_folder = r'D:\Work_PhD\MISR_AHI_WS\230116\temp'
+merged_npy_filename = r'D:\Work_PhD\MISR_AHI_WS\230116\AHI_MISR_Ray-matched.npy'
+
 
 def main():
     merged_list = []
@@ -13,7 +14,6 @@ def main():
         merged_list.extend(npy_list)
     print(len(merged_list))
     numpy.save(merged_npy_filename, merged_list)
-
 
 
 if __name__ == "__main__":
