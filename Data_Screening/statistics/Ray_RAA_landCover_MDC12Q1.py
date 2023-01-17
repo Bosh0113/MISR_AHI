@@ -43,6 +43,12 @@ def fig_mapping(ray_values, raa_values):
     # colormap
     lc_colormap = ['#82D3FE', '#4B9347', '#5CD250', '#A0D353', '#9AFF97', '#84B480', '#F897D0', '#F4DEB9', '#EFE784', '#BBA337', '#EEAA59', '#649FDD', '#FBF271', '#FF3334', '#9B7140', '#CCFFFF', '#BFBFBF']
 
+    # sort
+    ray_values = ray_values[::-1]
+    raa_values = raa_values[::-1]
+    lc_labels = lc_labels[::-1]
+    lc_colormap = lc_colormap[::-1]
+
     value_max = 1500
 
     theta_internal = 0.01
@@ -68,9 +74,9 @@ def fig_mapping(ray_values, raa_values):
 
     ax.set_theta_offset(np.pi / 2)
     x_major_locator = plt.MultipleLocator(1 / 6 * np.pi)
-    y1_major_locator = plt.MultipleLocator(value_max)
+    y1_major_locator = plt.MultipleLocator(1)
     ax.xaxis.set_major_locator(x_major_locator)
-    ax.tick_params(axis="x", which='major', length=5, labelsize=10)
+    ax.tick_params(axis="x", which='major', length=3, labelsize=10)
     ax.yaxis.set_major_locator(y1_major_locator)
     ax.set_thetamax(3 / 4 * 360)
     theta_array = np.arange(0, (2 * np.pi * 3 / 4) + 1 / 7 * np.pi, 1 / 6 * np.pi)
@@ -81,22 +87,31 @@ def fig_mapping(ray_values, raa_values):
     theta_labels = ['Count of Pixels: 0', '', '', label90, '', '', label180, '', '', label270]
     ax.set_xticks(theta_array, theta_labels)
 
-    labels = []
+    x_labels = []
     angles = [0, 0, 0, -90, 0, 0, 0, 0, 0, 0]
     offset_idx = -1
-    offset_x = [0.25, 0, 0, 0, 0, 0, 0, 0, 0, -0.05]
+    offset_x = [0.2, 0, 0, 0, 0, 0, 0, 0, 0, -0.05]
     offset_y = [0.04, 0, 0, 0.06, 0, 0, 0.06, 0, 0, 0.1]
     for label, angle in zip(ax.get_xticklabels(), angles):
         offset_idx += 1
         x, y = label.get_position()
         lab = ax.text(x + offset_x[offset_idx], y + offset_y[offset_idx], label.get_text(), transform=label.get_transform(), ha=label.get_ha(), va=label.get_va())
         lab.set_rotation(angle)
-        labels.append(lab)
+        x_labels.append(lab)
     ax.set_xticklabels([])
-    ax.spines["polar"].set_visible(False)
 
-    ax.set_rticks(np.arange(1, 18, 1), lc_labels)
-    ax.set_rlabel_position(0)
+    ax.spines["polar"].set_visible(False)
+    ax.spines["end"].set_color('gray')
+
+    data_labels = []
+    for label_idx in range(len(lc_labels)):
+        ray_c = ray_values[label_idx]
+        raa_c = raa_values[label_idx]
+        lc_label = lc_labels[label_idx]
+        data_label = lc_label + ':' + '-'*(15-math.ceil(len(lc_label))) + str(int(ray_c)) + r'$' + '(+' + str(int(raa_c)-int(ray_c)) + ') ' + '\Longrightarrow ' + str(int(raa_c)) + '$'
+        data_labels.append(data_label)
+    ax.set_rticks(np.arange(1, 18, 1), data_labels)
+    ax.yaxis.set_ticks_position('left')
 
     ax.grid(linestyle='--', linewidth=0.6, axis='x')
     ax.yaxis.grid(False)
@@ -112,9 +127,9 @@ def main():
     ray_bar_data = get_bar_data(modis_lc, ray_matches)
     raa_bar_data = get_bar_data(modis_lc, raa_matches)
 
+    raa_bar_data = temp_fuction(raa_bar_data, ray_bar_data)
     print(ray_bar_data)
     print(raa_bar_data)
-    raa_bar_data = temp_fuction(raa_bar_data, ray_bar_data)
 
     fig_mapping(ray_bar_data, raa_bar_data)
 
