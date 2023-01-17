@@ -3,8 +3,8 @@ import math
 import numpy as np
 import matplotlib.pyplot as plt
 
-# ws = r'C:\Work\AHI_MISR\20230114'
-ws = r'D:\Work_PhD\MISR_AHI_WS\230116'
+ws = r'C:\Work\AHI_MISR\20230114'
+# ws = r'D:\Work_PhD\MISR_AHI_WS\230116'
 
 MCD12Q1_006_10KM_npy = os.path.join(ws, 'MCD12Q1_006_10km.npy')
 ray_matched_record_npy = os.path.join(ws, 'AHI_MISR_Ray-matched_50km.npy')
@@ -90,7 +90,7 @@ def fig_mapping(ray_values, raa_values):
     x_labels = []
     angles = [0, 0, 0, -90, 0, 0, 0, 0, 0, 0]
     offset_idx = -1
-    offset_x = [0.2, 0, 0, 0, 0, 0, 0, 0, 0, -0.05]
+    offset_x = [0.21, 0, 0, 0, 0, 0, 0, 0, 0, -0.03]
     offset_y = [0.04, 0, 0, 0.06, 0, 0, 0.06, 0, 0, 0.1]
     for label, angle in zip(ax.get_xticklabels(), angles):
         offset_idx += 1
@@ -108,7 +108,7 @@ def fig_mapping(ray_values, raa_values):
         ray_c = ray_values[label_idx]
         raa_c = raa_values[label_idx]
         lc_label = lc_labels[label_idx]
-        data_label = lc_label + ':' + '-'*(15-math.ceil(len(lc_label))) + str(int(ray_c)) + r'$' + '(+' + str(int(raa_c)-int(ray_c)) + ') ' + '\Longrightarrow ' + str(int(raa_c)) + '$'
+        data_label = lc_label + ': ' + str(int(ray_c)) + r'$' + '(+' + str(int(raa_c)-int(ray_c)) + ') ' + '\Longrightarrow ' + str(int(raa_c)) + '$'
         data_labels.append(data_label)
     ax.set_rticks(np.arange(1, 18, 1), data_labels)
     ax.yaxis.set_ticks_position('left')
