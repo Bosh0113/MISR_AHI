@@ -3,8 +3,8 @@ import math
 import numpy as np
 import matplotlib.pyplot as plt
 
-ws = r'C:\Work\AHI_MISR\20230114'
-# ws = r'D:\Work_PhD\MISR_AHI_WS\230116'
+# ws = r'C:\Work\AHI_MISR\20230114'
+ws = r'D:\Work_PhD\MISR_AHI_WS\230118'
 
 MCD12Q1_006_10KM_npy = os.path.join(ws, 'MCD12Q1_006_10km.npy')
 ray_matched_record_npy = os.path.join(ws, 'AHI_MISR_Ray-matched_50km.npy')
@@ -24,16 +24,6 @@ def get_bar_data(lc_map, matched_record):
     return lc_counts
 
 
-# temp before updated value available
-def temp_fuction(raa_bar_data, ray_bar_data):
-    for item_idx in range(len(raa_bar_data)):
-        raa_bar_v = raa_bar_data[item_idx]
-        ray_bar_v = ray_bar_data[item_idx]
-        if raa_bar_v < ray_bar_v:
-            raa_bar_data[item_idx] = ray_bar_v + 1
-    return raa_bar_data
-
-
 def fig_mapping(ray_values, raa_values):
     # MCD12Q1 labels
     lc_labels = [
@@ -49,7 +39,8 @@ def fig_mapping(ray_values, raa_values):
     lc_labels = lc_labels[::-1]
     lc_colormap = lc_colormap[::-1]
 
-    value_max = 1500
+    value_max = 1800    # full
+    # value_max = 4500
 
     theta_internal = 0.01
     fig, ax = plt.subplots(subplot_kw={'projection': 'polar'})
@@ -80,18 +71,19 @@ def fig_mapping(ray_values, raa_values):
     ax.yaxis.set_major_locator(y1_major_locator)
     ax.set_thetamax(3 / 4 * 360)
     theta_array = np.arange(0, (2 * np.pi * 3 / 4) + 1 / 7 * np.pi, 1 / 6 * np.pi)
-    theta_maj_labels = np.arange(0, value_max + value_max / 3, value_max / 3)
-    label90 = r'$' + str(round(int(theta_maj_labels[1]) / math.pow(10, len(str(int(theta_maj_labels[1]))) - 1), 2)) + 'x10^' + str(len(str(int(theta_maj_labels[1]))) - 1) + '$'
-    label180 = r'$' + str(round(int(theta_maj_labels[2]) / math.pow(10, len(str(int(theta_maj_labels[2]))) - 1), 2)) + 'x10^' + str(len(str(int(theta_maj_labels[2]))) - 1) + '$'
-    label270 = r'$' + str(round(int(theta_maj_labels[3]) / math.pow(10, len(str(int(theta_maj_labels[3]))) - 1), 2)) + 'x10^' + str(len(str(int(theta_maj_labels[3]))) - 1) + '$'
-    theta_labels = ['Count of Pixels: 0', '', '', label90, '', '', label180, '', '', label270]
+    theta_maj_labels = np.arange(0, value_max + value_max / 9, value_max / 9)
+    r_labels = []
+    for theta_maj_label in theta_maj_labels:
+        r_label = r'$' + str(round(int(theta_maj_label) / math.pow(10, len(str(int(theta_maj_label))) - 1), 2)) + 'x10^' + str(len(str(int(theta_maj_label))) - 1) + '$'
+        r_labels.append(r_label)
+    theta_labels = ['Count of Pixels: 0', r_labels[1], r_labels[2], r_labels[3], r_labels[4], r_labels[5], r_labels[6], r_labels[7], r_labels[8], r_labels[9]]
     ax.set_xticks(theta_array, theta_labels)
 
     x_labels = []
-    angles = [0, 0, 0, -90, 0, 0, 0, 0, 0, 0]
+    angles = [0, 30, 60, 270, 300, 330, 0, -60, -30, 0]
     offset_idx = -1
-    offset_x = [0.21, 0, 0, 0, 0, 0, 0, 0, 0, -0.03]
-    offset_y = [0.04, 0, 0, 0.06, 0, 0, 0.06, 0, 0, 0.1]
+    offset_x = [0.21, 0, 0, 0, 0, 0, 0, -0.03, -0.03, -0.03]
+    offset_y = [0.04, 0.06, 0.06, 0.06, 0.06, 0.06, 0.06, 0.1, 0.1, 0.1]
     for label, angle in zip(ax.get_xticklabels(), angles):
         offset_idx += 1
         x, y = label.get_position()
@@ -126,8 +118,7 @@ def main():
 
     ray_bar_data = get_bar_data(modis_lc, ray_matches)
     raa_bar_data = get_bar_data(modis_lc, raa_matches)
-
-    raa_bar_data = temp_fuction(raa_bar_data, ray_bar_data)
+    
     print(ray_bar_data)
     print(raa_bar_data)
 

@@ -48,7 +48,8 @@ def get_bar_data(bar_record):
 
 
 def mapping_double_bar_angle(ray_bar_data, raa_bar_data):
-    f, ax1 = plt.subplots()
+    f, (ax1, ax2) = plt.subplots(2, 1, sharex=True)
+    f.subplots_adjust(hspace=0.05)  # adjust space between axes
     f.set_size_inches(6, 4)
     f.set_dpi(100)
 
@@ -68,36 +69,63 @@ def mapping_double_bar_angle(ray_bar_data, raa_bar_data):
         ray_bar_lat = ray_bar_data_T[bar_lat_idx]
         raa_bar_lat = raa_bar_data_T[bar_lat_idx]
         ax1.bar(x_array - bar_width/2, ray_bar_lat, width=bar_width, color=bar_colors[bar_lat_idx], bottom=ray_bottom_array, edgecolor='black', hatch=bar_hatchs[bar_lat_idx], label=bar_labels[bar_lat_idx])
+        ax2.bar(x_array - bar_width/2, ray_bar_lat, width=bar_width, color=bar_colors[bar_lat_idx], bottom=ray_bottom_array, edgecolor='black', hatch=bar_hatchs[bar_lat_idx], label=bar_labels[bar_lat_idx])
         ax1.bar(x_array + bar_width/2, raa_bar_lat, width=bar_width, color=bar_colors[bar_lat_idx], bottom=raa_bottom_array, edgecolor='black', hatch=bar_hatchs[bar_lat_idx])
+        ax2.bar(x_array + bar_width/2, raa_bar_lat, width=bar_width, color=bar_colors[bar_lat_idx], bottom=raa_bottom_array, edgecolor='black', hatch=bar_hatchs[bar_lat_idx])
         ray_bottom_array = ray_bottom_array + ray_bar_lat
         raa_bottom_array = raa_bottom_array + raa_bar_lat
 
     # mapping
     ax1.grid(linestyle='--', linewidth=0.6, axis='y')
-    ax1.set_xlabel('Latitude Ranges', fontsize=18)
-    ax1.minorticks_on()
+    ax2.grid(linestyle='--', linewidth=0.6, axis='y')
+    ax2.set_xlabel('Latitude Ranges', fontsize=18)
+    ax2.minorticks_on()
     x_minor_locator = plt.MultipleLocator(1)
     x_major_locator = plt.MultipleLocator(1)
     y1_minor_locator = plt.MultipleLocator(20)
     y1_major_locator = plt.MultipleLocator(100)
+    y2_minor_locator = plt.MultipleLocator(20)
+    y2_major_locator = plt.MultipleLocator(100)
     x_labels = ['60°N-50°N', '50°N-40°N', '40°N-30°N', '30°N-20°N', '20°N-10°N', '10°N-0°', '0°-10°S', '10°S-20°S', '20°S-30°S', '30°S-40°S', '40°S-50°S', '50°S-60°S']
-    ax1.set_xticks(x_array, x_labels)
-    ax1.tick_params(axis='x', rotation=20)
-    ax1.xaxis.set_minor_locator(x_minor_locator)
-    ax1.xaxis.set_major_locator(x_major_locator)
+
+    ax2.set_xticks(x_array, x_labels)
+    ax2.tick_params(axis='x', rotation=20)
+    ax2.xaxis.set_minor_locator(x_minor_locator)
+    ax2.xaxis.set_major_locator(x_major_locator)
+    ax2.tick_params(axis="x", which='minor', length=3, labelsize=10)
+    ax2.tick_params(axis="x", which='major', length=5, labelsize=10)
+
     ax1.yaxis.set_major_locator(y1_major_locator)
     ax1.yaxis.set_minor_locator(y1_minor_locator)
     ax1.tick_params(axis="y", which='minor', length=3, labelsize=10)
     ax1.tick_params(axis="y", which='major', length=5, labelsize=15)
+    ax2.yaxis.set_major_locator(y2_major_locator)
+    ax2.yaxis.set_minor_locator(y2_minor_locator)
+    ax2.tick_params(axis="y", which='minor', length=3, labelsize=10)
+    ax2.tick_params(axis="y", which='major', length=5, labelsize=15)
+
     ax1.ticklabel_format(style='sci', scilimits=(0, 0), axis='y')
     sf1 = ScalarFormatter(useMathText=True)
     sf1.set_powerlimits((0, 0))
     ax1.yaxis.set_major_formatter(sf1)
     ax1.yaxis.get_offset_text().set(size=15)
-    ax1.tick_params(axis="x", which='minor', length=3, labelsize=10)
-    ax1.tick_params(axis="x", which='major', length=5, labelsize=10)
+
     ax1.set_ylabel('Count of Pixel', fontsize=18)
-    ax1.set_ylim(0, 1600)
+    ax1.yaxis.set_label_coords(0.08, 0.5, transform=f.transFigure)
+
+    ax1.set_ylim(910, 1600)
+    ax2.set_ylim(0, 590)
+    # hide the spines between ax and ax2
+    ax1.spines.bottom.set_visible(False)
+    ax2.spines.top.set_visible(False)
+    ax1.xaxis.tick_top()
+    ax1.tick_params(labeltop=False)  # don't put tick labels at the top
+    ax2.xaxis.tick_bottom()
+    d = .5  # proportion of vertical to horizontal extent of the slanted line
+    kwargs = dict(marker=[(-1, -d), (1, d)], markersize=12, linestyle="none", color='k', mec='k', mew=1, clip_on=False)
+    ax1.plot([0, 1], [0, 0], transform=ax1.transAxes, **kwargs)
+    ax2.plot([0, 1], [1, 1], transform=ax2.transAxes, **kwargs)
+
     ax1.legend(loc=1, fontsize='large', title='Camera angle of MISR')
     # 2K monitor
     plt.show()

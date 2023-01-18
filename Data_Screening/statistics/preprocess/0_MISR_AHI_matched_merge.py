@@ -1,8 +1,8 @@
 import os
 import numpy
 
-misr_matched_info_folder = r'D:\Work_PhD\MISR_AHI_WS\230116\temp'
-merged_npy_filename = r'D:\Work_PhD\MISR_AHI_WS\230116\AHI_MISR_Ray-matched.npy'
+misr_matched_info_folder = r'D:\Work_PhD\MISR_AHI_WS\230118\RAA_50km\parts'
+merged_npy_filename = r'D:\Work_PhD\MISR_AHI_WS\230118\RAA_50km\AHI_MISR_RAA-matched_50km.npy'
 
 
 def main():
