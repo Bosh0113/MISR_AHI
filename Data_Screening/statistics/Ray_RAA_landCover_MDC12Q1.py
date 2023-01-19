@@ -3,8 +3,8 @@ import math
 import numpy as np
 import matplotlib.pyplot as plt
 
-# ws = r'C:\Work\AHI_MISR\20230114'
-ws = r'D:\Work_PhD\MISR_AHI_WS\230118'
+ws = r'C:\Work\AHI_MISR\20230119'
+# ws = r'D:\Work_PhD\MISR_AHI_WS\230118'
 
 MCD12Q1_006_10KM_npy = os.path.join(ws, 'MCD12Q1_006_10km.npy')
 ray_matched_record_npy = os.path.join(ws, 'AHI_MISR_Ray-matched_50km.npy')
@@ -39,8 +39,8 @@ def fig_mapping(ray_values, raa_values):
     lc_labels = lc_labels[::-1]
     lc_colormap = lc_colormap[::-1]
 
-    value_max = 1800    # full
-    # value_max = 4500
+    # value_max = 1800    # full
+    value_max = 4500
 
     theta_internal = 0.01
     fig, ax = plt.subplots(subplot_kw={'projection': 'polar'})
@@ -80,10 +80,13 @@ def fig_mapping(ray_values, raa_values):
     ax.set_xticks(theta_array, theta_labels)
 
     x_labels = []
-    angles = [0, 30, 60, 270, 300, 330, 0, -60, -30, 0]
+    # angles = [0, 30, 60, 270, 300, 330, 0, -60, -30, 0]
+    angles = [0, 30, 60, 90, 300, 330, 0, 30, 60, 0]
     offset_idx = -1
-    offset_x = [0.21, 0, 0, 0, 0, 0, 0, -0.03, -0.03, -0.03]
-    offset_y = [0.04, 0.06, 0.06, 0.06, 0.06, 0.06, 0.06, 0.1, 0.1, 0.1]
+    # offset_x = [0.21, 0, 0, 0, 0, 0, 0, -0.03, -0.03, -0.03]
+    offset_x = [0.21, 0, 0, 0, 0, 0, 0, 0, 0, -.03]
+    # offset_y = [0.04, 0.06, 0.06, 0.06, 0.06, 0.06, 0.06, 0.1, 0.1, 0.1]
+    offset_y = [0.04, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.1]
     for label, angle in zip(ax.get_xticklabels(), angles):
         offset_idx += 1
         x, y = label.get_position()

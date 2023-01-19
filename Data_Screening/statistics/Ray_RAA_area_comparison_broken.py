@@ -3,7 +3,8 @@ import numpy
 import matplotlib.pyplot as plt
 from matplotlib.ticker import ScalarFormatter
 
-ws = r'D:\Work_PhD\MISR_AHI_WS\230118'
+# ws = r'D:\Work_PhD\MISR_AHI_WS\230118'
+ws = r'C:\Work\AHI_MISR\20230119'
 
 ray_matched_record_npy = os.path.join(ws, 'AHI_MISR_Ray-matched_50km.npy')
 raa_matched_record_npy = os.path.join(ws, 'AHI_MISR_RAA-matched_50km.npy')

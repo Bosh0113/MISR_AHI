@@ -24,7 +24,8 @@
 import os
 import numpy as np
 
-ws = r'D:\Work_PhD\MISR_AHI_WS\230118'
+# ws = r'D:\Work_PhD\MISR_AHI_WS\230118'
+ws = r'C:\Work\AHI_MISR\20230119'
 
 
 ray_matched_record_npy = os.path.join(ws, 'AHI_MISR_Ray-matched.npy')
