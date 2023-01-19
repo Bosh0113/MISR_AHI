@@ -1,9 +1,8 @@
 import os
 import numpy
 
-ws = r'C:\Work\AHI_MISR\20221210'
-# ws = r'C:\Work\AHI_MISR\20230104'
-merged_npy_filename = os.path.join(ws, 'AHI_MISR_Ray-matched.npy')
+ws = r'D:\Work_PhD\MISR_AHI_WS\230119'
+merged_npy_filename = os.path.join(ws, 'AHI_MISR_RAA-matched_50km.npy')
 
 
 def main():
@@ -18,7 +17,7 @@ def main():
                 txt_str += mactch_r + '\t'
             txt_str += '\n'
     # save result as txt
-    with open(os.path.join(ws, 'AHI_MISR_Ray-matched.txt'), 'w') as f:
+    with open(os.path.join(ws, 'AHI_MISR_RAA-matched_50km.txt'), 'w') as f:
         f.write(txt_str)
 
 
