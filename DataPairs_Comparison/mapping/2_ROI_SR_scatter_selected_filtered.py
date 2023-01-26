@@ -9,58 +9,12 @@ import os
 # SAVE_FIGURE_FLAG = True
 SAVE_FIGURE_FLAG = False
 
-# WORK_SPACE = r'D:\Work_PhD\MISR_AHI_WS\221024\FM\SR\45_1'
-# WORK_SPACE = r'D:\Work_PhD\MISR_AHI_WS\221024\FM\SR\45_2'
-# WORK_SPACE = r'D:\Work_PhD\MISR_AHI_WS\221024\FM\SR\60_1'
-# WORK_SPACE = r'D:\Work_PhD\MISR_AHI_WS\221024\FM\SR\60_2'
-# WORK_SPACE = r'D:\Work_PhD\MISR_AHI_WS\221024\FM\SR\70_1'
-# WORK_SPACE = r'D:\Work_PhD\MISR_AHI_WS\221024\RAA\SR\0.0_60'
-# WORK_SPACE = r'D:\Work_PhD\MISR_AHI_WS\221024\RAA\SR\0.0_120'
-WORK_SPACE = r'D:\Work_PhD\MISR_AHI_WS\221024\RAA\SR\26.1_10'
-# WORK_SPACE = r'D:\Work_PhD\MISR_AHI_WS\221024\RAA\SR\26.1_150'
-# WORK_SPACE = r'D:\Work_PhD\MISR_AHI_WS\221024\RAA\SR\45.6_10'
-# WORK_SPACE = r'D:\Work_PhD\MISR_AHI_WS\221024\RAA\SR\45.6_20'
-# WORK_SPACE = r'D:\Work_PhD\MISR_AHI_WS\221024\RAA\SR\60.0_80'
-# WORK_SPACE = r'D:\Work_PhD\MISR_AHI_WS\221024\RAA\SR\60.0_130'
-# WORK_SPACE = r'D:\Work_PhD\MISR_AHI_WS\221024\RAA\SR\60.0_200'
-# WORK_SPACE = r'D:\Work_PhD\MISR_AHI_WS\221024\RAA\SR\70.5_10'
-# WORK_SPACE = r'D:\Work_PhD\MISR_AHI_WS\221024\RAA\SR\70.5_80'
-# WORK_SPACE = r'D:\Work_PhD\MISR_AHI_WS\221024\RAA\SR\70.5_200'
-
-# roi_name = '45_1'
-# selected_times = ['201907080140'] # 107	104001	6	201907080135	201907080140	45.961	47.099	186.284	179.752	175.126
-# roi_name = '45_2'
-# selected_times = ['201912290200'] # 109	106535	2	201912290200	201912290200	47.000	45.985	28.253	34.734	175.192
-# roi_name = '60_1'
-# selected_times = ['201707090140'] # 108	93385	7	201707090140	201707090140	60.577	59.779	186.994	181.667	175.311
-# roi_name = '60_2'
-# selected_times = ['201808060140'] # 107	99108	7	201808060135	201808060140	60.669	59.805	185.950	182.931	177.241
-# roi_name = '70_1'
-# selected_times = ['201706150050']   # 100	93035	8	201706150050	201706150050	70.975	70.098	208.578	205.865	177.296
-# roi_name = '0.0_60'
-# selected_times = ['201808300100', '201809150100', '201904110100']
-# roi_name = '0.0_120'
-# selected_times = ['201709120100', '201809150100', '201909180100']
-roi_name = '26.1_10'
-selected_times = ['201705050250']
-# roi_name = '26.1_150'
-# selected_times = ['201712240110', '201801090110', '201801250110', '201802260110', '201812180110', '201902130110']
-# roi_name = '45.6_10'
-# selected_times = ['201901160350']
-# roi_name = '45.6_20'
-# selected_times = ['201809230310']
-# roi_name = '60.0_80'  # ×
-# selected_times = []
-# roi_name = '60.0_130'
-# selected_times = ['201709180320', '201810160310', '201909080320', '201909240310', '201910100310']
-# roi_name = '60.0_200'
-# selected_times = ['201803140400']
-# roi_name = '70.5_10'  # ×
-# selected_times = []
-# roi_name = '70.5_80'  # ×
-# selected_times = []
-# roi_name = '70.5_200'  # ×
-# selected_times = []
+# WORK_SPACE = r'D:\Work_PhD\MISR_AHI_WS\230126\intercom_mapping\0_0_RAA'
+# roi_name = '0.0_0'
+# selected_times = ['201910200050']   # 99	105515	4	201910200054	201910200050	1.931	5.804	284.169	325.081	108.915	109.069	175.254	143.988	19.937	19.686	175.728
+WORK_SPACE = r'D:\Work_PhD\MISR_AHI_WS\230126\intercom_mapping\0_0_Ray'
+roi_name = '0.0_0'
+selected_times = ['201810010100']   # 99	99923	4	201810010055	201810010100	4.100	5.804	282.781	325.081	87.955	87.443	165.174	122.361	19.986	17.591	176.056
 
 
 def identifer(li):
@@ -144,9 +98,7 @@ def make_fig(roi_name, X, Y, band_name, axis_min=0.0, axis_max=0.5):
     text_y = axis_max - (axis_max - axis_min) * 0.3
 
     v, p = pearsonr(X, Y)
-    p_s = str(p).split('e')
-    p_f = round(float(p_s[0][:5]), 1)
-    p_str = str(p_f) + 'e' + p_s[1]
+    p_str = '%.3e' % p
 
     # print('count of pixel: ', N)
     # label_str = label_str = 'N = {}\nRMSE = {}\ny = {}x + {}'.format(N, round(rmse, 3), round(k, 2), round(b, 2))

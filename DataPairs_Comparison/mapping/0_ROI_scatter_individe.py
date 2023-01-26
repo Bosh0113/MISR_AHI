@@ -7,12 +7,8 @@ from matplotlib.ticker import MultipleLocator
 from sklearn.metrics import mean_squared_error, r2_score
 import math
 
-workspace = r'D:\Work_PhD\MISR_AHI_WS\221024\RAA\SR\70.5_200'
-roi_name = '70.5_200'
-roi_matched_npy = os.path.join(workspace, roi_name + '_matched_sr.npy')
 
-
-def mapping_scatter_individe(x_2Darray, y_2Darray, color, ahi_obs_time, figure_title):
+def mapping_scatter_individe(scatter_folder_path, x_2Darray, y_2Darray, color, ahi_obs_time, figure_title):
     max_axs = 0.5
     band_name = figure_title[-5:]
     if band_name == 'band3':
@@ -50,17 +46,20 @@ def mapping_scatter_individe(x_2Darray, y_2Darray, color, ahi_obs_time, figure_t
     plt.ylabel('AHI')
     plt.grid(which='both', linestyle='--', alpha=0.3, linewidth=0.5)
     plt.legend(loc='lower right')
-    fig_filename = os.path.join(workspace, figure_title + '.png')
+    fig_filename = os.path.join(scatter_folder_path, figure_title + '.png')
     plt.savefig(fig_filename)
     # plt.show()
     plt.clf()
 
 
-if __name__ == "__main__":
-
+def main(workspace, roi_name):
     # remove noise data
     remove_times = []
-
+    
+    roi_matched_npy = os.path.join(workspace, roi_name + '_matched_sr.npy')
+    scatter_folder = os.path.join(workspace, 'sr_scatter_figures')
+    if not os.path.exists(scatter_folder):
+        os.makedirs(scatter_folder)
     roi_matched_record = numpy.load(roi_matched_npy, allow_pickle=True)
     color_s = []
     for i in range(len(roi_matched_record[0]['ahi_obs_time'])):
@@ -82,4 +81,19 @@ if __name__ == "__main__":
         roi_ahi_record = [roi_ahi_record[i] for i in range(len(roi_ahi_record)) if (i not in r_index)]
         print('count:', len(ahi_obs_time))
         for idx in range(len(ahi_obs_time)):
-            mapping_scatter_individe(roi_misr_record[idx], roi_ahi_record[idx], color_s[idx], ahi_obs_time[idx], roi_name + '_' + ahi_obs_time[idx] + '_' + band_name)
+            mapping_scatter_individe(scatter_folder, roi_misr_record[idx], roi_ahi_record[idx], color_s[idx], ahi_obs_time[idx], roi_name + '_' + ahi_obs_time[idx] + '_' + band_name)
+
+
+if __name__ == "__main__":
+    base_path = r'D:\Work_PhD\MISR_AHI_WS\230126\intercom_mapping'
+    # # ray-matched
+    # folder_names = ['0_0_Ray', '0_1_Ray', '26_0_Ray', '26_1_Ray', '45_0_Ray', '45_1_Ray', '60_0_Ray', '60_1_Ray', '70_0_Ray', '70_1_Ray']
+    # roi_names = ['0.0_0', '0.0_1', '26.1_0', '26.1_1', '45.6_0', '45.6_1', '60.0_0_0', '60.0_1_0', '70.5_0_0', '70.5_1_0']
+    # RAA-matched
+    folder_names = ['0_0_RAA', '0_1_RAA', '26_0_RAA', '26_1_RAA', '45_0_RAA', '45_1_RAA', '60_0_RAA', '60_1_RAA', '70_0_RAA', '70_1_RAA']
+    roi_names = ['0.0_0', '0.0_1', '26.1_0', '26.1_1', '45.6_0', '45.6_1', '60.0_0_1', '60.0_1_1', '70.5_0_1', '70.5_1_1']
+    for idx in range(len(folder_names)):
+        folder_name = folder_names[idx]
+        roi_name = roi_names[idx]
+        ws_path = os.path.join(base_path, folder_name)
+        main(ws_path, roi_name)

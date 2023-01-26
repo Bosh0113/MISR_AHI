@@ -8,6 +8,8 @@ import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MultipleLocator
 from sklearn.metrics import mean_squared_error, r2_score
+import matplotlib.transforms as mtransforms
+from scipy.stats import gaussian_kde, pearsonr
 import math
 import urllib.request
 import ssl
@@ -24,8 +26,10 @@ MISR_TOA_FOLDER = '/disk1/Data/MISR4AHI2015070120210630_TOA'
 # LandCover=* ReferenceSRF=AHI TargetSRF=MISR Units=PseudoScaledRadiance Regression=Linear
 # SR(AHI2MISR) = SR(AHI)*Slope+Offset
 AHI2MISR_SBAF = {   # slope, offset
-    '0.0_0_band3': [1.135, -0.005705],      # Savannas
-    '0.0_0_band4': [1.015, 0.0001604],
+    # '0.0_0_band3': [1.135, -0.005705],      # Savannas
+    # '0.0_0_band4': [1.015, 0.0001604],
+    '0.0_0_band3': [1.100, -0.006074],      # Woody Savannas
+    '0.0_0_band4': [1.019, -0.0001292],
     '0.0_1_band3': [0.989, -0.003679],      # Evergreen Broadleaf Forest
     '0.0_1_band4': [1.022, -0.0001949],
     '26.1_0_band3': [1.099, -0.002729],     # Grasslands
@@ -91,22 +95,128 @@ def mapping(array, figure_title):
     plt.clf()
 
 
-def mapping_scatter(x_arrray, y_array, figure_title):
-    plt.scatter(x_arrray, y_array)
-    plt.title(figure_title)
-    plt.xlim((0, 0.5))
-    plt.ylim((0, 0.5))
-    plt.xlabel('AHI SR')
-    plt.ylabel('MISR SR')
+def add_right_cax(ax, pad, width):
+
+    axpos = ax.get_position()
+    caxpos = mtransforms.Bbox.from_extents(axpos.x1 + pad, axpos.y0, axpos.x1 + pad + width, axpos.y1)
+    cax = ax.figure.add_axes(caxpos)
+
+    return cax
+
+
+def identifer(li):
+    result = []
+    for a in li:
+        mean = numpy.nanmean(a)
+        std = numpy.nanstd(a)
+        down = mean - 3 * std
+        up = mean + 3 * std
+        n_a = numpy.where(a < down, numpy.nan, a)
+        n_a = numpy.where(n_a > up, numpy.nan, n_a)
+        result.append(n_a)
+    return result
+
+
+def mapping_scatter(ahi_arrray, misr_array, figure_title, axis_min=0.0, axis_max=0.5):
+    misr4show = []
+    ahi4show = []
+    x_3Darray_np_1d = misr_array.flatten()
+    x_3Darray_np_1d = x_3Darray_np_1d[~numpy.isnan(x_3Darray_np_1d)]
+    y_3Darray_np_1d = ahi_arrray.flatten()
+    y_3Darray_np_1d = y_3Darray_np_1d[~numpy.isnan(y_3Darray_np_1d)]
+    misr4show.extend(x_3Darray_np_1d)
+    ahi4show.extend(y_3Darray_np_1d)
+    # filter
+    slope_array = list(numpy.array(ahi4show)/numpy.array(misr4show))
+    slope_array_filtered = numpy.array(identifer([slope_array])[0])
+    array1_n = (slope_array_filtered*0+1)*numpy.array(misr4show)
+    array2_n = (slope_array_filtered*0+1)*numpy.array(ahi4show)
+    X = array1_n[~numpy.isnan(array1_n)]
+    Y = array2_n[~numpy.isnan(array2_n)]
+
     figure_folder = os.path.join(workspace, 'figure_scatter_toa')
     if not os.path.exists(figure_folder):
         os.makedirs(figure_folder)
     fig_filename = os.path.join(figure_folder, figure_title + '_toa.png')
-    plt.rcParams['xtick.direction'] = 'in'
-    plt.rcParams['ytick.direction'] = 'in'
-    plt.savefig(fig_filename)
-    plt.clf()
+
+    fig = plt.figure(figsize=(4, 4))
+    ax1 = fig.add_subplot(111, aspect='equal')
+
+    k, b = numpy.polyfit(X, Y, deg=1)
+    rmse = math.sqrt(mean_squared_error(X, Y))
+    N = len(X)
+
+    x = numpy.arange(axis_min, axis_max + 1)
+    y = 1 * x
+
+    xx = numpy.arange(axis_min, axis_max + 0.1, 0.05)
+    yy = k * xx + b
+
+    # Calculate the point density
+    xy = numpy.vstack([X, Y])
+    z = gaussian_kde(xy)(xy)
+
+    # Sort the points by density, so that the densest points are plotted last
+    idx = z.argsort()
+    X, Y, z = X[idx], Y[idx], z[idx]
+    ax1.minorticks_on()
+    # x_major_locator = plt.MultipleLocator(5)
+    x_minor_locator = plt.MultipleLocator(0.05)
+    ax1.xaxis.set_minor_locator(x_minor_locator)
+    # ax.xaxis.set_major_locator(x_major_locator)
+    ax1.yaxis.set_minor_locator(x_minor_locator)
+    # ax.yaxis.set_major_locator(x_major_locator)
+
+    ax1.tick_params(axis="y", which='minor', length=5, direction='in', labelsize=8)
+    ax1.tick_params(axis="y", which='major', length=10, direction='in', labelsize=8)
+
+    ax1.tick_params(axis="x", which='minor', length=5, direction='in', labelsize=8)
+    ax1.tick_params(axis="x", which='major', length=10, direction='in', labelsize=8)
+
+    ax1.spines['right'].set_color('none')
+    ax1.spines['top'].set_color('none')
+
+    im = ax1.scatter(X, Y, marker='o', c=z, s=15, cmap='Spectral_r')
+
+    ax1.set_xticks(numpy.arange(axis_min, axis_max + 0.1, 0.1))
+    ax1.set_yticks(numpy.arange(axis_min + 0.1, axis_max + 0.1, 0.1))
+
+    band_label = {
+        'band3': 'Band3',
+        'band4': 'Band4',
+    }
+
+    ax1.set_ylabel("AHI Top of Atmosphere Reflectance " + band_label[band_name], fontsize=12)
+    ax1.set_xlabel("MISR Top of Atmosphere Reflectance " + band_label[band_name], fontsize=12)
+
+    ax1.plot(x, y, color='k', linewidth=2, linestyle='-.')
+    ax1.plot(xx, yy, color='r', linewidth=2, linestyle='-')
+
+    text_x = axis_min + (axis_max - axis_min) * 0.07
+    text_y = axis_max - (axis_max - axis_min) * 0.3
+
+    v, p = pearsonr(X, Y)
+    p_str = '%.3e' % p
+    # p_str = ''
+
+    # print('count of pixel: ', N)
+    # label_str = label_str = 'N = {}\nRMSE = {}\ny = {}x + {}'.format(N, round(rmse, 3), round(k, 2), round(b, 2))
+    # if b < 0:
+    #     label_str = 'N = {}\nRMSE = {}\ny = {}x - {}'.format(N, round(rmse, 3), round(k, 2), abs(round(b, 2)))
+    label_str = label_str = 'Pearson correlation = {}\n(p-value = {})\ny = {}x + {}\nRMSE = {}\n'.format(round(v, 2), p_str, round(k, 2), round(b, 2), round(rmse, 3))
+    if b < 0:
+        label_str = label_str = 'Pearson correlation = {}\n(p-value = {})\ny = {}x - {}\nRMSE = {}\n'.format(round(v, 2), p_str, round(k, 2), abs(round(b, 2)), round(rmse, 3))
+
+    ax1.text(text_x, text_y, s=label_str, fontsize=12)
+
+    cax = add_right_cax(ax1, pad=0.01, width=0.03)
+    cb = fig.colorbar(im, cax=cax)
+    # cb.ax.set_xlabel('Count', rotation=360)
+    ax1.set_xlim(axis_min, axis_max)
+    ax1.set_ylim(axis_min, axis_max)
+    fig.savefig(fig_filename, dpi=1000, bbox_inches='tight')
     print(fig_filename)
+    plt.clf()
 
 
 def download_MISR_MIL2TCST02_HDF(folder, path, orbit):
