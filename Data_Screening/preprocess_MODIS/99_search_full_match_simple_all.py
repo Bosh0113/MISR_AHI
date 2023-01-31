@@ -31,7 +31,7 @@ AHI_VZA_BIN = '/disk1/Data/AHI/VZA/202201010000.sat.zth.fld.4km.bin'
 AHI_VAA_BIN = '/disk1/Data/AHI/VAA/202201010000.sat.azm.fld.4km.bin'
 
 # point_locations_npy_filename = '/disk1/workspace/20221103/MODIS_FM/AHI_180_10km_onland_lonlat.npy'
-GRO_OBS_COND_TXT = 'MODIS_AHI_FULL_MATCH_RECORD_50km_365_all.txt'
+GRO_OBS_COND_TXT = 'MODIS_AHI_FULL_MATCH_RECORD_05_365_east.txt'
 
 
 def re_download_MISR_MIL2ASLS03_NC(folder, path, orbit):
@@ -127,7 +127,7 @@ def get_scattering_angle(misr_vza, misr_vaa, ahi_vza, ahi_vaa):
 def get_misr_path_orbit(lon, lat, day):
     year_start_date = datetime.strptime(START_TIME, "%Y-%m-%dT%H:%M:%SZ")
     day_start_offset_d = timedelta(hours=(day-1)*24)
-    day_end_offset_d = timedelta(hours=(day-1)*24)
+    day_end_offset_d = timedelta(hours=day*24)
     day_start_date = year_start_date + day_start_offset_d
     day_end_date = year_start_date + day_end_offset_d
     day_start_str = day_start_date.strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -163,6 +163,7 @@ def read_modis_obs_angle(lon, lat, modis_value):
     # print(lat_c_idx-lat_idx_offset, lat_c_idx+lat_idx_offset, lon_c_idx-lon_idx_offset, lon_c_idx+lon_idx_offset)
     roi_arr = roi_arr * 0.01
     # print(roi_arr)
+    roi_arr = roi_arr.reshape(-1)
     roi_arr_vs = roi_arr[roi_arr >= -180.]
     if len(roi_arr_vs) > 0:
         roi_a2ahi = []
@@ -171,6 +172,7 @@ def read_modis_obs_angle(lon, lat, modis_value):
                 roi_a2ahi.append(roi_arr_v)
             else:
                 roi_a2ahi.append(360. + roi_arr_v)
+        # print(roi_a2ahi)
         return numpy.mean(roi_a2ahi)
     else:
         return 0.0
@@ -184,23 +186,24 @@ def get_modis_obs_angle(lon, lat, modis_vza_value, modis_vaa_value):
 
 def main():
     # search full matching
-    geocond_record_str = 'Lon Lat MODIS_roi_time AHI_roi_time MODIS_VZA AHI_VZA MODIS_VAA AHI_VAA Scattering_Angle(GEO-LEO)\n'
+    geocond_record_str = 'Lon Lat MODIS_roi_day AHI_roi_time MODIS_VZA AHI_VZA MODIS_VAA AHI_VAA Scattering_Angle(GEO-LEO)\n'
     # record
     matched_record = {}
-    modis_matched_npy_filename = os.path.join(WORK_SPACE, 'MODIS_matched_record_50km_365_all.npy')
+    # modis_matched_npy_filename = os.path.join(WORK_SPACE, 'MODIS_matched_record_50km_365_all.npy')
+    modis_matched_npy_filename = os.path.join(WORK_SPACE, 'MODIS_matched_record_25km_365_east.npy')
 
     # search_cood = numpy.load(point_locations_npy_filename)
     search_cood = []
-    # INTERNAL_DEGREE = 0.5
-    INTERNAL_DEGREE = 0.1
+    INTERNAL_DEGREE = 0.5
+    # INTERNAL_DEGREE = 0.2
     lats_s = numpy.arange(20. - INTERNAL_DEGREE / 2, -20, -INTERNAL_DEGREE)
     lons_s = numpy.arange(85. + INTERNAL_DEGREE / 2, 180, INTERNAL_DEGREE)
     for lon_s in lons_s:
         for lat_s in lats_s:
             search_cood.append([lon_s, lat_s])
 
-    # for year_day in tqdm(range(1, 366, 1), desc='Doy', leave=False):
     for year_day in tqdm(range(1, 366, 1), desc='Doy', leave=False):
+    # for year_day in tqdm(range(1, 32, 1), desc='Doy', leave=False):
         year_day_str = (3 - len(str(year_day))) * '0' + str(year_day)
 
         modis_vza_file = 'MOD09GA.061_SensorZenith_1_doy2017' + year_day_str + '_aid0001.tif'
@@ -224,91 +227,91 @@ def main():
 
                 lon4search = round(cood_point[0], 3)
                 lat4search = round(cood_point[1], 3)
-                if lat4search > -30 and lat4search < 30:
-                    # geocond_record_str += 'Location: (' + str(lon4search) + ', ' + str(lat4search) + ')\n'
-                    # ROI extent (ullat, ullon, lrlat, lrlon)
-                    roi_extent = [lat4search + ROI_SIZE / 2, lon4search - ROI_SIZE / 2, lat4search - ROI_SIZE / 2, lon4search + ROI_SIZE / 2]
+                
+                # geocond_record_str += 'Location: (' + str(lon4search) + ', ' + str(lat4search) + ')\n'
+                # ROI extent (ullat, ullon, lrlat, lrlon)
+                roi_extent = [lat4search + ROI_SIZE / 2, lon4search - ROI_SIZE / 2, lat4search - ROI_SIZE / 2, lon4search + ROI_SIZE / 2]
 
-                    # AHI Obs Condition
-                    ahi_vza, ahi_vaa = get_ahi_obs_angle(roi_extent)
-                    misr_path, misr_orbit = get_misr_path_orbit(lon4search, lat4search, year_day)
-                    if misr_orbit > 0:
-                        try:
-                            # Full Match Screening
-                            roi_r = MtkRegion(roi_extent[0], roi_extent[1], roi_extent[2], roi_extent[3])
-                            modis_vza, modis_vaa = get_modis_obs_angle(lon4search, lat4search, modis_vza_value, modis_vaa_value)
-                            if modis_vza != 0.0:
-                                # print(modis_vza, modis_vaa)
-                                scattering_angle = get_scattering_angle(modis_vza, modis_vaa, ahi_vza, ahi_vaa)
-                                if scattering_angle > SCATTERING_ANGLE_THRESHOLD:
-                                    # get AHI data with MISR Obs time
-                                    roi_blocks = roi_r.block_range(misr_path)
-                                    block_no = roi_blocks[0]
-                                    misr_nc_filename = get_misr_filename(misr_orbit)
-                                    misr_nc = netCDF4.Dataset(misr_nc_filename)
-                                    misr_nc_44 = misr_nc.groups['4.4_KM_PRODUCTS']
-                                    misr_block_var = misr_nc_44.variables['Block_Number']
-                                    misr_time_var = misr_nc_44.variables['Time']
-                                    misr_units = misr_time_var.units
-                                    start_time = misr_units[14:-8] + 'Z'
-                                    misr_start_date = datetime.strptime(start_time, "%Y-%m-%dT%H:%M:%SZ")
-                                    block_time_num = int(len(misr_time_var[:]) / len(misr_block_var[:]))
-                                    blocks = numpy.array(misr_block_var[:])
-                                    block_time_s = numpy.argmax(blocks == block_no - 1)
-                                    block_time_e = numpy.argmax(blocks == block_no)
-                                    block_time_array = misr_time_var[block_time_s * block_time_num:block_time_e * block_time_num]
-                                    block_time_offset = round(block_time_array.mean())
-                                    block_time_offset_s = timedelta(seconds=block_time_offset)
-                                    misr_roi_date = misr_start_date + block_time_offset_s
-                                    misr_nc.close()
+                # AHI Obs Condition
+                ahi_vza, ahi_vaa = get_ahi_obs_angle(roi_extent)
+                # misr_path, misr_orbit = get_misr_path_orbit(lon4search, lat4search, year_day)
+                # if misr_orbit > 0:
+                #     try:
+                # Full Match Screening
+                # roi_r = MtkRegion(roi_extent[0], roi_extent[1], roi_extent[2], roi_extent[3])
+                modis_vza, modis_vaa = get_modis_obs_angle(lon4search, lat4search, modis_vza_value, modis_vaa_value)
+                if modis_vza != 0.0:
+                    scattering_angle = get_scattering_angle(modis_vza, modis_vaa, ahi_vza, ahi_vaa)
+                    # print(modis_vza, ahi_vza, modis_vaa, ahi_vaa, scattering_angle)
+                    if scattering_angle > SCATTERING_ANGLE_THRESHOLD:
+                        # # get AHI data with MISR Obs time
+                        # roi_blocks = roi_r.block_range(misr_path)
+                        # block_no = roi_blocks[0]
+                        # misr_nc_filename = get_misr_filename(misr_orbit)
+                        # misr_nc = netCDF4.Dataset(misr_nc_filename)
+                        # misr_nc_44 = misr_nc.groups['4.4_KM_PRODUCTS']
+                        # misr_block_var = misr_nc_44.variables['Block_Number']
+                        # misr_time_var = misr_nc_44.variables['Time']
+                        # misr_units = misr_time_var.units
+                        # start_time = misr_units[14:-8] + 'Z'
+                        # misr_start_date = datetime.strptime(start_time, "%Y-%m-%dT%H:%M:%SZ")
+                        # block_time_num = int(len(misr_time_var[:]) / len(misr_block_var[:]))
+                        # blocks = numpy.array(misr_block_var[:])
+                        # block_time_s = numpy.argmax(blocks == block_no - 1)
+                        # block_time_e = numpy.argmax(blocks == block_no)
+                        # block_time_array = misr_time_var[block_time_s * block_time_num:block_time_e * block_time_num]
+                        # block_time_offset = round(block_time_array.mean())
+                        # block_time_offset_s = timedelta(seconds=block_time_offset)
+                        # misr_roi_date = misr_start_date + block_time_offset_s
+                        # misr_nc.close()
 
-                                    # daytime range on same day
-                                    center_pt = [(roi_extent[0] + roi_extent[2]) / 2, (roi_extent[1] + roi_extent[3]) / 2]
-                                    time_offset = ahi_lon_timeoffset(center_pt[1])
-                                    local_date = misr_roi_date + timedelta(hours=time_offset)
-                                    local_day_str = local_date.strftime("%Y-%m-%dT")
-                                    local_time_start_str = local_day_str + AHI_LOCALTIME_START
-                                    local_date_start = datetime.strptime(local_time_start_str, "%Y-%m-%dT%H:%M:%SZ")
-                                    utc_date_start = local_date_start - timedelta(hours=time_offset)
-                                    local_time_end_str = local_day_str + AHI_LOCALTIME_END
-                                    local_date_end = datetime.strptime(local_time_end_str, "%Y-%m-%dT%H:%M:%SZ")
-                                    utc_date_end = local_date_end - timedelta(hours=time_offset)
+                        # # daytime range on same day
+                        # center_pt = [(roi_extent[0] + roi_extent[2]) / 2, (roi_extent[1] + roi_extent[3]) / 2]
+                        # time_offset = ahi_lon_timeoffset(center_pt[1])
+                        # local_date = misr_roi_date + timedelta(hours=time_offset)
+                        # local_day_str = local_date.strftime("%Y-%m-%dT")
+                        # local_time_start_str = local_day_str + AHI_LOCALTIME_START
+                        # local_date_start = datetime.strptime(local_time_start_str, "%Y-%m-%dT%H:%M:%SZ")
+                        # utc_date_start = local_date_start - timedelta(hours=time_offset)
+                        # local_time_end_str = local_day_str + AHI_LOCALTIME_END
+                        # local_date_end = datetime.strptime(local_time_end_str, "%Y-%m-%dT%H:%M:%SZ")
+                        # utc_date_end = local_date_end - timedelta(hours=time_offset)
 
-                                    # for record required AHI SAA data
-                                    ahi_obstime_diffs = []
-                                    date_interval = timedelta(minutes=10)
-                                    date_ahi = utc_date_start
-                                    # print(utc_date_start.strftime("%Y-%m-%dT%H:%M:%SZ"), utc_date_end.strftime("%Y-%m-%dT%H:%M:%SZ"))
-                                    while date_ahi < utc_date_end:
-                                        datetime_diff = date_ahi - misr_roi_date
-                                        datetime_diff_s = abs(datetime_diff.total_seconds())
-                                        # ## SZA match ###
-                                        if datetime_diff_s < DIFF_TIME_THRESHOLD:
-                                            ahi_data_time = date_ahi.strftime("%Y%m%d%H%M")
-                                            # no download, just record
-                                            ahi_obstime_diffs.append([ahi_data_time, datetime_diff_s])
-                                        date_ahi = date_ahi + date_interval
-                                    # sort by time diff
-                                    ahi_obstime_diffs = sorted(ahi_obstime_diffs, key=(lambda x: x[1]))
-                                    # matched observation time
-                                    ahi_obs_time = ahi_obstime_diffs[0][0]
-                                    misr_roi_block_time = misr_roi_date.strftime("%Y%m%d%H%M")
-                                    # matched info
-                                    # print('**********Full Matching**********')
-                                    modis_roi_vza = '%.3f' % modis_vza
-                                    ahi_roi_vza = '%.3f' % ahi_vza
-                                    modis_roi_vaa = '%.3f' % modis_vaa
-                                    ahi_roi_vaa = '%.3f' % ahi_vaa
-                                    scattering_angle = '%.3f' % scattering_angle
-                                    # matched info: MISR_roi_time AHI_roi_time MODIS_VZA AHI_VZA MODIS_VAA AHI_VAA Scattering_Angle(GEO-LEO)
-                                    matched_info = [misr_roi_block_time, ahi_obs_time, str(modis_roi_vza), str(ahi_roi_vza), str(modis_roi_vaa), str(ahi_roi_vaa), str(scattering_angle)]
-                                    # print(cood_point)
-                                    print([lon4search, lat4search, misr_roi_block_time, ahi_obs_time, str(modis_roi_vza), str(ahi_roi_vza), str(modis_roi_vaa), str(ahi_roi_vaa), str(scattering_angle)])
-                                    geocond_record_str += str(lon4search) + '\t' + str(lat4search) + '\t' + misr_roi_block_time + '\t' + ahi_obs_time + '\t' + str(modis_roi_vza) + '\t' + str(ahi_roi_vza) + '\t' + str(modis_roi_vaa) + '\t' + str(ahi_roi_vaa) + '\t' + str(scattering_angle) + '\n'
-                                    loc_matched.append(matched_info)
-                        except Exception as e:
-                            print('doy:', year_day)
-                            print(e)
+                        # # for record required AHI SAA data
+                        # ahi_obstime_diffs = []
+                        # date_interval = timedelta(minutes=10)
+                        # date_ahi = utc_date_start
+                        # # print(utc_date_start.strftime("%Y-%m-%dT%H:%M:%SZ"), utc_date_end.strftime("%Y-%m-%dT%H:%M:%SZ"))
+                        # while date_ahi < utc_date_end:
+                        #     datetime_diff = date_ahi - misr_roi_date
+                        #     datetime_diff_s = abs(datetime_diff.total_seconds())
+                        #     # ## SZA match ###
+                        #     if datetime_diff_s < DIFF_TIME_THRESHOLD:
+                        #         ahi_data_time = date_ahi.strftime("%Y%m%d%H%M")
+                        #         # no download, just record
+                        #         ahi_obstime_diffs.append([ahi_data_time, datetime_diff_s])
+                        #     date_ahi = date_ahi + date_interval
+                        # # sort by time diff
+                        # ahi_obstime_diffs = sorted(ahi_obstime_diffs, key=(lambda x: x[1]))
+                        # # matched observation time
+                        # ahi_obs_time = ahi_obstime_diffs[0][0]
+                        # misr_roi_block_time = misr_roi_date.strftime("%Y%m%d%H%M")
+                        # matched info
+                        # print('**********Full Matching**********')
+                        modis_roi_vza = '%.3f' % modis_vza
+                        ahi_roi_vza = '%.3f' % ahi_vza
+                        modis_roi_vaa = '%.3f' % modis_vaa
+                        ahi_roi_vaa = '%.3f' % ahi_vaa
+                        scattering_angle = '%.3f' % scattering_angle
+                        # matched info: MISR_roi_time AHI_roi_time MODIS_VZA AHI_VZA MODIS_VAA AHI_VAA Scattering_Angle(GEO-LEO)
+                        matched_info = [year_day_str, 'ahi_obs_time', str(modis_roi_vza), str(ahi_roi_vza), str(modis_roi_vaa), str(ahi_roi_vaa), str(scattering_angle)]
+                        # print(cood_point)
+                        print([lon4search, lat4search, year_day_str, 'ahi_obs_time', str(modis_roi_vza), str(ahi_roi_vza), str(modis_roi_vaa), str(ahi_roi_vaa), str(scattering_angle)])
+                        geocond_record_str += str(lon4search) + '\t' + str(lat4search) + '\t' + year_day_str + '\t' + 'ahi_obs_time' + '\t' + str(modis_roi_vza) + '\t' + str(ahi_roi_vza) + '\t' + str(modis_roi_vaa) + '\t' + str(ahi_roi_vaa) + '\t' + str(scattering_angle) + '\n'
+                        loc_matched.append(matched_info)
+                    # except Exception as e:
+                    #     print('doy:', year_day)
+                    #     print(e)
                 matched_record[str(cood_point)] = loc_matched
     
     save_matched_record = []
