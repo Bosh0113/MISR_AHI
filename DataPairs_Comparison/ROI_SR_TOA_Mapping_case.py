@@ -215,6 +215,7 @@ def mapping_scatter(ahi_arrray, misr_array, figure_title, type, axis_min=0.0, ax
     ax1.set_ylim(axis_min, axis_max)
     fig.savefig(fig_filename, dpi=1000, bbox_inches='tight')
     print(fig_filename)
+    plt.close(fig)
     plt.clf()
 
 
@@ -318,7 +319,7 @@ def record_roi_misr_ahi(roi_name, band_index, misr_orbit, misr_camera_index, ahi
                 roi_misr_toa[lat_index][lon_index] = 0.
 
     # if any cloud-free obs. is existed
-    if roi_misr_brfv3.max() > 0.0:
+    if len(roi_misr_brfv3[roi_misr_brfv3 > 0.0]) > 5:
         # MISR BRF v3
         roi_misr_brfv3[roi_misr_brfv3 <= 0.0] = numpy.NaN
         figure_title = roi_name + '_' + ahi_obs_time + '_band_' + str(band_index + 1) + '_misr_sr'
