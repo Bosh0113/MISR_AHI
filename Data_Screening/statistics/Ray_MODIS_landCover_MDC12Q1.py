@@ -29,21 +29,18 @@ def tab_show(ray_values):
         'Permanent Wetlands', 'Croplands', 'Urban and Built-Up', 'Cropland/Natual Vegation', 'Snow and Ice', 'Barren'
     ]
     
-    # sort
-    ray_values = ray_values[::-1]
-    lc_labels = lc_labels[::-1]
     for idx in range(len(ray_values)):
         if ray_values[idx] > 0.0:
             print(lc_labels[idx], ray_values[idx])
-    # Cropland/Natual Vegation 10.0
-    # Urban and Built-Up 1.0
-    # Croplands 96.0
-    # Grasslands 115.0
-    # Savannas 50.0
-    # Woody Savannas 64.0
-    # Mixed Forests 490.0
-    # Deciduous Broadleaf Forest 1.0
     # Evergreen Needleleaf Forest 3.0
+    # Deciduous Broadleaf Forest 1.0
+    # Mixed Forests 490.0
+    # Woody Savannas 64.0
+    # Savannas 50.0
+    # Grasslands 115.0
+    # Croplands 96.0
+    # Urban and Built-Up 1.0        
+    # Cropland/Natual Vegation 10.0 
 
 
 def main():

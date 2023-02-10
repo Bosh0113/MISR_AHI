@@ -3,8 +3,7 @@ import math
 import numpy as np
 import matplotlib.pyplot as plt
 
-ws = r'C:\Work\AHI_MISR\20230119'
-# ws = r'D:\Work_PhD\MISR_AHI_WS\230118'
+ws = r'D:\MISR_AHI_WS\230119'
 
 MCD12Q1_006_10KM_npy = os.path.join(ws, 'MCD12Q1_006_10km.npy')
 ray_matched_record_npy = os.path.join(ws, 'AHI_MISR_Ray-matched_50km.npy')
