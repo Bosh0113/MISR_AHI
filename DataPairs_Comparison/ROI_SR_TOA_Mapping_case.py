@@ -176,8 +176,6 @@ def mapping_scatter(ahi_arrray, misr_array, figure_title, type, axis_min=0.0, ax
     ax1.spines['right'].set_color('none')
     ax1.spines['top'].set_color('none')
 
-    im = ax1.scatter(X, Y, marker='o', c=z, s=15, cmap='Spectral_r')
-
     ax1.set_xticks(numpy.arange(axis_min, axis_max + 0.1, 0.1))
     ax1.set_yticks(numpy.arange(axis_min + 0.1, axis_max + 0.1, 0.1))
 
@@ -191,6 +189,7 @@ def mapping_scatter(ahi_arrray, misr_array, figure_title, type, axis_min=0.0, ax
 
     ax1.plot(x, y, color='k', linewidth=2, linestyle='-.')
     ax1.plot(xx, yy, color='r', linewidth=2, linestyle='-')
+    im = ax1.scatter(X, Y, marker='o', c=z, s=15, cmap='Spectral_r')
 
     text_x = axis_min + (axis_max - axis_min) * 0.07
     text_y = axis_max - (axis_max - axis_min) * 0.3
