@@ -1,7 +1,7 @@
 import os
 import numpy
 
-ws = r'H:\MISR_AHI_WS\230126\14'
+ws = r'D:\MISR_AHI_WS\230126\14'
 
 
 # get side of VAA-to-SAA (SAA as refer)
@@ -23,7 +23,9 @@ if __name__ == "__main__":
     # roi_names = ['0.0_0', '0.0_1', '26.1_0', '26.1_1', '45.6_0', '45.6_1', '60.0_0_0', '60.0_1_0', '70.5_0_0', '70.5_1_0', '60.0_0_1', '60.0_1_1', '70.5_0_1', '70.5_1_1']
     # roi_names = ['45.6_0', '45.6_1', '60.0_1_0']
     # roi_names = ['45.6_0', '60.0_1_0']
-    roi_names = ['0.0_0', '0.0_1']
+    # roi_names = ['0.0_0', '0.0_1']
+    # roi_names = ['0.0_1']
+    roi_names = ['70.5_1_0']
     for roi_name in roi_names:
         same_side_record = []
         opposite_side_record = []

@@ -15,15 +15,15 @@ selected_times = ['201811090100']   # 100	100491	4	201811090101	201811090100	4.3
 WORK_SPACE = r'D:\MISR_AHI_WS\230211\intercom_mapping\0_0_Ray'
 roi_name = '0.0_0'
 selected_times = ['201905200100']   # 100	103287	4	201905200100	201905200100	3.300	4.856	283.062	339.564	41.224	39.745	118.161	60.181	31.892	31.245	175.821
-WORK_SPACE = r'D:\MISR_AHI_WS\230211\intercom_mapping\0_1_RAA'
 
+WORK_SPACE = r'D:\MISR_AHI_WS\230211\intercom_mapping\0_1_RAA'
 roi_name = '0.0_1'
-selected_times = ['']   #
+selected_times = ['201811070110']   # 102	100462	4	201811070113	201811070110	0.647	3.559	111.216	38.540	128.060	128.694	50.446	90.155	23.056	22.675	176.911
 WORK_SPACE = r'D:\MISR_AHI_WS\230211\intercom_mapping\0_1_Ray'
 roi_name = '0.0_1'
-selected_times = ['']   # 
-WORK_SPACE = r'D:\MISR_AHI_WS\230211\intercom_mapping\26_0_RAA'
+selected_times = ['201805150110']   # 102	97899	4	201805150113	201805150110	0.406	3.559	184.831	38.540	44.388	43.951	71.334	5.412	30.100	29.892	176.586
 
+WORK_SPACE = r'D:\MISR_AHI_WS\230211\intercom_mapping\26_0_RAA'
 roi_name = '26.1_0'
 selected_times = ['201812050140']   # 106	100870	5	201812050143	201812050140	26.503	25.742	179.525	34.263	103.954	104.288	75.571	70.025	22.423	21.297	177.443
 WORK_SPACE = r'D:\MISR_AHI_WS\230211\intercom_mapping\26_0_Ray'
@@ -77,7 +77,7 @@ roi_name = '70.5_1_1'
 selected_times = ['201804200430']   # 135	97537	8	201804200429	201804200430	70.600	70.311	194.006	134.505	161.578	164.673	32.429	30.169	42.687	42.293	177.851
 WORK_SPACE = r'D:\MISR_AHI_WS\230211\intercom_mapping\70_1_Ray'
 roi_name = '70.5_1_0'
-selected_times = ['201806250050']   # 101	98496	8	201806250057	201806250050	70.902	69.818	207.530	203.376	169.500	169.313	38.029	34.064	36.433	36.476	176.111
+selected_times = ['201906140040']   # 99	103651	8	201906140044	201906140040	70.600	67.267	200.656	203.832	164.294	165.370	36.362	38.461	34.420	34.325	176.135
 
 
 def identifer(li):
@@ -102,7 +102,7 @@ def add_right_cax(ax, pad, width):
     return cax
 
 
-def make_fig(roi_name, X, Y, band_name, axis_min=0.0, axis_max=0.5):
+def make_fig_bk(roi_name, X, Y, band_name, axis_min=0.0, axis_max=0.5):
 
     fig = plt.figure(figsize=(4, 4))
     ax1 = fig.add_subplot(111, aspect='equal')
@@ -117,13 +117,12 @@ def make_fig(roi_name, X, Y, band_name, axis_min=0.0, axis_max=0.5):
     xx = np.arange(axis_min, axis_max + 0.1, 0.05)
     yy = k * xx + b
 
-    # Calculate the point density
-    xy = np.vstack([X, Y])
-    z = gaussian_kde(xy)(xy)
+    g_x, g_y = np.mgrid[axis_min:axis_max:500j, axis_min:axis_max:500j]
+    positions = np.vstack([g_x.ravel(), g_y.ravel()])
+    values = np.vstack([X, Y])
+    kernel = gaussian_kde(values)
+    Z = np.reshape(kernel(positions).T, g_x.shape)
 
-    # Sort the points by density, so that the densest points are plotted last
-    idx = z.argsort()
-    X, Y, z = X[idx], Y[idx], z[idx]
     ax1.minorticks_on()
     # x_major_locator = plt.MultipleLocator(5)
     x_minor_locator = plt.MultipleLocator(0.05)
@@ -152,33 +151,23 @@ def make_fig(roi_name, X, Y, band_name, axis_min=0.0, axis_max=0.5):
     ax1.set_ylabel("AHI Surface Reflectance " + band_label[band_name], fontsize=12)
     ax1.set_xlabel("MISR Surface Reflectance " + band_label[band_name], fontsize=12)
 
-    ax1.plot(x, y, color='k', linewidth=2, linestyle='-.', zorder=1)
+    ax1.imshow(np.rot90(Z), cmap=plt.cm.gist_earth_r, extent=[axis_min, axis_max, axis_min, axis_max], alpha=0.8, zorder=0)
+    ax1.plot(x, y, color='k', linewidth=1.2, linestyle='-.', zorder=1)
     ax1.plot(xx, yy, color='r', linewidth=1, linestyle='-', zorder=2)
-    im = ax1.scatter(X, Y, marker='o', c=z, s=15, cmap='Spectral_r', zorder=3)
+    ax1.plot(X, Y, 'k.', markersize=2, zorder=4)
 
     text_x = axis_min + (axis_max - axis_min) * 0.07
     text_y = axis_max - (axis_max - axis_min) * 0.3
 
-    v, p = pearsonr(X, Y)
+    r_, p = pearsonr(X, Y)
     p_str = '%.3e' % p
-    # print(X)
-    # print(Y)
-    r2 = r2_score(X, Y)
-    print('r2:', round(r2, 3))
-
-    # print('count of pixel: ', N)
-    # label_str = label_str = 'N = {}\nRMSE = {}\ny = {}x + {}'.format(N, round(rmse, 3), round(k, 2), round(b, 2))
-    # if b < 0:
-    #     label_str = 'N = {}\nRMSE = {}\ny = {}x - {}'.format(N, round(rmse, 3), round(k, 2), abs(round(b, 2)))
-    label_str = label_str = 'Pearson correlation = {}\n(p-value = {})\ny = {}x + {}\nRMSE = {}\n'.format(round(v, 2), p_str, round(k, 2), round(b, 2), round(rmse, 3))
+    
+    label_str = label_str = 'roi name: {}\ny = {}x + {}\nRMSE = {}\nr = {}\n'.format(roi_name, round(k, 2), round(b, 2), round(rmse, 3), round(r_, 2))
     if b < 0:
-        label_str = label_str = 'Pearson correlation = {}\n(p-value = {})\ny = {}x - {}\nRMSE = {}\n'.format(round(v, 2), p_str, round(k, 2), abs(round(b, 2)), round(rmse, 3))
+        label_str = label_str = 'roi name: {}\ny = {}x - {}\nRMSE = {}\nr = {}\n'.format(roi_name, round(k, 2), abs(round(b, 2)), round(rmse, 3), round(r_, 2))
 
     ax1.text(text_x, text_y, s=label_str, fontsize=12)
 
-    cax = add_right_cax(ax1, pad=0.01, width=0.03)
-    cb = fig.colorbar(im, cax=cax)
-    # cb.ax.set_xlabel('Count', rotation=360)
     ax1.set_xlim(axis_min, axis_max)
     ax1.set_ylim(axis_min, axis_max)
     if SAVE_FIGURE_FLAG:
@@ -227,4 +216,4 @@ if __name__ == "__main__":
         array_x = array1_n[~np.isnan(array1_n)]
         array_y = array2_n[~np.isnan(array2_n)]
 
-        make_fig(roi_name, array_x, array_y, band_name)
+        make_fig_bk(roi_name, array_x, array_y, band_name)

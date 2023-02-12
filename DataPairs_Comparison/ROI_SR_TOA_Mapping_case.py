@@ -194,16 +194,19 @@ def mapping_scatter(ahi_arrray, misr_array, figure_title, type, axis_min=0.0, ax
     text_x = axis_min + (axis_max - axis_min) * 0.07
     text_y = axis_max - (axis_max - axis_min) * 0.3
 
-    v, p = pearsonr(X, Y)
+    r_, p = pearsonr(X, Y)
     p_str = '%.3e' % p
 
     # print('count of pixel: ', N)
     # label_str = label_str = 'N = {}\nRMSE = {}\ny = {}x + {}'.format(N, round(rmse, 3), round(k, 2), round(b, 2))
     # if b < 0:
     #     label_str = 'N = {}\nRMSE = {}\ny = {}x - {}'.format(N, round(rmse, 3), round(k, 2), abs(round(b, 2)))
-    label_str = label_str = 'Pearson correlation = {}\n(p-value = {})\ny = {}x + {}\nRMSE = {}\n'.format(round(v, 2), p_str, round(k, 2), round(b, 2), round(rmse, 3))
+    # label_str = label_str = 'Pearson correlation = {}\n(p-value = {})\ny = {}x + {}\nRMSE = {}\n'.format(round(r_, 2), p_str, round(k, 2), round(b, 2), round(rmse, 3))
+    # if b < 0:
+    #     label_str = label_str = 'Pearson correlation = {}\n(p-value = {})\ny = {}x - {}\nRMSE = {}\n'.format(round(r_, 2), p_str, round(k, 2), abs(round(b, 2)), round(rmse, 3))
+    label_str = label_str = 'Pearson correlation = {}\ny = {}x + {}\nRMSE = {}\n'.format(round(r_, 2), round(k, 2), round(b, 2), round(rmse, 3))
     if b < 0:
-        label_str = label_str = 'Pearson correlation = {}\n(p-value = {})\ny = {}x - {}\nRMSE = {}\n'.format(round(v, 2), p_str, round(k, 2), abs(round(b, 2)), round(rmse, 3))
+        label_str = label_str = 'Pearson correlation = {}\ny = {}x - {}\nRMSE = {}\n'.format(round(r_, 2), round(k, 2), abs(round(b, 2)), round(rmse, 3))
 
     ax1.text(text_x, text_y, s=label_str, fontsize=12)
 
