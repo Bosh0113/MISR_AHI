@@ -324,7 +324,7 @@ def record_roi_misr_ahi(roi_name, band_index, misr_orbit, misr_camera_index, ahi
     if len(roi_misr_brfv3[roi_misr_brfv3 > 0.0]) > 5:
         # MISR BRF v3
         roi_misr_brfv3[roi_misr_brfv3 <= 0.0] = numpy.NaN
-        figure_title = roi_name + '_' + ahi_obs_time + '_band_' + str(band_index + 1) + '_misr_sr'
+        figure_title = roi_name + '_' + ahi_obs_time + '_band_' + str(band_index + 1) + '_misr_sr_' + str(misr_camera_index)
         mapping(roi_misr_brfv3, figure_title)
         # SR(AHI2MISR)
         mask_array = numpy.zeros_like(roi_misr_brfv3)
@@ -332,16 +332,16 @@ def record_roi_misr_ahi(roi_name, band_index, misr_orbit, misr_camera_index, ahi
         mask_array[mask_array == 0.0] = numpy.NaN
         ahi_sr_misr = ahi_sr2misr_sr(roi_ahi_sr, AHI2MISR_para)
         ahi_sr_misr = ahi_sr_misr * mask_array
-        figure_title = roi_name + '_' + ahi_obs_time + '_band_' + str(band_index + 1) + '_ahi_sr'
+        figure_title = roi_name + '_' + ahi_obs_time + '_band_' + str(band_index + 1) + '_ahi_sr_' + str(misr_camera_index)
         mapping(ahi_sr_misr, figure_title)
         # # y=SR(MISR) / x=SR(AHI)
-        figure_title = roi_name + '_' + ahi_obs_time + '_band_' + str(band_index + 1) + '_scatter_sr'
+        figure_title = roi_name + '_' + ahi_obs_time + '_band_' + str(band_index + 1) + '_scatter_sr_' + str(misr_camera_index)
         mapping_scatter(ahi_sr_misr, roi_misr_brfv3, figure_title, 'SR')
 
         # MISR TOA
         roi_misr_toa[roi_misr_toa <= 0.0] = numpy.NaN
         roi_misr_toa = roi_misr_toa * mask_array
-        figure_title = roi_name + '_' + ahi_obs_time + '_band_' + str(band_index + 1) + '_misr_toa'
+        figure_title = roi_name + '_' + ahi_obs_time + '_band_' + str(band_index + 1) + '_misr_toa_' + str(misr_camera_index)
         mapping(roi_misr_toa, figure_title)
         # TOA(AHI2MISR)
         roi_ahi_toa = roi_ahi_toa * mask_array
@@ -350,10 +350,10 @@ def record_roi_misr_ahi(roi_name, band_index, misr_orbit, misr_camera_index, ahi
         mask_toa_array[mask_toa_array == 0.0] = numpy.NaN
         roi_ahi_toa = roi_ahi_toa * mask_toa_array
         ahi_toa_misr = ahi_sr2misr_sr(roi_ahi_toa, AHI2MISR_para)
-        figure_title = roi_name + '_' + ahi_obs_time + '_band_' + str(band_index + 1) + '_ahi_toa'
+        figure_title = roi_name + '_' + ahi_obs_time + '_band_' + str(band_index + 1) + '_ahi_toa_' + str(misr_camera_index)
         mapping(ahi_toa_misr, figure_title)
         # # y=TOA(MISR) / x=TOA(AHI)
-        figure_title = roi_name + '_' + ahi_obs_time + '_band_' + str(band_index + 1) + '_scatter_toa'
+        figure_title = roi_name + '_' + ahi_obs_time + '_band_' + str(band_index + 1) + '_scatter_toa_' + str(misr_camera_index)
         mapping_scatter(ahi_toa_misr, roi_misr_toa, figure_title, 'TOA')
 
         # record as npy file
@@ -369,7 +369,7 @@ def record_roi_misr_ahi(roi_name, band_index, misr_orbit, misr_camera_index, ahi
             'ahi_sr': roi_ahi_sr,
             'ahi_sr2misr': ahi_sr_misr
         }]
-        file_path = os.path.join(workspace, ahi_obs_time + '_band' + str(band_index + 1) + '.npy')
+        file_path = os.path.join(workspace, ahi_obs_time + '_band' + str(band_index + 1) + '_' + str(misr_camera_index) + '.npy')
         numpy.save(file_path, record_info)
         return roi_misr_brfv3, ahi_sr_misr, roi_misr_toa, ahi_toa_misr
     return [], [], [], []
