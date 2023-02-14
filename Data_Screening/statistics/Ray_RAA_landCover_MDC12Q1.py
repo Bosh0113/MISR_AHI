@@ -3,11 +3,13 @@ import math
 import numpy as np
 import matplotlib.pyplot as plt
 
-ws = r'D:\MISR_AHI_WS\230119'
+ws = r'H:\MISR_AHI_WS\230119'
 
 MCD12Q1_006_10KM_npy = os.path.join(ws, 'MCD12Q1_006_10km.npy')
 ray_matched_record_npy = os.path.join(ws, 'AHI_MISR_Ray-matched_50km.npy')
 raa_matched_record_npy = os.path.join(ws, 'AHI_MISR_RAA-matched_50km.npy')
+
+LC_SIZE = 0.1
 
 
 def get_bar_data(lc_map, matched_record):
@@ -16,8 +18,8 @@ def get_bar_data(lc_map, matched_record):
         loc = matched_info['location']
         lon = loc[0]
         lat = loc[1]
-        lc_lon_idx = int(lon - 85)
-        lc_lat_idx = int(60 - lat)
+        lc_lon_idx = int((lon - 85)/LC_SIZE)
+        lc_lat_idx = int((60 - lat)/LC_SIZE)
         lc_code = int(lc_map[lc_lat_idx][lc_lon_idx])
         lc_counts[lc_code] = lc_counts[lc_code] + 1
     return lc_counts
@@ -38,8 +40,7 @@ def fig_mapping(ray_values, raa_values):
     lc_labels = lc_labels[::-1]
     lc_colormap = lc_colormap[::-1]
 
-    # value_max = 1800    # full
-    value_max = 4500
+    value_max = 2250
 
     theta_internal = 0.01
     fig, ax = plt.subplots(subplot_kw={'projection': 'polar'})
@@ -121,8 +122,10 @@ def main():
     ray_bar_data = get_bar_data(modis_lc, ray_matches)
     raa_bar_data = get_bar_data(modis_lc, raa_matches)
     
-    print(ray_bar_data)
-    print(raa_bar_data)
+    # print(ray_bar_data)
+    # ray_bar_data[len(ray_bar_data)-2] = 1   # Snow and Ice
+    # print(raa_bar_data)
+    # raa_bar_data[len(raa_bar_data)-2] = 3   # Snow and Ice
 
     fig_mapping(ray_bar_data, raa_bar_data)
 
