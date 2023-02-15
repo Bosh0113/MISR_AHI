@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 ws = r'H:\MISR_AHI_WS\230119'
 
 MCD12Q1_006_10KM_npy = os.path.join(ws, 'MCD12Q1_006_10km.npy')
-ray_matched_record_npy = os.path.join(ws, 'AHI_MISR_Ray-matched_50km.npy')
+ray_matched_record_npy = os.path.join(ws, 'AHI_MISR_Ray-matched_10km.npy')
 
 LC_SIZE = 0.1
 
@@ -36,23 +36,23 @@ def tab_show(ray_values):
         # if ray_values[idx] > 0.0:
         #     print(lc_labels[idx], int(ray_values[idx]))
 
-        # Water 21
-        # Evergreen Needleleaf Forest 7
-        # Evergreen Broadleaf Forest 129
-        # Deciduous Needleleaf Forest 1
-        # Deciduous Broadleaf Forest 51
-        # Mixed Forests 42
-        # Closed Shrublands 34
-        # Open Shrublands 528
-        # Woody Savannas 72
-        # Savannas 101
-        # Grasslands 203
-        # Permanent Wetlands 4
-        # Croplands 77
-        # Urban and Built-Up 3
-        # Cropland/Natual Vegation 10
-        # Snow and Ice 0
-        # Barren 5
+    # Water 472
+    # Evergreen Needleleaf Forest 174
+    # Evergreen Broadleaf Forest 3263
+    # Deciduous Needleleaf Forest 25
+    # Deciduous Broadleaf Forest 1508
+    # Mixed Forests 1310
+    # Closed Shrublands 700
+    # Open Shrublands 13172
+    # Woody Savannas 1953
+    # Savannas 2615
+    # Grasslands 5378
+    # Permanent Wetlands 92
+    # Croplands 1813
+    # Urban and Built-Up 146
+    # Cropland/Natual Vegation 219
+    # Snow and Ice 26
+    # Barren 176
 
 
 def main():
