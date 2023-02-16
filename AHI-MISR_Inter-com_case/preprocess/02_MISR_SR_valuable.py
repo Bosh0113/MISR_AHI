@@ -118,22 +118,23 @@ if __name__ == "__main__":
                 roi_infos = roi_folder.split('_')
                 roi_name = roi_folder
                 misr_vza_str = roi_infos[0]
-                cood_point = [float(roi_infos[3]), float(roi_infos[2])]
+                cood_point = [float(roi_infos[3]), float(roi_infos[2])] # lon lat
                 misr_ray_matched_npy_filename = os.path.join(roi_folder_path, roi_name + '_matched_record.npy')
                 
                 matched_record = numpy.load(misr_ray_matched_npy_filename, allow_pickle=True)
                 roi_valuable_record = []
                 record_str = ''
-                matched_roi_info = matched_record[0]
-                roi_misr_infos = matched_roi_info['roi_misr_infos']
-                for roi_misr_info in roi_misr_infos:
-                    misr_path_orbit_camera = roi_misr_info['misr_path_orbit_camera']
-                    matched_info = roi_misr_info['matched_info']
-                    is_valuable = is_valuable_record(cood_point, misr_path_orbit_camera)
-                    if is_valuable:
-                        roi_valuable_record.append(matched_info)
-                        record_str += str(matched_info) + '\n'
-                record4AHI_AC_npy = os.path.join(roi_folder_path, roi_name + '_4AC_record.npy')
-                numpy.save(record4AHI_AC_npy, numpy.array(roi_valuable_record))    # save result as txt
-                with open(os.path.join(roi_folder_path, roi_name + '_4AC_record.txt'), 'w') as f:
-                    f.write(record_str)
+                if len(matched_record) > 0:
+                    matched_roi_info = matched_record[0]
+                    roi_misr_infos = matched_roi_info['roi_misr_infos']
+                    for roi_misr_info in roi_misr_infos:
+                        misr_path_orbit_camera = roi_misr_info['misr_path_orbit_camera']
+                        matched_info = roi_misr_info['matched_info']
+                        is_valuable = is_valuable_record(cood_point, misr_path_orbit_camera)
+                        if is_valuable:
+                            roi_valuable_record.append(matched_info)
+                            record_str += str(matched_info) + '\n'
+                    record4AHI_AC_npy = os.path.join(roi_folder_path, roi_name + '_4AC_record.npy')
+                    numpy.save(record4AHI_AC_npy, numpy.array(roi_valuable_record))    # save result as txt
+                    with open(os.path.join(roi_folder_path, roi_name + '_4AC_record.txt'), 'w') as f:
+                        f.write(record_str)
