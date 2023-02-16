@@ -246,6 +246,8 @@ def find_nearest_index(array, value):
 
 # main()
 if __name__ == "__main__":
+    FN_1_band3, FN_2_band3, FN_3_band3 = LUT_interpolation(LUT_PATH).LUT_interpolation_band3()
+    FN_1_band4, FN_2_band4, FN_3_band4 = LUT_interpolation(LUT_PATH).LUT_interpolation_band4()
 
     for band_name in ['band3', 'band4']:
 
@@ -277,11 +279,15 @@ if __name__ == "__main__":
         if band_name == 'band3':
             AHI_DATA_RESOLUTION = 0.005
             AHI_DATA_PIXEL_NUM = 24000
-            FN_1, FN_2, FN_3 = LUT_interpolation(LUT_PATH).LUT_interpolation_band3()
+            FN_1 = FN_1_band3
+            FN_2 = FN_2_band3
+            FN_3 = FN_3_band3
         elif band_name == 'band4':
             AHI_DATA_RESOLUTION = 0.01
             AHI_DATA_PIXEL_NUM = 12000
-            FN_1, FN_2, FN_3 = LUT_interpolation(LUT_PATH).LUT_interpolation_band4()
+            FN_1 = FN_1_band4
+            FN_2 = FN_2_band4
+            FN_3 = FN_3_band4
 
         roi_ullat = roi_extent[0]
         roi_ullon = roi_extent[1]
