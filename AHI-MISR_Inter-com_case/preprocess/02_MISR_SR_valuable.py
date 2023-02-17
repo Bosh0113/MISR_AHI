@@ -84,7 +84,7 @@ def is_valuable_MISR_BRF(cood_point, band_index, misr_orbit, misr_camera_index, 
 
     # if any cloud-free obs. is existed
     roi_misr_brfv3 = roi_misr_brfv3.flatten()
-    if len(roi_misr_brfv3[roi_misr_brfv3 > 0.0]) > 20:
+    if len(roi_misr_brfv3[roi_misr_brfv3 > 0.0]) > 50:
         return 1
     return 0
 
