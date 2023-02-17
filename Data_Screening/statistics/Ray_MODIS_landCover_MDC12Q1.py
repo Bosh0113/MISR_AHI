@@ -3,10 +3,10 @@ import math
 import numpy as np
 import matplotlib.pyplot as plt
 
-ws = r'H:\MISR_AHI_WS\230209'
+ws = r'D:\MISR_AHI_WS\230217'
 
 MCD12Q1_006_10KM_npy = os.path.join(ws, 'MCD12Q1_006_10km.npy')
-ray_matched_record_npy = os.path.join(ws, 'Ray_MODIS_land_lonlat.npy')
+ray_matched_record_npy = os.path.join(ws, 'Ray_MODIS_land_lonlat_10km.npy')
 
 LC_SIZE = 0.1
 
@@ -34,15 +34,16 @@ def tab_show(ray_values):
     for idx in range(len(ray_values)):
         if ray_values[idx] > 0.0:
             print(lc_labels[idx], int(ray_values[idx]))
-    # Water 31
-    # Evergreen Broadleaf Forest 509
-    # Woody Savannas 176
-    # Savannas 28
-    # Grasslands 4
-    # Permanent Wetlands 15
-    # Croplands 19
-    # Urban and Built-Up 7
-    # Cropland/Natual Vegation 41
+    # Water 517
+    # Evergreen Broadleaf Forest 8383
+    # Woody Savannas 2836
+    # Savannas 321
+    # Grasslands 57
+    # Permanent Wetlands 294
+    # Croplands 386
+    # Urban and Built-Up 100
+    # Cropland/Natual Vegation 639
+    # Barren 2
 
 
 def main():
