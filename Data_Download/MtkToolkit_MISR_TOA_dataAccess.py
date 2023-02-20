@@ -15,8 +15,8 @@ ssl._create_default_https_context = ssl._create_unverified_context
 
 def download_MISR_MIL2TCST02_HDF(folder, path, orbit):
     time_range = orbit_to_time_range(orbit)
-    s_time = time_range[0]
-    matchObj = re.search(r'(\d+)-(\d+)-(\d+)T', str(s_time))
+    time0 = time_range[0]
+    matchObj = re.search(r'(\d+)-(\d+)-(\d+)T', str(time0))
     yy = matchObj.group(1)
     mm = matchObj.group(2)
     dd = matchObj.group(3)
@@ -46,34 +46,64 @@ def download_MISR_MIL2TCST02_HDF(folder, path, orbit):
 
 def check_MISR_MIL2TCST02_HDF(folder, path, orbit):
     time_range = orbit_to_time_range(orbit)
-    s_time = time_range[0]
-    matchObj = re.search(r'(\d+)-(\d+)-(\d+)T', str(s_time))
+    time0 = time_range[0]
+    matchObj = re.search(r'(\d+)-(\d+)-(\d+)T', str(time0))
     yy = matchObj.group(1)
     mm = matchObj.group(2)
     dd = matchObj.group(3)
     t = str(yy) + '.' + str(mm) + '.' + str(dd)
-    P = 'P' + (3-len(str(path)))*'0' + str(path)
-    O_ = 'O' + (6-len(str(orbit)))*'0' + str(orbit)
+    P = 'P' + (3 - len(str(path))) * '0' + str(path)
+    O_ = 'O' + (6 - len(str(orbit))) * '0' + str(orbit)
     F = 'F' + '05'
     v = '0011'
     base_url = 'https://opendap.larc.nasa.gov/opendap/MISR/MIL2TCAL.002'
     filename = 'MISR_AM1_TC_ALBEDO_' + P + '_' + O_ + '_' + F + '_' + v + '.hdf'
 
+    dd1 = matchObj.group(3)
+    t1 = str(yy) + '.' + str(mm) + '.' + str(dd)
+
     download_url = base_url + '/' + t + '/' + filename
+
+    dd1 = matchObj.group(3) + 1
+    t1 = str(yy) + '.' + str(mm) + '.' + str(dd1)
+    download_url1 = base_url + '/' + t1 + '/' + filename
+
     storage_path = folder + '/' + filename
 
-    try:
-        MtkFile(storage_path)
-    except Exception as e:
-        print(e)
+    if os.path.exists(storage_path):
+        try:
+            m_file = MtkFile(storage_path)
+            return storage_path
+        except Exception as e:
+            print(e)
+            try:
+                urllib.request.urlretrieve(download_url, filename=storage_path)
+                return storage_path
+            except Exception as e:
+                print('Error: ' + download_url)
+                print(e)
+                try:
+                    urllib.request.urlretrieve(download_url1, filename=storage_path)
+                    return storage_path
+                except Exception as e:
+                    print('Error: ' + download_url1)
+                    print(e)
+                    return ''
+    else:
+        print('No file:', storage_path)
         try:
             urllib.request.urlretrieve(download_url, filename=storage_path)
-            print('Download: ' + download_url)
             return storage_path
         except Exception as e:
             print('Error: ' + download_url)
             print(e)
-            return ''
+            try:
+                urllib.request.urlretrieve(download_url1, filename=storage_path)
+                return storage_path
+            except Exception as e:
+                print('Error: ' + download_url1)
+                print(e)
+                return ''
 
 
 if __name__ == "__main__":

@@ -221,8 +221,8 @@ def mapping_scatter(ahi_arrray, misr_array, figure_title, axis_min=0.0, axis_max
 
 def download_MISR_MIL2TCST02_HDF(folder, path, orbit):
     time_range = orbit_to_time_range(orbit)
-    s_time = time_range[0]
-    matchObj = re.search(r'(\d+)-(\d+)-(\d+)T', str(s_time))
+    time0 = time_range[0]
+    matchObj = re.search(r'(\d+)-(\d+)-(\d+)T', str(time0))
     yy = matchObj.group(1)
     mm = matchObj.group(2)
     dd = matchObj.group(3)
@@ -234,7 +234,15 @@ def download_MISR_MIL2TCST02_HDF(folder, path, orbit):
     base_url = 'https://opendap.larc.nasa.gov/opendap/MISR/MIL2TCAL.002'
     filename = 'MISR_AM1_TC_ALBEDO_' + P + '_' + O_ + '_' + F + '_' + v + '.hdf'
 
+    dd1 = matchObj.group(3)
+    t1 = str(yy) + '.' + str(mm) + '.' + str(dd)
+
     download_url = base_url + '/' + t + '/' + filename
+
+    dd1 = matchObj.group(3) + 1
+    t1 = str(yy) + '.' + str(mm) + '.' + str(dd1)
+    download_url1 = base_url + '/' + t1 + '/' + filename
+
     storage_path = folder + '/' + filename
 
     if os.path.exists(storage_path):
@@ -249,7 +257,13 @@ def download_MISR_MIL2TCST02_HDF(folder, path, orbit):
             except Exception as e:
                 print('Error: ' + download_url)
                 print(e)
-                return ''
+                try:
+                    urllib.request.urlretrieve(download_url1, filename=storage_path)
+                    return storage_path
+                except Exception as e:
+                    print('Error: ' + download_url1)
+                    print(e)
+                    return ''
     else:
         print('No file:', storage_path)
         try:
@@ -258,7 +272,13 @@ def download_MISR_MIL2TCST02_HDF(folder, path, orbit):
         except Exception as e:
             print('Error: ' + download_url)
             print(e)
-            return ''
+            try:
+                urllib.request.urlretrieve(download_url1, filename=storage_path)
+                return storage_path
+            except Exception as e:
+                print('Error: ' + download_url1)
+                print(e)
+                return ''
 
 
 def record_roi_misr_ahi(roi_name, band_index, misr_orbit, misr_camera_index,

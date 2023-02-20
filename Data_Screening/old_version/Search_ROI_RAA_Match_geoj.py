@@ -242,28 +242,28 @@ def get_region_mean_ahi_sza(temp_folder, ahi_time, region_extent):
 
 def re_download_MISR_MIL2ASLS03_NC(folder, path, orbit):
     time_range = orbit_to_time_range(orbit)
-    s_time = time_range[0]
-    matchObj = re.search(r'(\d+)-(\d+)-(\d+)T', str(s_time))
-    yy = matchObj.group(1)
-    mm = matchObj.group(2)
-    dd = matchObj.group(3)
-    
-    t = str(yy) + '.' + str(mm) + '.' + str(dd)
-    P = 'P' + (3-len(str(path)))*'0' + str(path)
-    O_ = 'O' + (6-len(str(orbit)))*'0' + str(orbit)
-    F = 'F' + '08'
-    v = '0023'
-    base_url = 'https://opendap.larc.nasa.gov/opendap/MISR/MIL2ASLS.003'
-    filename = 'MISR_AM1_AS_LAND_' + P + '_' + O_ + '_' + F + '_' + v + '.nc'
+    for orbit_time in time_range:
+        matchObj = re.search(r'(\d+)-(\d+)-(\d+)T', str(orbit_time))
+        yy = matchObj.group(1)
+        mm = matchObj.group(2)
+        dd = matchObj.group(3)
+        
+        t = str(yy) + '.' + str(mm) + '.' + str(dd)
+        P = 'P' + (3-len(str(path)))*'0' + str(path)
+        O_ = 'O' + (6-len(str(orbit)))*'0' + str(orbit)
+        F = 'F' + '08'
+        v = '0023'
+        base_url = 'https://opendap.larc.nasa.gov/opendap/MISR/MIL2ASLS.003'
+        filename = 'MISR_AM1_AS_LAND_' + P + '_' + O_ + '_' + F + '_' + v + '.nc'
 
-    download_url = base_url + '/' + t + '/' + filename
-    storage_path = folder + '/' + filename
+        download_url = base_url + '/' + t + '/' + filename
+        storage_path = folder + '/' + filename
 
-    try:
-        urllib.request.urlretrieve(download_url, filename=storage_path)
-    except Exception as e:
-        print('Error: ' + download_url)
-        print(e)
+        try:
+            urllib.request.urlretrieve(download_url, filename=storage_path)
+        except Exception as e:
+            print('Error: ' + download_url)
+            print(e)
 
 
 if __name__ == "__main__":
