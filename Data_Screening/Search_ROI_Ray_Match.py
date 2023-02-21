@@ -98,7 +98,7 @@ def get_misr_obs_angle(roi_extent, orbit, camera_idx):
         if len(roi_misr_vza_list) > 0:
             roi_misr_vza = roi_misr_vza_list.mean()
         else:
-            return 0.0, 0.0
+            return None, None
         # MISR VAA
         roi_misr_vaa = 0.0
         vaa_field = m_grid.field('GEOMETRY/View_Azimuth_Angle[' + str(camera_idx) + ']')
@@ -108,14 +108,17 @@ def get_misr_obs_angle(roi_extent, orbit, camera_idx):
         roi_misr_vaa_list = roi_misr_vaa_list[roi_misr_vaa_list > 0.]
         # has available values?
         if len(roi_misr_vaa_list) > 0:
-            roi_misr_vaa = roi_misr_vaa_list.mean()
+            if roi_misr_vaa_list.max() - roi_misr_vaa_list.min() > 180:
+                roi_misr_vaa = 0.0
+            else:
+                roi_misr_vaa = roi_misr_vaa_list.mean()
         else:
-            return 0.0, 0.0
+            return None, None
 
         return roi_misr_vza, roi_misr_vaa
 
     else:
-        return 0.0, 0.0
+        return None, None
 
 
 # get time offset to UTC, by lontitude not timezone
@@ -207,7 +210,7 @@ def roi_ray_match(roi_name, cood_point, misr_vza_str):
             for camera_idx in camera_idx_array:
                 try:
                     misr_vza, misr_vaa = get_misr_obs_angle(roi_extent, orbit, camera_idx)
-                    if misr_vza != 0.0:
+                    if misr_vza != None:
                         scattering_angle = get_scattering_angle(misr_vza, misr_vaa, ahi_vza, ahi_vaa)
                         if scattering_angle > SCATTERING_ANGLE_THRESHOLD:
                             # get AHI data with MISR Obs time

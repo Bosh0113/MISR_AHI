@@ -169,14 +169,22 @@ def misr_ahi_raa_matching(roi_extent, roi_vza_misr, roi_vza_ahi, misr_ls_file, a
     try:
         roi_misr_saa_list = misr_saa_true_list(roi_misr_saa_list)
         f_raa_data = get_misr_raa(roi_misr_vaa_list, roi_misr_saa_list)
-        roi_misr_vaa = roi_misr_vaa_list.mean()
+        roi_misr_vaa = None
+        if roi_misr_vaa_list.max() - roi_misr_vaa_list.min() > 180:
+            roi_misr_vaa = 0.0
+        else:
+            roi_misr_vaa = roi_misr_vaa_list.mean()
         roi_misr_saa = roi_misr_saa_list.mean()
         roi_misr_raa = f_raa_data.mean()
         # AHI RAA
         ahi_vaa_dn = numpy.fromfile(ahi_vaa_file, dtype='>f4')
         ahi_saa_dn = numpy.fromfile(ahi_saa_file, dtype='>f4')
         roi_ahi_all_vaa, roi_ahi_all_saa, roi_ahi_all_raa = get_region_ahi_raa(roi_extent, ahi_vaa_dn, ahi_saa_dn)
-        roi_ahi_vaa = roi_ahi_all_vaa.mean()
+        roi_ahi_vaa = None
+        if roi_ahi_all_vaa.max() - roi_ahi_all_vaa.min() > 180:
+            roi_ahi_vaa = 0.0
+        else:
+            roi_ahi_vaa = roi_ahi_all_vaa.mean()
         roi_ahi_saa = roi_ahi_all_saa.mean()
         roi_ahi_raa = roi_ahi_all_raa.mean()
         
