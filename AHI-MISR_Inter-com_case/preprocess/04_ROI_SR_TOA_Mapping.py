@@ -233,13 +233,14 @@ def download_MISR_MIL2TCST02_HDF(folder, path, orbit):
     base_url = 'https://opendap.larc.nasa.gov/opendap/MISR/MIL2TCAL.002'
     filename = 'MISR_AM1_TC_ALBEDO_' + P + '_' + O_ + '_' + F + '_' + v + '.hdf'
 
-    dd1 = matchObj.group(3)
-    t1 = str(yy) + '.' + str(mm) + '.' + str(dd)
-
     download_url = base_url + '/' + t + '/' + filename
 
-    dd1 = matchObj.group(3) + 1
-    t1 = str(yy) + '.' + str(mm) + '.' + str(dd1)
+    time1 = time_range[1]
+    matchObj1 = re.search(r'(\d+)-(\d+)-(\d+)T', str(time1))
+    yy1 = matchObj1.group(1)
+    mm1 = matchObj1.group(2)
+    dd1 = matchObj1.group(3)
+    t1 = str(yy1) + '.' + str(mm1) + '.' + str(dd1)
     download_url1 = base_url + '/' + t1 + '/' + filename
 
     storage_path = folder + '/' + filename
