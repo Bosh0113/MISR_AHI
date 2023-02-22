@@ -183,7 +183,7 @@ def main():
     matched_record = []
     misr_ray_matched_npy_filename = os.path.join(WORK_SPACE, 'MISR_matched_record_10km.npy')
 
-    point_locations_npy_filename = '/disk1/workspace/20221103/MISR_FM/AHI_180_10km_onland_lonlat.npy'
+    point_locations_npy_filename = os.path.join(WORK_SPACE, 'AHI_180_10km_onland_lonlat.npy')
     search_cood = numpy.load(point_locations_npy_filename)
     for cood_point_idx in tqdm(range(len(search_cood)), desc='Location', leave=False):
         cood_point = search_cood[cood_point_idx]
