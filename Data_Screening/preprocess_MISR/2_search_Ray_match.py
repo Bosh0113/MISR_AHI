@@ -10,7 +10,7 @@ from tqdm import tqdm
 
 WORK_SPACE = os.getcwd()
 
-ROI_SIZE = 0.1
+ROI_SIZE = 0.04
 MISR_CAMERA_INDEX = {'0.0': [4], '26.1': [3, 5], '45.6': [2, 6], '60.0': [1, 7], '70.5': [0, 8]}
 
 START_TIME = '2017-01-01T00:00:00Z'
@@ -19,11 +19,12 @@ END_TIME = '2017-12-31T23:59:59Z'
 AHI_LOCALTIME_START = '08:00:00Z'
 AHI_LOCALTIME_END = '15:59:59Z'
 
+# VZA diff
+DIFF_VZA_THRESHOLD = 1 # degree
+# VAA diff
+DIFF_VAA_THRESHOLD = 5 # degree
 # time diff
 DIFF_TIME_THRESHOLD = 10 * 60  # seconds
-
-# angle threshold
-SCATTERING_ANGLE_THRESHOLD = 175
 
 MISR_DATA_FOLDER = '/disk1/Data/MISR4AHI2015070120210630_3'
 AHI_VZA_BIN = '/disk1/Data/AHI/VZA/202201010000.sat.zth.fld.4km.bin'
@@ -168,10 +169,25 @@ def get_ahi_obs_angle(roi_extent):
     return ahi_vza.mean(), ahi_vaa.mean()
 
 
-def get_scattering_angle(misr_vza, misr_vaa, ahi_vza, ahi_vaa):
-    # cos(ScatteringAngle) = -cos(GEO_VZA)*cos(LEO_VZA)-cos(GEO_VAA-LEO_VAA)*sin(GEO_VZA)*sin(LEO_VZA)
-    scattering_angle = math.degrees(math.acos(-math.cos(math.radians(ahi_vza)) * math.cos(math.radians(misr_vza)) - math.cos(math.radians(ahi_vaa - misr_vaa)) * math.sin(math.radians(ahi_vza)) * math.sin(math.radians(misr_vza))))
-    return scattering_angle
+def get_raa(aa1, aa2):
+    raa = 0
+    diff = abs(aa1 - aa2)
+    if diff < 180:
+        raa = diff
+    else:
+        raa = 360 - diff
+    return raa
+
+
+def is_vza_vaa_matched(misr_vza, misr_vaa, ahi_vza, ahi_vaa):
+    if abs(misr_vza - ahi_vza) <= DIFF_VZA_THRESHOLD:
+        diff_vaa = get_raa(misr_vaa, ahi_vaa)
+        if diff_vaa <= DIFF_VAA_THRESHOLD:
+            return True
+        else:
+            return False
+    else:
+        return False
 
 
 def main():
@@ -216,8 +232,8 @@ def main():
                         try:
                             misr_vza, misr_vaa = get_misr_obs_angle(roi_extent, orbit, camera_idx)
                             if misr_vza != None:
-                                scattering_angle = get_scattering_angle(misr_vza, misr_vaa, ahi_vza, ahi_vaa)
-                                if scattering_angle > SCATTERING_ANGLE_THRESHOLD:
+                                vza_vaa_matched = is_vza_vaa_matched(misr_vza, misr_vaa, ahi_vza, ahi_vaa)
+                                if vza_vaa_matched:
                                     # get AHI data with MISR Obs time
                                     roi_blocks = roi_r.block_range(path)
                                     block_no = roi_blocks[0]
