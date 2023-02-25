@@ -25,6 +25,9 @@ DN_PATH = '/data01/GEO/INPUT/'
 CAMS_AERO_PATH = '/data01/GEO/INPUT/AEROSOL_TYPE/'
 AL_PATH = '/data01/GEO/INPUT/ELEVATION_GEO/AHI/MERIT_DEM_AHI_10km.dat'
 
+ROI_SIZE = 0.04
+ROI_OFFSET_DIS = ROI_SIZE/2
+
 sza = np.linspace(0, 80, 17)
 vza = np.linspace(0, 80, 17)
 water = np.linspace(0, 7, 8)
@@ -254,7 +257,7 @@ if __name__ == "__main__":
                     roi_c_lon = float(roi_infos[3])
                     riu_c_lat = float(roi_infos[2])
                     # roi_extent: (ullat, ullon, lrlat, lrlon)
-                    roi_extent = [riu_c_lat + 0.05, roi_c_lon - 0.05, riu_c_lat - 0.05, roi_c_lon + 0.05]
+                    roi_extent = [riu_c_lat + ROI_OFFSET_DIS, roi_c_lon - ROI_OFFSET_DIS, riu_c_lat - ROI_OFFSET_DIS, roi_c_lon + ROI_OFFSET_DIS]
                     valuable_record_npy = os.path.join(roi_folder_path, roi_name + '_4AC_record.npy')
                     if os.path.exists(valuable_record_npy):
                         valuable_record = np.load(valuable_record_npy, allow_pickle=True)

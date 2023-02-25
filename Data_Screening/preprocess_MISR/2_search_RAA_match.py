@@ -195,10 +195,10 @@ def misr_ahi_raa_matching(roi_extent, roi_vza_misr, roi_vza_ahi, misr_ls_file, a
         roi_ahi_raa = roi_ahi_all_raa.mean()
         
         # scattering angle with RAA
-        vza_vaa_matched = is_vza_raa_matched(roi_vza_misr, roi_misr_raa, roi_vza_ahi, roi_ahi_raa)
+        vza_raa_matched = is_vza_raa_matched(roi_vza_misr, roi_misr_raa, roi_vza_ahi, roi_ahi_raa)
 
-        # misr_vaa, ahi_vaa, misr_saa, ahi_saa, misr_raa, ahi_raa, vza_vaa_matched
-        return roi_misr_vaa, roi_ahi_vaa, roi_misr_saa, roi_ahi_saa, roi_misr_raa, roi_ahi_raa, vza_vaa_matched
+        # misr_vaa, ahi_vaa, misr_saa, ahi_saa, misr_raa, ahi_raa, vza_raa_matched
+        return roi_misr_vaa, roi_ahi_vaa, roi_misr_saa, roi_ahi_saa, roi_misr_raa, roi_ahi_raa, vza_raa_matched
     except Exception as e:
         print(e)
         return 0, 0, 0, 0, 0, 0, 0
@@ -429,9 +429,9 @@ if __name__ == "__main__":
                                                 except Exception as e:
                                                     print(e)
                                             if os.path.exists(ahi_saa_bin):
-                                                m_vaa, ahi_vaa, m_saa, ahi_saa, m_raa, ahi_raa, vza_vaa_matched = misr_ahi_raa_matching(roi_extent, roi_misr_vza, roi_ahi_vza, misr_nc_filename, AHI_VAA_BIN, ahi_saa_bin, camera)
+                                                m_vaa, ahi_vaa, m_saa, ahi_saa, m_raa, ahi_raa, vza_raa_matched = misr_ahi_raa_matching(roi_extent, roi_misr_vza, roi_ahi_vza, misr_nc_filename, AHI_VAA_BIN, ahi_saa_bin, camera)
                                                 # ## RAA match ###
-                                                if vza_vaa_matched:
+                                                if vza_raa_matched:
                                                     matched_flag = True
                                                     # geo-obs condition
                                                     misr_orbit = orbit
