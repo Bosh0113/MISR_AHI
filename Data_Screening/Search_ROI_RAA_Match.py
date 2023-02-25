@@ -13,7 +13,7 @@ import urllib.request
 # storage path
 WORK_SPACE = os.getcwd()
 
-ROI_SIZE = 0.1
+ROI_SIZE = 0.04
 MISR_CAMERA_INDEX = {'0.0': [4], '26.1': [3, 5], '45.6': [2, 6], '60.0': [1, 7], '70.5': [0, 8]}
 
 # time range for our study
@@ -23,10 +23,12 @@ END_TIME = '2019-12-31T23:59:59Z'
 AHI_LOCALTIME_START = '08:00:00Z'
 AHI_LOCALTIME_END = '15:59:59Z'
 
+# VZA diff
+DIFF_VZA_THRESHOLD = 1 # degree
+# RAA diff
+DIFF_RAA_THRESHOLD = 5 # degree
 # time diff
 SZA_TIME_THRESHOLD = 10 * 60  # seconds
-# angle threshold
-SCATTERING_ANGLE_THRESHOLD = 175
 
 # data path
 MISR_DATA_FOLDER = '/data01/people/beichen/data/MISR4AHI2015070120210630_3'
@@ -143,10 +145,14 @@ def misr_saa_true_list(saa_dn_list):
     return numpy.array(saa_list)
 
 
-def get_scattering_angle(misr_vza, misr_raa, ahi_vza, ahi_raa):
-    # cos(ScatteringAngle) = -cos(GEO_VZA)*cos(LEO_VZA)-cos(GEO_VAA-LEO_VAA)*sin(GEO_VZA)*sin(LEO_VZA)
-    scattering_angle = math.degrees(math.acos(-math.cos(math.radians(ahi_vza)) * math.cos(math.radians(misr_vza)) - math.cos(math.radians(ahi_raa - misr_raa)) * math.sin(math.radians(ahi_vza)) * math.sin(math.radians(misr_vza))))
-    return scattering_angle
+def is_vza_raa_matched(misr_vza, misr_raa, ahi_vza, ahi_raa):
+    if abs(misr_vza - ahi_vza) <= DIFF_VZA_THRESHOLD:
+        if abs(misr_raa - ahi_raa) <= DIFF_RAA_THRESHOLD:
+            return True
+        else:
+            return False
+    else:
+        return False
 
 
 def misr_ahi_raa_matching(roi_extent, roi_vza_misr, roi_vza_ahi, misr_ls_file, ahi_vaa_file, ahi_saa_file, camera_index):
@@ -188,10 +194,10 @@ def misr_ahi_raa_matching(roi_extent, roi_vza_misr, roi_vza_ahi, misr_ls_file, a
         roi_ahi_raa = roi_ahi_all_raa.mean()
         
         # scattering angle with RAA
-        scattering_angle_raa = get_scattering_angle(roi_vza_misr, roi_misr_raa, roi_vza_ahi, roi_ahi_raa)
+        vza_vaa_matched = is_vza_raa_matched(roi_vza_misr, roi_misr_raa, roi_vza_ahi, roi_ahi_raa)
 
-        # misr_vaa, ahi_vaa, misr_saa, ahi_saa, misr_raa, ahi_raa, scattering_angle_raa
-        return roi_misr_vaa, roi_ahi_vaa, roi_misr_saa, roi_ahi_saa, roi_misr_raa, roi_ahi_raa, scattering_angle_raa
+        # misr_vaa, ahi_vaa, misr_saa, ahi_saa, misr_raa, ahi_raa, vza_vaa_matched
+        return roi_misr_vaa, roi_ahi_vaa, roi_misr_saa, roi_ahi_saa, roi_misr_raa, roi_ahi_raa, vza_vaa_matched
     except Exception as e:
         print(e)
         return 0, 0, 0, 0, 0, 0, 0
@@ -414,10 +420,9 @@ def roi_raa_match(roi_name, cood_point, misr_vza_str):
                                         except Exception as e:
                                             print(e)
                                     if os.path.exists(ahi_saa_bin):
-                                        m_vaa, ahi_vaa, m_saa, ahi_saa, m_raa, ahi_raa, scattering_angle_raa = misr_ahi_raa_matching(roi_extent, roi_misr_vza, roi_ahi_vza, misr_nc_filename, AHI_VAA_BIN, ahi_saa_bin, camera_idx)
+                                        m_vaa, ahi_vaa, m_saa, ahi_saa, m_raa, ahi_raa, vza_vaa_matched = misr_ahi_raa_matching(roi_extent, roi_misr_vza, roi_ahi_vza, misr_nc_filename, AHI_VAA_BIN, ahi_saa_bin, camera)
                                         # ## RAA match ###
-                                        scattering_angle_raa = round(scattering_angle_raa, 3)
-                                        if scattering_angle_raa > SCATTERING_ANGLE_THRESHOLD:
+                                        if vza_vaa_matched:
                                             matched_flag = True
                                             # geo-obs condition
                                             misr_orbit = orbit
@@ -436,13 +441,13 @@ def roi_raa_match(roi_name, cood_point, misr_vza_str):
                                             misr_roi_sza = '%.3f' % misr_roi_sza
                                             ahi_roi_sza = get_region_mean_ahi_sza(temp_ws, ahi_obs_time, roi_extent)
                                             ahi_roi_sza = '%.3f' % ahi_roi_sza
-                                            # misr_path misr_orbit misr_camera_index misr_block_time ahi_time misr_vza ahi_vza misr_vaa ahi_vaa misr_saa ahi_saa misr_raa ahi_raa misr_sza ahi_sza scattering_angle_raa
-                                            record_item = str(path) + '\t' + str(misr_orbit) + '\t' + str(misr_camera) + '\t' + misr_roi_block_time + '\t' + ahi_obs_time + '\t' + str(misr_roi_vza) + '\t' + str(ahi_roi_vza) + '\t' + str(misr_roi_vaa) + '\t' + str(ahi_roi_vaa) + '\t' + str(misr_roi_saa) + '\t' + str(ahi_roi_saa) + '\t' + str(misr_roi_raa) + '\t' + str(ahi_roi_raa) + '\t' + str(misr_roi_sza) + '\t' + str(ahi_roi_sza) + '\t' + str(scattering_angle_raa)
+                                            # misr_path misr_orbit misr_camera_index misr_block_time ahi_time misr_vza ahi_vza misr_vaa ahi_vaa misr_saa ahi_saa misr_raa ahi_raa misr_sza ahi_sza
+                                            record_item = str(path) + '\t' + str(misr_orbit) + '\t' + str(misr_camera) + '\t' + misr_roi_block_time + '\t' + ahi_obs_time + '\t' + str(misr_roi_vza) + '\t' + str(ahi_roi_vza) + '\t' + str(misr_roi_vaa) + '\t' + str(ahi_roi_vaa) + '\t' + str(misr_roi_saa) + '\t' + str(ahi_roi_saa) + '\t' + str(misr_roi_raa) + '\t' + str(ahi_roi_raa) + '\t' + str(misr_roi_sza) + '\t' + str(ahi_roi_sza)
                                             print(record_item)
                                             geocond_record_str += record_item + '\n'
                                             # record matched info
                                             matched_obs_info = [
-                                                str(path), str(misr_orbit), str(misr_camera), misr_roi_block_time, ahi_obs_time, str(misr_roi_vza), str(ahi_roi_vza), str(misr_roi_vaa), str(ahi_roi_vaa), str(misr_roi_saa), str(ahi_roi_saa), str(misr_roi_raa), str(ahi_roi_raa), str(misr_roi_sza), str(ahi_roi_sza), str(scattering_angle_raa)
+                                                str(path), str(misr_orbit), str(misr_camera), misr_roi_block_time, ahi_obs_time, str(misr_roi_vza), str(ahi_roi_vza), str(misr_roi_vaa), str(ahi_roi_vaa), str(misr_roi_saa), str(ahi_roi_saa), str(misr_roi_raa), str(ahi_roi_raa), str(misr_roi_sza), str(ahi_roi_sza)
                                             ]
                                             match_info_record = {}
                                             misr_path_orbit_camera = 'P' + (3 - len(str(path))) * '0' + str(path) + '_O' + (6 - len(str(orbit))) * '0' + str(orbit) + '_' + str(camera_idx)
