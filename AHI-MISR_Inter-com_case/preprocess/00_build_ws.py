@@ -4,7 +4,7 @@ import numpy
 base_path = '/data01/people/beichen/workspace/20230215'
 
 MCD12Q1_006_10KM_npy = os.path.join(base_path, 'MCD12Q1_006_10km.npy')
-misr_matched_info_npy = os.path.join(base_path, 'AHI_MISR_Ray-matched_50km.npy')
+misr_matched_info_npy = os.path.join(base_path, 'AHI_MISR_Ray-matched_1mon.npy')
 
 LC_SIZE = 0.1
 MISR_CAMERA_ANGLE = {
