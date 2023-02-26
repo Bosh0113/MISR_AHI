@@ -9,7 +9,7 @@ from MisrToolkit import MtkRegion, MtkFile, path_time_range_to_orbit_list, orbit
 
 WORK_SPACE = os.getcwd()
 
-ROI_SIZE = 0.04
+ROI_SIZE = 0.02
 MISR_CAMERA_INDEX = {'0': [4], '26': [3, 5], '45': [2, 6], '60': [1, 7], '70': [0, 8]}
 
 START_TIME = '2017-01-01T00:00:00Z'

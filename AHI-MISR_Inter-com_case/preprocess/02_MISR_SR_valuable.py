@@ -12,7 +12,8 @@ MISR_NC_FOLDER = '/data01/people/beichen/data/MISR4AHI2015070120210630_3'
 
 AHI_RESOLUTION = 0.01
 
-CLEAR_SKY_PIXEL = 9
+CHECK_SIZE = 0.1
+CLEAR_SKY_PIXEL = 64
 
 
 def BRF_TrueValue(o_value, scale, offset):
@@ -34,10 +35,10 @@ def find_nearest_index(array, value):
 
 
 def get_roi_latlon_list(center_lat, center_lon):
-    roi_ullat = center_lat + 0.05
-    roi_ullon = center_lon - 0.05
-    roi_lrlat = center_lat - 0.05
-    roi_lrlon = center_lon + 0.05
+    roi_ullat = center_lat + CHECK_SIZE/2
+    roi_ullon = center_lon - CHECK_SIZE/2
+    roi_lrlat = center_lat - CHECK_SIZE/2
+    roi_lrlon = center_lon + CHECK_SIZE/2
     ahi_lats = numpy.arange(60. - AHI_RESOLUTION / 2, -60, -AHI_RESOLUTION)
     ahi_lons = numpy.arange(85. + AHI_RESOLUTION / 2, 205, AHI_RESOLUTION)
     n_lats = ahi_lats[find_nearest_index(ahi_lats, roi_ullat):find_nearest_index(ahi_lats, roi_lrlat) + 1]

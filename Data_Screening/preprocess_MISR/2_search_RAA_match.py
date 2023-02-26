@@ -31,6 +31,9 @@ DIFF_RAA_THRESHOLD = 5 # degree
 # time diff
 SZA_TIME_THRESHOLD = 10 * 60  # seconds
 
+# # angle threshold
+# SCATTERING_ANGLE_THRESHOLD = 175
+
 # data path
 MISR_DATA_FOLDER = '/data01/people/beichen/data/MISR4AHI2015070120210630_3'
 AHI_VZA_BIN = '/data01/people/beichen/data/AHI/VZA/202201010000.sat.zth.fld.4km.bin'
@@ -156,6 +159,12 @@ def is_vza_raa_matched(misr_vza, misr_raa, ahi_vza, ahi_raa):
         return False
 
 
+# def get_scattering_angle(misr_vza, misr_raa, ahi_vza, ahi_raa):
+#     # cos(ScatteringAngle) = -cos(GEO_VZA)*cos(LEO_VZA)-cos(GEO_VAA-LEO_VAA)*sin(GEO_VZA)*sin(LEO_VZA)
+#     scattering_angle = math.degrees(math.acos(-math.cos(math.radians(ahi_vza)) * math.cos(math.radians(misr_vza)) - math.cos(math.radians(ahi_raa - misr_raa)) * math.sin(math.radians(ahi_vza)) * math.sin(math.radians(misr_vza))))
+#     return scattering_angle
+
+
 def misr_ahi_raa_matching(roi_extent, roi_vza_misr, roi_vza_ahi, misr_ls_file, ahi_vaa_file, ahi_saa_file, camera_index):
     # MISR RAA
     roi_r = MtkRegion(roi_extent[0], roi_extent[1], roi_extent[2], roi_extent[3])
@@ -195,7 +204,11 @@ def misr_ahi_raa_matching(roi_extent, roi_vza_misr, roi_vza_ahi, misr_ls_file, a
         roi_ahi_raa = roi_ahi_all_raa.mean()
         
         # scattering angle with RAA
+        # scattering_angle_raa = get_scattering_angle(roi_vza_misr, roi_misr_raa, roi_vza_ahi, roi_ahi_raa)
         vza_raa_matched = is_vza_raa_matched(roi_vza_misr, roi_misr_raa, roi_vza_ahi, roi_ahi_raa)
+
+        # # misr_vaa, ahi_vaa, misr_saa, ahi_saa, misr_raa, ahi_raa, scattering_angle_raa
+        # return roi_misr_vaa, roi_ahi_vaa, roi_misr_saa, roi_ahi_saa, roi_misr_raa, roi_ahi_raa, scattering_angle_raa
 
         # misr_vaa, ahi_vaa, misr_saa, ahi_saa, misr_raa, ahi_raa, vza_raa_matched
         return roi_misr_vaa, roi_ahi_vaa, roi_misr_saa, roi_ahi_saa, roi_misr_raa, roi_ahi_raa, vza_raa_matched
@@ -283,7 +296,7 @@ def re_download_MISR_MIL2ASLS03_NC(folder, path, orbit):
 
 if __name__ == "__main__":
     # search RAA match
-    tab_str = 'misr_path misr_orbit misr_camera_index misr_block_time ahi_time misr_vza ahi_vza misr_vaa ahi_vaa misr_saa ahi_saa misr_raa ahi_raa misr_sza ahi_sza scattering_angle_raa(GEO-LEO)'
+    tab_str = 'misr_path misr_orbit misr_camera_index misr_block_time ahi_time misr_vza ahi_vza misr_vaa ahi_vaa misr_saa ahi_saa misr_raa ahi_raa misr_sza ahi_sza'
     geocond_record_str = tab_str + '\n'
     # angles of MISR cameras
     MISRVZAs = [0.0, 26.1, 45.6, 60.0, 70.5]
@@ -429,6 +442,9 @@ if __name__ == "__main__":
                                                 except Exception as e:
                                                     print(e)
                                             if os.path.exists(ahi_saa_bin):
+                                                # m_vaa, ahi_vaa, m_saa, ahi_saa, m_raa, ahi_raa, scattering_angle_raa = misr_ahi_raa_matching(roi_extent, roi_misr_vza, roi_ahi_vza, misr_nc_filename, AHI_VAA_BIN, ahi_saa_bin, camera)
+                                                # scattering_angle_raa = round(scattering_angle_raa, 3)
+                                                # if scattering_angle_raa > SCATTERING_ANGLE_THRESHOLD:                                                
                                                 m_vaa, ahi_vaa, m_saa, ahi_saa, m_raa, ahi_raa, vza_raa_matched = misr_ahi_raa_matching(roi_extent, roi_misr_vza, roi_ahi_vza, misr_nc_filename, AHI_VAA_BIN, ahi_saa_bin, camera)
                                                 # ## RAA match ###
                                                 if vza_raa_matched:

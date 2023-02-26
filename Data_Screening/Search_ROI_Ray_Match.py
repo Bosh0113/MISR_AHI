@@ -193,7 +193,7 @@ def roi_ray_match(roi_name, cood_point, misr_vza_str):
     print(roi_name)
     print(cood_point)
     # search full matching
-    geocond_record_str = 'MISR_path MISR_orbit camera_idx MISR_roi_time AHI_roi_time MISR_VZA AHI_VZA MISR_VAA AHI_VAA Scattering_Angle(GEO-LEO)\n'
+    geocond_record_str = 'MISR_path MISR_orbit camera_idx MISR_roi_time AHI_roi_time MISR_VZA AHI_VZA MISR_VAA AHI_VAA\n'
     # print('MISR VZAs', misr_vza_str)
     # print(cood_point)
     # record

@@ -26,6 +26,9 @@ DIFF_VAA_THRESHOLD = 5 # degree
 # time diff
 DIFF_TIME_THRESHOLD = 10 * 60  # seconds
 
+# # angle threshold
+# SCATTERING_ANGLE_THRESHOLD = 175
+
 MISR_DATA_FOLDER = '/disk1/Data/MISR4AHI2015070120210630_3'
 AHI_VZA_BIN = '/disk1/Data/AHI/VZA/202201010000.sat.zth.fld.4km.bin'
 AHI_VAA_BIN = '/disk1/Data/AHI/VAA/202201010000.sat.azm.fld.4km.bin'
@@ -190,10 +193,16 @@ def is_vza_vaa_matched(misr_vza, misr_vaa, ahi_vza, ahi_vaa):
         return False
 
 
+# def get_scattering_angle(misr_vza, misr_vaa, ahi_vza, ahi_vaa):
+#     # cos(ScatteringAngle) = -cos(GEO_VZA)*cos(LEO_VZA)-cos(GEO_VAA-LEO_VAA)*sin(GEO_VZA)*sin(LEO_VZA)
+#     scattering_angle = math.degrees(math.acos(-math.cos(math.radians(ahi_vza)) * math.cos(math.radians(misr_vza)) - math.cos(math.radians(ahi_vaa - misr_vaa)) * math.sin(math.radians(ahi_vza)) * math.sin(math.radians(misr_vza))))
+#     return scattering_angle
+
+
 def main():
     # loc_folder = os.path.join(WORK_SPACE, 'lonlat4searchFM')
     # search full matching
-    geocond_record_str = 'MISR_path MISR_orbit camera_idx MISR_roi_time AHI_roi_time MISR_VZA AHI_VZA MISR_VAA AHI_VAA Scattering_Angle(GEO-LEO)\n'
+    geocond_record_str = 'MISR_path MISR_orbit camera_idx MISR_roi_time AHI_roi_time MISR_VZA AHI_VZA MISR_VAA AHI_VAA\n'
     MISRVZAs = [0.0, 26.1, 45.6, 60.0, 70.5]
     # record
     matched_record = []
@@ -232,6 +241,8 @@ def main():
                         try:
                             misr_vza, misr_vaa = get_misr_obs_angle(roi_extent, orbit, camera_idx)
                             if misr_vza != None:
+                                # scattering_angle = get_scattering_angle(misr_vza, misr_vaa, ahi_vza, ahi_vaa)
+                                # if scattering_angle > SCATTERING_ANGLE_THRESHOLD:
                                 vza_vaa_matched = is_vza_vaa_matched(misr_vza, misr_vaa, ahi_vza, ahi_vaa)
                                 if vza_vaa_matched:
                                     # get AHI data with MISR Obs time
