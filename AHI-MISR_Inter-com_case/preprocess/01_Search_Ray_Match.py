@@ -20,9 +20,9 @@ AHI_LOCALTIME_START = '08:00:00Z'
 AHI_LOCALTIME_END = '15:59:59Z'
 
 # VZA diff
-DIFF_VZA_THRESHOLD = 1 # degree
+DIFF_VZA_THRESHOLD = 2 # degree
 # VAA diff
-DIFF_VAA_THRESHOLD = 5 # degree
+DIFF_VAA_THRESHOLD = 10 # degree
 # time diff
 DIFF_TIME_THRESHOLD = 10 * 60  # seconds
 

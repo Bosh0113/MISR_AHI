@@ -14,15 +14,15 @@ ROI_SIZE = 0.02
 MISR_CAMERA_INDEX = {'0': [4], '26': [3, 5], '45': [2, 6], '60': [1, 7], '70': [0, 8]}
 
 START_TIME = '2017-01-01T00:00:00Z'
-END_TIME = '2017-12-31T23:59:59Z'
+END_TIME = '2019-12-31T23:59:59Z'
 # daytime range
 AHI_LOCALTIME_START = '08:00:00Z'
 AHI_LOCALTIME_END = '15:59:59Z'
 
 # VZA diff
-DIFF_VZA_THRESHOLD = 1 # degree
+DIFF_VZA_THRESHOLD = 2 # degree
 # VAA diff
-DIFF_VAA_THRESHOLD = 5 # degree
+DIFF_VAA_THRESHOLD = 10 # degree
 # time diff
 DIFF_TIME_THRESHOLD = 10 * 60  # seconds
 

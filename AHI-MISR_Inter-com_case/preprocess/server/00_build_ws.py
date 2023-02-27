@@ -1,10 +1,10 @@
 import os
 import numpy
 
-base_path = '/data01/people/beichen/workspace/20230226/ray_VZA_VAA_case'
+base_path = '/data01/people/beichen/workspace/20230227/ray_VZA2VAA10_case'
 
 MCD12Q1_006_10KM_npy = os.path.join(base_path, 'MCD12Q1_006_10km.npy')
-misr_matched_info_npy = os.path.join(base_path, 'AHI_MISR_Ray-matched_1mon.npy')
+misr_matched_info_npy = os.path.join(base_path, 'AHI_MISR_Ray_VZA2VAA10_case.npy')
 
 LC_SIZE = 0.1
 MISR_CAMERA_ANGLE = {
@@ -50,17 +50,18 @@ def build_ROI_ws(lc_map, matched_record):
         lc_lon_idx = int((lon - 85)/LC_SIZE)
         lc_lat_idx = int((60 - lat)/LC_SIZE)
         lc_code_str = str(int(lc_map[lc_lat_idx][lc_lon_idx]))
-        lc_is_forest = MODIS_LC_IS_FOREST[lc_code_str]
+        if lc_code_str not in ['0', '13', '15']:   # water urban snow
+            lc_is_forest = MODIS_LC_IS_FOREST[lc_code_str]
 
-        angle_folder = os.path.join(base_path, camera_angle_str)
-        if not os.path.exists(angle_folder):
-            os.makedirs(angle_folder)
-        lc_folder = os.path.join(angle_folder, lc_is_forest)
-        if not os.path.exists(lc_folder):
-            os.makedirs(lc_folder)
-        roi_folder = os.path.join(lc_folder, camera_angle_str + '_' + lc_code_str + '_' + lat_lon_str)
-        if not os.path.exists(roi_folder):
-            os.makedirs(roi_folder)
+            angle_folder = os.path.join(base_path, camera_angle_str)
+            if not os.path.exists(angle_folder):
+                os.makedirs(angle_folder)
+            lc_folder = os.path.join(angle_folder, lc_is_forest)
+            if not os.path.exists(lc_folder):
+                os.makedirs(lc_folder)
+            roi_folder = os.path.join(lc_folder, camera_angle_str + '_' + lc_code_str + '_' + lat_lon_str)
+            if not os.path.exists(roi_folder):
+                os.makedirs(roi_folder)
 
 
 if __name__ == "__main__":

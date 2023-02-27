@@ -4,6 +4,7 @@ from MisrToolkit import MtkFile, orbit_to_path, latlon_to_bls
 import netCDF4
 import numpy
 import ssl
+import shutil
 
 ssl._create_default_https_context = ssl._create_unverified_context
 
@@ -13,7 +14,7 @@ MISR_NC_FOLDER = '/data01/people/beichen/data/MISR4AHI2015070120210630_3'
 AHI_RESOLUTION = 0.01
 
 CHECK_SIZE = 0.1
-CLEAR_SKY_PIXEL = 64
+CLEAR_SKY_PIXEL = 100
 
 
 def BRF_TrueValue(o_value, scale, offset):
@@ -137,7 +138,10 @@ if __name__ == "__main__":
                         if is_valuable:
                             roi_valuable_record.append(matched_info)
                             record_str += str(matched_info) + '\n'
-                    record4AHI_AC_npy = os.path.join(roi_folder_path, roi_name + '_4AC_record.npy')
-                    numpy.save(record4AHI_AC_npy, numpy.array(roi_valuable_record))    # save result as txt
-                    with open(os.path.join(roi_folder_path, roi_name + '_4AC_record.txt'), 'w') as f:
-                        f.write(record_str)
+                    if len(roi_valuable_record) > 0:
+                        record4AHI_AC_npy = os.path.join(roi_folder_path, roi_name + '_4AC_record.npy')
+                        numpy.save(record4AHI_AC_npy, numpy.array(roi_valuable_record))    # save result as txt
+                        with open(os.path.join(roi_folder_path, roi_name + '_4AC_record.txt'), 'w') as f:
+                            f.write(record_str)
+                    else:
+                        shutil.rmtree(roi_folder_path)

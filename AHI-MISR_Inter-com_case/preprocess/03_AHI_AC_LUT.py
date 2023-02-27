@@ -345,7 +345,6 @@ if __name__ == "__main__":
                             print('Atmospheric data read finished')
                             # 过滤掉AOT大的情况
                             if AOT550.max() <= AOT550_MAX:
-
                                 for band_name in ['band3', 'band4']:
                                     if band_name == 'band3':
                                         AHI_DATA_RESOLUTION = 0.005
