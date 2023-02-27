@@ -126,8 +126,8 @@ def add_right_cax(ax, pad, width):
 
 def make_fig_bk(roi_name, X, Y, band_name, axis_min=0.0, axis_max=0.5):
 
-    if band_name =='band3':
-        axis_max=0.3
+    if band_name == 'band3':
+        axis_max = 0.3
 
     fig = plt.figure(figsize=(4, 4))
     ax1 = fig.add_subplot(111, aspect='equal')

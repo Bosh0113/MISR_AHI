@@ -6,6 +6,7 @@ import urllib.request
 import netCDF4
 from datetime import datetime, timedelta
 from MisrToolkit import MtkRegion, MtkFile, path_time_range_to_orbit_list, orbit_to_path, orbit_to_time_range
+import shutil
 
 WORK_SPACE = os.getcwd()
 
@@ -293,22 +294,24 @@ def roi_ray_match(ws, roi_name, cood_point, misr_vza_str):
     loc_record['roi_misr_infos'] = matched_infos
     if len(matched_infos) > 0:
         matched_record.append(loc_record)
-    ###############################################
-    # demo: [{
-    #     "roi_name": "45.6_1",
-    #     "roi_misr_infos": [{
-    #         "misr_path_orbit_camera": "P099_O088273_4",
-    #         "matched_info": [...]
-    #     },
-    #     ...]
-    # },
-    # ...]
-    ###############################################
-    numpy.save(misr_ray_matched_npy_filename, numpy.array(matched_record))
+        ###############################################
+        # demo: [{
+        #     "roi_name": "45.6_1",
+        #     "roi_misr_infos": [{
+        #         "misr_path_orbit_camera": "P099_O088273_4",
+        #         "matched_info": [...]
+        #     },
+        #     ...]
+        # },
+        # ...]
+        ###############################################
+        numpy.save(misr_ray_matched_npy_filename, numpy.array(matched_record))
 
-    # save result as txt
-    with open(os.path.join(ws, roi_name + '_' + GRO_OBS_COND_TXT), 'w') as f:
-        f.write(geocond_record_str)
+        # save result as txt
+        with open(os.path.join(ws, roi_name + '_' + GRO_OBS_COND_TXT), 'w') as f:
+            f.write(geocond_record_str)
+    else:
+        shutil.rmtree(ws)
 
 
 if __name__ == "__main__":
