@@ -27,7 +27,7 @@ AL_PATH = '/data01/GEO/INPUT/ELEVATION_GEO/AHI/MERIT_DEM_AHI_10km.dat'
 
 ROI_SIZE = 0.02
 ROI_OFFSET_DIS = ROI_SIZE/2
-AOT550_MAX = 0.1
+AOT550_MAX = 0.5
 
 sza = np.linspace(0, 80, 17)
 vza = np.linspace(0, 80, 17)

@@ -13,8 +13,8 @@ MISR_NC_FOLDER = '/data01/people/beichen/data/MISR4AHI2015070120210630_3'
 
 AHI_RESOLUTION = 0.01
 
-CHECK_SIZE = 0.1
-CLEAR_SKY_PIXEL = 100
+CHECK_SIZE = 0.04
+CLEAR_SKY_PIXEL = 16
 
 
 def BRF_TrueValue(o_value, scale, offset):
