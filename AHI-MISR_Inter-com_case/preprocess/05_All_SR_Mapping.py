@@ -164,7 +164,7 @@ if __name__ == "__main__":
             print(len(misr_SR_band3_item_list), len(ahi_SR_band3_item_list), len(misr_SR_band4_item_list), len(ahi_SR_band4_item_list))
 
             if len(misr_SR_band3_item_list) > PIXEL_PAIRS_MAX:
-                # mapping
+                # random pairs mapping
                 index_array = random.sample([idx for idx in range(len(misr_SR_band3_item_list))], PIXEL_PAIRS_MAX)
                 index_array = numpy.sort(index_array).tolist()
 
@@ -181,3 +181,18 @@ if __name__ == "__main__":
                 show_ahi_sr_b4 = ahi_SR_band4_pts[index_array]
                 figure_title = folder_l1 + '_' + folder_l2 + '_b4' + '_' + str(PIXEL_PAIRS_MAX)
                 mapping_scatter(show_ahi_sr_b4, show_misr_sr_b4, figure_title, 'band4', axis_min=0.0, axis_max=1.0)
+            
+            else:
+                # all pairs mapping
+                pairs_no = len(misr_SR_band3_item_list)
+                if pairs_no > 3:
+
+                    misr_SR_band3_pts = numpy.array(misr_SR_band3_item_list)
+                    ahi_SR_band3_pts = numpy.array(ahi_SR_band3_item_list)
+                    figure_title = folder_l1 + '_' + folder_l2 + '_b3' + '_' + str(pairs_no)
+                    mapping_scatter(ahi_SR_band3_pts, misr_SR_band3_pts, figure_title, 'band3', axis_min=0.0, axis_max=1.0)
+
+                    misr_SR_band4_pts = numpy.array(misr_SR_band4_item_list)
+                    ahi_SR_band4_pts = numpy.array(ahi_SR_band4_item_list)
+                    figure_title = folder_l1 + '_' + folder_l2 + '_b4' + '_' + str(pairs_no)
+                    mapping_scatter(ahi_SR_band4_pts, misr_SR_band4_pts, figure_title, 'band4', axis_min=0.0, axis_max=1.0)
