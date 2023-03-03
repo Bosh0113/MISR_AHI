@@ -240,7 +240,7 @@ def main():
                     for camera_idx in camera_idx_array:
                         try:
                             misr_vza, misr_vaa = get_misr_obs_angle(roi_extent, orbit, camera_idx)
-                            if misr_vza != None:
+                            if misr_vza is not None:
                                 # scattering_angle = get_scattering_angle(misr_vza, misr_vaa, ahi_vza, ahi_vaa)
                                 # if scattering_angle > SCATTERING_ANGLE_THRESHOLD:
                                 vza_vaa_matched = is_vza_vaa_matched(misr_vza, misr_vaa, ahi_vza, ahi_vaa)

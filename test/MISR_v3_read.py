@@ -68,6 +68,8 @@ if __name__ == "__main__":
     # ROI extent (ullat, ullon, lrlat, lrlon)
     roi_r = MtkRegion(60., 85, -60., 180.)
     f_vza_data = vza_field.read(roi_r).data()
-    plt.imshow(f_vza_data)
+    f_vza_show = numpy.copy(f_vza_data)
+    f_vza_show[f_vza_show <= 0] = numpy.NaN
+    plt.imshow(f_vza_show, interpolation=None)
     plt.colorbar()
     plt.show()

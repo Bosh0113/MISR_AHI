@@ -226,7 +226,7 @@ def roi_ray_match(roi_name, cood_point, misr_vza_str):
             for camera_idx in camera_idx_array:
                 try:
                     misr_vza, misr_vaa = get_misr_obs_angle(roi_extent, orbit, camera_idx)
-                    if misr_vza != None:
+                    if misr_vza is not None:
                         vza_vaa_matched = is_vza_vaa_matched(misr_vza, misr_vaa, ahi_vza, ahi_vaa)
                         if vza_vaa_matched:
                             # get AHI data with MISR Obs time
