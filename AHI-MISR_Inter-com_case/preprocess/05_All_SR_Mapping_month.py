@@ -4,22 +4,77 @@ import re
 import random
 from scipy.stats import gaussian_kde, pearsonr
 from sklearn.metrics import mean_squared_error, r2_score
-from datetime import datetime
 import math
+import matplotlib
 import matplotlib.pyplot as plt
 
 WORK_SPACE = os.getcwd()
 
 PIXEL_PAIRS_MAX = 600
 
-SEASON_LIST = ["spring", "summer", "autumn", "winter"]
+MONTH_LABEL = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
-SEASON_MONTH = {    # [north_start, north_end], [south_start, south_end]
-    "spring": [['02-07T00:00:00Z', '05-06T23:59:59Z'], ['08-07T00:00:00Z', '11-06T23:59:59Z']],
-    "summer": [['05-07T00:00:00Z', '08-06T23:59:59Z'], ['11-07T00:00:00Z', '12-31T23:59:59Z', '01-01T00:00:00Z', '02-06T23:59:59Z']],
-    "autumn": [['08-07T00:00:00Z', '11-06T23:59:59Z'], ['02-07T00:00:00Z', '05-06T23:59:59Z']],
-    "winter": [['11-07T00:00:00Z', '12-31T23:59:59Z', '01-01T00:00:00Z', '02-06T23:59:59Z'], ['05-07T00:00:00Z', '08-06T23:59:59Z']],
+MONTH_SOUTH2NORTH = {    # south -> north
+    '01': '07',
+    '02': '08',
+    '03': '09',
+    '04': '10',
+    '05': '11',
+    '06': '12',
+    '07': '01',
+    '08': '02',
+    '09': '03',
+    '10': '04',
+    '11': '05',
+    '12': '06'
 }
+
+
+def display_pts(bots, labels):
+    mapping_folder = os.path.join(WORK_SPACE, 'month_scatter')
+    figure_folder = os.path.join(mapping_folder, str(PIXEL_PAIRS_MAX))
+    if not os.path.exists(figure_folder):
+        os.makedirs(figure_folder)
+
+    color_s = []
+    for i in range(len(bots)):
+        color_random = list(matplotlib.colors.XKCD_COLORS.items())[int(random.random()*900)][1]
+        color_s.append(color_random)
+
+    f, ax = plt.subplots()
+    f.set_size_inches(12, 8)
+    f.set_dpi(200)
+
+    # ax = plt.axes()
+    ax.grid(linestyle='--', linewidth=0.3)
+    for idx in range(len(bots)):
+        pts = bots[idx]
+        ax.plot([i for i in range(12)], pts, '1', color=color_s[idx], label=labels[idx], markersize=25)
+
+    ax.minorticks_on()
+    x_minor_locator = plt.MultipleLocator(1)
+    x_major_locator = plt.MultipleLocator(1)
+    ax.xaxis.set_minor_locator(x_minor_locator)
+    ax.xaxis.set_major_locator(x_major_locator)
+    y_minor_locator = plt.MultipleLocator(0.1)
+    y_major_locator = plt.MultipleLocator(0.1)
+    ax.yaxis.set_minor_locator(y_minor_locator)
+    ax.yaxis.set_major_locator(y_major_locator)
+
+    ax.tick_params(axis="x", which='minor', length=5, direction='in', labelsize=15)
+    ax.tick_params(axis="x", which='major', length=5, direction='in', labelsize=15)
+    ax.tick_params(axis="y", which='minor', length=5, direction='in', labelsize=15)
+    ax.tick_params(axis="y", which='major', length=5, direction='in', labelsize=15)
+
+    plt.xticks([i for i in range(12)], MONTH_LABEL)
+    plt.xlim((-0.5, 11.5))
+    plt.ylim((0.02, 1.02))
+    plt.xlabel('Month', size=18)
+    plt.ylabel('AHI-MISR SR Slope', size=18)
+    plt.legend(markerscale=0.5)
+    plt.savefig(os.path.join(figure_folder, 'month_slope.png'))
+    # plt.show()
+    plt.clf()
 
 
 def identifer(li):
@@ -37,8 +92,8 @@ def identifer(li):
 
 def mapping_scatter(Y, X, figure_title, band_name, axis_min=0.0, axis_max=1.0):
 
-    mapping_folfer = os.path.join(WORK_SPACE, 'season_scatter')
-    figure_folder = os.path.join(mapping_folfer, str(PIXEL_PAIRS_MAX))
+    mapping_folder = os.path.join(WORK_SPACE, 'month_scatter')
+    figure_folder = os.path.join(mapping_folder, str(PIXEL_PAIRS_MAX))
     if not os.path.exists(figure_folder):
         os.makedirs(figure_folder)
     fig_filename = os.path.join(figure_folder, figure_title + '.png')
@@ -117,19 +172,29 @@ def mapping_scatter(Y, X, figure_title, band_name, axis_min=0.0, axis_max=1.0):
     print(fig_filename)
     plt.close(fig)
     plt.clf()
+    # slope r RMSE
+    return k, r_, rmse
 
 
 if __name__ == "__main__":
 
-    # folder_l1_list = ['0', '26', '45', '60', '70']
+    folder_l1_list = ['0', '26', '45', '60', '70']
     folder_l1_list = ['26', '45']
     folder_l2_list = ['0', '1']
 
-    for season_idx in range(len(SEASON_LIST)):
-        season = SEASON_LIST[season_idx]
-        for folder_l1 in folder_l1_list:
-            folder_l1_path = os.path.join(WORK_SPACE, folder_l1)
-            for folder_l2 in folder_l2_list:
+    slope_list = []
+    slope_labels = []
+    for folder_l1 in folder_l1_list:
+        folder_l1_path = os.path.join(WORK_SPACE, folder_l1)
+        for folder_l2 in folder_l2_list:
+            month_slope_b3 = numpy.zeros((12,))
+            month_r_b3 = numpy.zeros((12,))
+            month_rmse_b3 = numpy.zeros((12,))
+            month_slope_b4 = numpy.zeros((12,))
+            month_r_b4 = numpy.zeros((12,))
+            month_rmse_b4 = numpy.zeros((12,))
+            for month_idx in range(len(MONTH_LABEL)):
+                month = MONTH_LABEL[month_idx]
                 # each png
                 misr_SR_band3_item_list = []
                 ahi_SR_band3_item_list = []
@@ -144,7 +209,6 @@ if __name__ == "__main__":
                     is_south_roi = 0
                     if roi_lat < 0:
                         is_south_roi = 1
-                    month_range = SEASON_MONTH[season][is_south_roi]
 
                     roi_folder_path = os.path.join(folder_l2_path, roi_folder)
                     roi_file_list = os.listdir(roi_folder_path)
@@ -158,29 +222,13 @@ if __name__ == "__main__":
                             ahi_time_str = matchObj.group(1)
                             band_str = matchObj.group(2)
                             # camera_idx_str = matchObj.group(3)
-                            
-                            ahi_time_date = datetime.strptime(ahi_time_str[4:], "%m%d%H%M")
-                            is_in_season = 0
-                            if len(month_range) > 2:
-                                start_month1 = month_range[0]
-                                end_month1 = month_range[1]
-                                start_date1 = datetime.strptime(start_month1, "%m-%dT%H:%M:%SZ")
-                                end_date1 = datetime.strptime(end_month1, "%m-%dT%H:%M:%SZ")
-                                start_month2 = month_range[2]
-                                end_month2 = month_range[3]
-                                start_date2 = datetime.strptime(start_month2, "%m-%dT%H:%M:%SZ")
-                                end_date2 = datetime.strptime(end_month2, "%m-%dT%H:%M:%SZ")
-                                if (ahi_time_date >= start_date1 and ahi_time_date <= end_date1) or (ahi_time_date >= start_date2 and ahi_time_date <= end_date2):
-                                    is_in_season = 1
-                            else:
-                                start_month = month_range[0]
-                                end_month = month_range[1]
-                                start_date = datetime.strptime(start_month, "%m-%dT%H:%M:%SZ")
-                                end_date = datetime.strptime(end_month, "%m-%dT%H:%M:%SZ")
-                                if ahi_time_date >= start_date and ahi_time_date <= end_date:
-                                    is_in_season = 1
 
-                            if is_in_season:
+                            obs_month = ahi_time_str[4:6]
+                            if is_south_roi:
+                                obs_month = MONTH_SOUTH2NORTH[obs_month]
+                            obs_month_idx = int(obs_month) - 1
+
+                            if obs_month_idx == month_idx:
                                 SR_npy_path = os.path.join(roi_folder_path, roi_file)
                                 ROI_SR_pair = numpy.load(SR_npy_path, allow_pickle=True)[0]
                                 misr_sr = ROI_SR_pair['misr_v3']
@@ -216,15 +264,21 @@ if __name__ == "__main__":
                     show_misr_sr_b3 = misr_SR_band3_pts[index_array]
                     ahi_SR_band3_pts = numpy.array(ahi_SR_band3_item_list)
                     show_ahi_sr_b3 = ahi_SR_band3_pts[index_array]
-                    figure_title = folder_l1 + '_' + folder_l2 + '_b3' + '_' + str(season_idx) + season + '_' + str(PIXEL_PAIRS_MAX)
-                    mapping_scatter(show_ahi_sr_b3, show_misr_sr_b3, figure_title, 'band3', axis_min=0.0, axis_max=1.0)
+                    figure_title = folder_l1 + '_' + folder_l2 + '_b3' + '_' + str(month_idx) + month + '_' + str(PIXEL_PAIRS_MAX)
+                    slope_b3, r_b3, rmse_b3 = mapping_scatter(show_ahi_sr_b3, show_misr_sr_b3, figure_title, 'band3', axis_min=0.0, axis_max=1.0)
+                    month_slope_b3[month_idx] = round(slope_b3, 2)
+                    month_r_b3[month_idx] = round(r_b3, 2)
+                    month_rmse_b3[month_idx] = round(rmse_b3, 3)
 
                     misr_SR_band4_pts = numpy.array(misr_SR_band4_item_list)
                     show_misr_sr_b4 = misr_SR_band4_pts[index_array]
                     ahi_SR_band4_pts = numpy.array(ahi_SR_band4_item_list)
                     show_ahi_sr_b4 = ahi_SR_band4_pts[index_array]
-                    figure_title = folder_l1 + '_' + folder_l2 + '_b4' + '_' + str(season_idx) + season + '_' + str(PIXEL_PAIRS_MAX)
-                    mapping_scatter(show_ahi_sr_b4, show_misr_sr_b4, figure_title, 'band4', axis_min=0.0, axis_max=1.0)
+                    figure_title = folder_l1 + '_' + folder_l2 + '_b4' + '_' + str(month_idx) + month + '_' + str(PIXEL_PAIRS_MAX)
+                    slope_b4, r_b4, rmse_b4 = mapping_scatter(show_ahi_sr_b4, show_misr_sr_b4, figure_title, 'band4', axis_min=0.0, axis_max=1.0)
+                    month_slope_b4[month_idx] = round(slope_b4, 2)
+                    month_r_b4[month_idx] = round(r_b4 ,2)
+                    month_rmse_b4[month_idx] = round(rmse_b4, 3)
                 
                 else:
                     # all pairs mapping
@@ -233,10 +287,29 @@ if __name__ == "__main__":
 
                         misr_SR_band3_pts = numpy.array(misr_SR_band3_item_list)
                         ahi_SR_band3_pts = numpy.array(ahi_SR_band3_item_list)
-                        figure_title = folder_l1 + '_' + folder_l2 + '_b3' + '_' + str(season_idx) + season + '_' + str(pairs_no)
-                        mapping_scatter(ahi_SR_band3_pts, misr_SR_band3_pts, figure_title, 'band3', axis_min=0.0, axis_max=1.0)
+                        figure_title = folder_l1 + '_' + folder_l2 + '_b3' + '_' + str(month_idx) + month + '_' + str(pairs_no)
+                        slope_b3, r_b3, rmse_b3 = mapping_scatter(ahi_SR_band3_pts, misr_SR_band3_pts, figure_title, 'band3', axis_min=0.0, axis_max=1.0)
+                        month_slope_b3[month_idx] = round(slope_b3, 2)
+                        month_r_b3[month_idx] = round(r_b3, 2)
+                        month_rmse_b3[month_idx] = round(rmse_b3, 3)
 
                         misr_SR_band4_pts = numpy.array(misr_SR_band4_item_list)
                         ahi_SR_band4_pts = numpy.array(ahi_SR_band4_item_list)
-                        figure_title = folder_l1 + '_' + folder_l2 + '_b4' + '_' + str(season_idx) + season + '_' + str(pairs_no)
-                        mapping_scatter(ahi_SR_band4_pts, misr_SR_band4_pts, figure_title, 'band4', axis_min=0.0, axis_max=1.0)
+                        figure_title = folder_l1 + '_' + folder_l2 + '_b4' + '_' + str(month_idx) + month + '_' + str(pairs_no)
+                        slope_b4, r_b4, rmse_b4 = mapping_scatter(ahi_SR_band4_pts, misr_SR_band4_pts, figure_title, 'band4', axis_min=0.0, axis_max=1.0)
+                        month_slope_b4[month_idx] = round(slope_b4, 2)
+                        month_r_b4[month_idx] = round(r_b4 ,2)
+                        month_rmse_b4[month_idx] = round(rmse_b4, 3)
+            print('Slope, r, RMSE')
+            print(month_slope_b3)
+            slope_list.append(month_slope_b3)
+            slope_labels.append(folder_l1 + '_' + folder_l2 + '_band3')
+            print(month_r_b3)
+            print(month_rmse_b3)
+            print(month_slope_b4)
+            slope_list.append(month_slope_b4)
+            slope_labels.append(folder_l1 + '_' + folder_l2 + '_band4')
+            print(month_r_b4)
+            print(month_rmse_b4)
+
+    display_pts(slope_list, slope_labels)
