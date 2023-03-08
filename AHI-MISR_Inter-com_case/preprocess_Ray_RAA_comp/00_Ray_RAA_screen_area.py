@@ -1,11 +1,11 @@
 import os
 import numpy as np
 
-ws = r'H:\MISR_AHI_WS\230220'
+ws = r'E:\MISR_AHI_WS\230308\mapping'
 
-raa_matched_record_50km_npy = os.path.join(ws, 'AHI_MISR_RAA-matched_50km.npy')
-Ray_RAA_loc_matched_npy = os.path.join(ws, 'AHI_MISR_Ray-RAA_50km.npy')
+raa_matched_record_50km_npy = os.path.join(ws, 'AHI_MISR_RAA-screened_50km.npy')
 Ray_RAA_loc_txt = os.path.join(ws, 'Ray_RAA_loc.txt')
+common_loc_npy = os.path.join(ws, 'RAA_Ray_loc_50km.npy')
 
 
 # get side of VAA-to-SAA (SAA as refer)
@@ -24,8 +24,8 @@ def get_side_RAA(vaa, saa):
 
 if __name__ == "__main__":
     raa_matches = np.load(raa_matched_record_50km_npy, allow_pickle=True)
+    RAA_Ray_loc_record = []
     Ray_RAA_locs = ''
-    Ray_RAA_record = []
     for raa_item in raa_matches:
         raa_loc = raa_item['location'].tolist()
         raa_matches = raa_item['matched_infos']
@@ -44,7 +44,7 @@ if __name__ == "__main__":
                 opposite_side += 1
         if same_side > 0 and opposite_side > 0:
             Ray_RAA_locs += str(raa_loc[0]) + ',' + str(raa_loc[1]) + ',' + str(len(raa_matches)) + '\n'
-            Ray_RAA_record.append(raa_item)
-    np.save(Ray_RAA_loc_matched_npy, np.array(Ray_RAA_record))
+            RAA_Ray_loc_record.append(raa_item)
+    np.save(common_loc_npy, np.array(RAA_Ray_loc_record))
     with open(Ray_RAA_loc_txt, 'w') as f:
         f.write(Ray_RAA_locs)
