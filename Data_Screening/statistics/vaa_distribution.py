@@ -1,6 +1,6 @@
-from cProfile import label
-from threading import stack_size
-from turtle import position
+# from cProfile import label
+# from threading import stack_size
+# from turtle import position
 import numpy
 import matplotlib.pyplot as plt
 from matplotlib.ticker import ScalarFormatter
@@ -9,7 +9,7 @@ import seaborn
 degree_count = 5
 
 # MISR_path MISR_orbit camera_idx MISR_roi_time AHI_roi_time MISR_VZA AHI_VZA MISR_VAA AHI_VAA Scattering_Angle(GEO-LEO)
-matched_npy_filename = r'C:\Work\AHI_MISR\20221210\AHI_MISR_Ray-matched.npy'
+matched_npy_filename = r'E:\MISR_AHI_WS\230308\mapping\AHI_MISR_Ray-screened_10km.npy'
 
 
 def find_nearest_index(array, value):
@@ -29,7 +29,7 @@ def angle_count(matched_info, info_idx):
         vaa_counts = []
         for pt_matched_item in pt_matched_info:
             misr_path = pt_matched_item[0]
-            if not misr_path in vaa_paths:
+            if misr_path not in vaa_paths:
                 vaa_paths.append(misr_path)
                 vaa_sums.append(0)
                 vaa_counts.append(0)
@@ -106,7 +106,6 @@ def kde_mapping(misr_angle_pixel_record, ahi_angle_pixel_record):
     ax2.set_ylabel('Density of Distribution', fontsize=18)
     ax2.set_ylim(0.0, 0.009)
     ax2.legend(loc=1, fontsize='large')
-
 
     plt.xlim(0, 360)
     plt.show()

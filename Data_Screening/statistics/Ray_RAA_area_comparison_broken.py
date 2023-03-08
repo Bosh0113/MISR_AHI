@@ -4,10 +4,10 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import ScalarFormatter
 
 # ws = r'D:\Work_PhD\MISR_AHI_WS\230118'
-ws = r'C:\Work\AHI_MISR\20230119'
+ws = r'E:\MISR_AHI_WS\230308\mapping'
 
-ray_matched_record_npy = os.path.join(ws, 'AHI_MISR_Ray-matched_50km.npy')
-raa_matched_record_npy = os.path.join(ws, 'AHI_MISR_RAA-matched_50km.npy')
+ray_matched_record_npy = os.path.join(ws, 'AHI_MISR_Ray-screened_50km.npy')
+raa_matched_record_npy = os.path.join(ws, 'AHI_MISR_RAA-screened_50km.npy')
 
 MISR_ANGLE = [0.0, 26.1, 45.6, 60.0, 70.5]
 
@@ -115,7 +115,7 @@ def mapping_double_bar_angle(ray_bar_data, raa_bar_data):
     ax1.yaxis.set_label_coords(0.08, 0.5, transform=f.transFigure)
 
     ax1.set_ylim(910, 1600)
-    ax2.set_ylim(0, 590)
+    ax2.set_ylim(0, 620)
     # hide the spines between ax and ax2
     ax1.spines.bottom.set_visible(False)
     ax2.spines.top.set_visible(False)

@@ -2,7 +2,7 @@ import numpy
 import matplotlib.pyplot as plt
 
 # MISR_path MISR_orbit camera_idx MISR_roi_time AHI_roi_time MISR_VZA AHI_VZA MISR_VAA AHI_VAA Scattering_Angle(GEO-LEO)
-matched_npy_filename = r'C:\Work\AHI_MISR\20221210\AHI_MISR_Ray-matched.npy'
+matched_npy_filename = r'E:\MISR_AHI_WS\230308\mapping\AHI_MISR_Ray-screened_10km.npy'
 
 
 def pixel_count(matched_info, info_idx=2):
@@ -12,11 +12,12 @@ def pixel_count(matched_info, info_idx=2):
         camera_all = []
         for pt_matched_item in pt_matched_info:
             camera_idx = int(pt_matched_item[info_idx])
-            if not camera_idx in camera_all:
+            if camera_idx not in camera_all:
                 camera_all.append(camera_idx)
         for camera_all_idx in camera_all:
             angle_record[camera_all_idx] = angle_record[camera_all_idx] + 1
     return angle_record
+
 
 def obs_count(matched_info, info_idx=2):
     angle_record = numpy.zeros((9,))
@@ -45,10 +46,12 @@ def main():
 
     camera_pixel_record = pixel_count(matched_info)
     camera_obs_record = obs_count(matched_info)
+    camera_freq_record = [round(camera_obs_record[idx]/camera_pixel_record[idx], 2) for idx in range(len(camera_pixel_record))]
 
     print('Camera Index: 0 1 2 3 4 5 6 7 8')
     print(list(camera_pixel_record))
     print(list(camera_obs_record))
+    print(camera_freq_record)
 
     # mapping(camera_pixel_record, camera_obs_record)
 

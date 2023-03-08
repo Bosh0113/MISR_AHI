@@ -3,11 +3,11 @@ import math
 import numpy as np
 import matplotlib.pyplot as plt
 
-ws = r'H:\MISR_AHI_WS\230119'
+ws = r'E:\MISR_AHI_WS\230308\mapping'
 
 MCD12Q1_006_10KM_npy = os.path.join(ws, 'MCD12Q1_006_10km.npy')
-ray_matched_record_npy = os.path.join(ws, 'AHI_MISR_Ray-matched_50km.npy')
-raa_matched_record_npy = os.path.join(ws, 'AHI_MISR_RAA-matched_50km.npy')
+ray_matched_record_npy = os.path.join(ws, 'AHI_MISR_Ray-screened_50km.npy')
+raa_matched_record_npy = os.path.join(ws, 'AHI_MISR_RAA-screened_50km.npy')
 
 LC_SIZE = 0.1
 
@@ -122,10 +122,10 @@ def main():
     ray_bar_data = get_bar_data(modis_lc, ray_matches)
     raa_bar_data = get_bar_data(modis_lc, raa_matches)
     
-    # print(ray_bar_data)
-    # ray_bar_data[len(ray_bar_data)-2] = 1   # Snow and Ice
-    # print(raa_bar_data)
-    # raa_bar_data[len(raa_bar_data)-2] = 3   # Snow and Ice
+    print(ray_bar_data)
+    ray_bar_data[len(ray_bar_data)-2] = 1   # Snow and Ice
+    print(raa_bar_data)
+    raa_bar_data[len(raa_bar_data)-2] = 3   # Snow and Ice
 
     fig_mapping(ray_bar_data, raa_bar_data)
 

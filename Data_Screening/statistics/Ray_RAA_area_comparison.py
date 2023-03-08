@@ -3,10 +3,10 @@ import numpy
 import matplotlib.pyplot as plt
 from matplotlib.ticker import ScalarFormatter
 
-ws = r'D:\Work_PhD\MISR_AHI_WS\230118'
+ws = r'E:\MISR_AHI_WS\230308\mapping'
 
-ray_matched_record_npy = os.path.join(ws, 'AHI_MISR_Ray-matched_50km.npy')
-raa_matched_record_npy = os.path.join(ws, 'AHI_MISR_RAA-matched_50km.npy')
+ray_matched_record_npy = os.path.join(ws, 'AHI_MISR_Ray-screened_50km.npy')
+raa_matched_record_npy = os.path.join(ws, 'AHI_MISR_RAA-screened_50km.npy')
 
 MISR_ANGLE = [0.0, 26.1, 45.6, 60.0, 70.5]
 

@@ -2,7 +2,7 @@ import numpy
 import matplotlib.pyplot as plt
 
 # MISR_path MISR_orbit camera_idx MISR_roi_time AHI_roi_time MISR_VZA AHI_VZA MISR_VAA AHI_VAA Scattering_Angle(GEO-LEO)
-matched_npy_filename = r'C:\Work\AHI_MISR\20221210\AHI_MISR_Ray-matched.npy'
+matched_npy_filename = r'E:\MISR_AHI_WS\230308\mapping\AHI_MISR_Ray-screened_10km.npy'
 
 
 def pixel_count(matched_info):
@@ -35,6 +35,7 @@ def pixel_count(matched_info):
         elif pt_lat <= -50 and pt_lat > -60:  # 50S-60S
             angle_record[11] = angle_record[11] + 1
     return angle_record
+
 
 def obs_count(matched_info):
     angle_record = numpy.zeros((12,))
@@ -84,10 +85,12 @@ def main():
 
     lat_pixel_record = pixel_count(matched_info)
     lat_obs_record = obs_count(matched_info)
+    lat_freq_record = [round(lat_obs_record[idx]/lat_pixel_record[idx], 2) for idx in range(len(lat_pixel_record))]
 
     print('Range: 60N-50N 50N-40N 40N-30N 30N-20N 20N-10N 10N-0 0-10S 10S-20S 20S-30S 30S-40S 40S-50S 50S-60S')
     print(list(lat_pixel_record))
     print(list(lat_obs_record))
+    print(lat_freq_record)
 
     # mapping(lat_pixel_record, lat_obs_record)
 
