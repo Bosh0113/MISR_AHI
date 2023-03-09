@@ -435,7 +435,7 @@ def roi_raa_match(ws, roi_name, cood_point, misr_vza_str):
                                         except Exception as e:
                                             print(e)
                                     if os.path.exists(ahi_saa_bin):
-                                        m_vaa, ahi_vaa, m_saa, ahi_saa, m_raa, ahi_raa, vza_raa_matched = misr_ahi_raa_matching(roi_extent, roi_misr_vza, roi_ahi_vza, misr_nc_filename, AHI_VAA_BIN, ahi_saa_bin, camera)
+                                        m_vaa, ahi_vaa, m_saa, ahi_saa, m_raa, ahi_raa, vza_raa_matched = misr_ahi_raa_matching(roi_extent, roi_misr_vza, roi_ahi_vza, misr_nc_filename, AHI_VAA_BIN, ahi_saa_bin, camera_idx)
                                         # ## RAA match ###
                                         if vza_raa_matched:
                                             # is_opposite_side
