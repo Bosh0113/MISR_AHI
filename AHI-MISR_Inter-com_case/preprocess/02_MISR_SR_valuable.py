@@ -47,7 +47,6 @@ def get_roi_latlon_list(center_lat, center_lon):
     return n_lats, n_lons
 
 
-
 def is_valuable_MISR_BRF(cood_point, band_index, misr_orbit, misr_camera_index, misr_nc_filename):
     roi_c_lat = cood_point[1]
     roi_c_lon = cood_point[0]
