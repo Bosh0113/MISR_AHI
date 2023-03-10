@@ -15,15 +15,20 @@ if __name__ == "__main__":
     folder_l1_list = ['26', '45', '60', '70']
     folder_l2_list = ['0']
 
-    band_labels = ['band3', 'band4']
-    band_label = 'band3'
+    ws_folder = os.path.join(WORK_SPACE, 'ref_sza_vza_variation')
+    if not os.path.exists(ws_folder):
+        os.makedirs(ws_folder)
 
+    record_str = ''
     refer_sza_idx = numpy.arange(15, 80, 0.5)
     for folder_l1 in folder_l1_list:
         folder_l1_path = os.path.join(WORK_SPACE, folder_l1)
         for folder_l2 in folder_l2_list:
             folder_l2_path = os.path.join(folder_l1_path, folder_l2)
             roi_folder_list = os.listdir(folder_l2_path)
+            # stat
+            band_labels = ['band3', 'band4']
+            band_label = 'band3'
             print(folder_l1, folder_l2)
             v_ahi_toa_record = []
             v_ahi_sr_record = []
@@ -102,24 +107,32 @@ if __name__ == "__main__":
             y_v_ahi_toa = numpy.zeros_like(refer_sza_idx)
             y_v_ahi_sr = numpy.zeros_like(refer_sza_idx)
             y_v_misr_sr = numpy.zeros_like(refer_sza_idx)
+            record_str += folder_l1 + '_' + folder_l2 + '_' + band_label + '\n'
+            v_ahi_toa_str =''
+            v_ahi_sr_str =''
+            v_misr_sr_str =''
             for v_item_idx in range(len(v_ahi_toa_record)):
                 v_ahi_toa_item = v_ahi_toa_record[v_item_idx]
                 v_ahi_toa_mean = round(numpy.array(v_ahi_toa_item).mean(), 3)
                 y_v_ahi_toa[v_item_idx] = v_ahi_toa_mean
+                v_ahi_toa_str += str(v_ahi_toa_mean) + '\t'
                 v_ahi_sr_item = v_ahi_sr_record[v_item_idx]
                 v_ahi_sr_mean = round(numpy.array(v_ahi_sr_item).mean(), 3)
                 y_v_ahi_sr[v_item_idx] = v_ahi_sr_mean
+                v_ahi_sr_str += str(v_ahi_sr_mean) + '\t'
                 v_misr_sr_item = v_misr_sr_record[v_item_idx]
                 v_misr_sr_mean = round(numpy.array(v_misr_sr_item).mean(), 3)
                 y_v_misr_sr[v_item_idx] = v_misr_sr_mean
+                v_misr_sr_str += str(v_misr_sr_mean) + '\t'
             
-            print(len(refer_sza_idx))
-            print(len(y_v_ahi_toa))
+            record_str += v_ahi_toa_str + '\n' + v_ahi_sr_str + '\n' + v_misr_sr_str + '\n'
             print(y_v_ahi_toa)
-            print(len(y_v_ahi_sr))
             print(y_v_ahi_sr)
-            print(len(y_v_misr_sr))
             print(y_v_misr_sr)
+            numpy.save(os.path.join(ws_folder, folder_l1 + '_' + folder_l2 + '_' + band_label + '_ref_sza_vza_variation.npy'), numpy.array([y_v_ahi_toa, y_v_ahi_sr, y_v_misr_sr]))
 
             # print('sza', min_sza, max_sza)
             # print('raa', min_raa, max_raa)
+    # save result as txt
+    with open(os.path.join(ws_folder, 'ref_sza_vza_variation.txt'), 'w') as f:
+        f.write(record_str)
