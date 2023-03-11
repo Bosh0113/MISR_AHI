@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 from scipy.stats import linregress
 
 deme_npy = r'E:\MISR_AHI_WS\230310\box_plot\26_0_band3_ref_sza_vza_variation.npy'
+# deme_npy = r'E:\MISR_AHI_WS\230310\box_plot\26_0_band4_ref_sza_vza_variation.npy'
 
 DEGREE_INTERNAL = 1
 
@@ -111,6 +112,7 @@ def box_plot(all_data):
     plt.xticks([i for i in range(0, (80-15), 5*int(1/DEGREE_INTERNAL))], numpy.arange(15, 80, 5*int(1/DEGREE_INTERNAL)))
     plt.xlim(5, 37.5)
     plt.ylim(0.02, 0.375)
+    # plt.ylim(0.13, 0.435)
     plt.xlabel('SZA (°), VZA ≈ 26°, RAA ≈ 30°', size=18)
     plt.ylabel('Reflectance', size=18)
     plt.legend(markerscale=2, loc=2, fontsize='x-large')
