@@ -1,9 +1,9 @@
+import os
 import numpy
 import matplotlib.pyplot as plt
 from scipy.stats import linregress
 
-deme_npy = r'E:\MISR_AHI_WS\230310\box_plot\45_0_band3_ref_sza_vza_variation.npy'
-# deme_npy = r'E:\MISR_AHI_WS\230310\box_plot\26_0_band4_ref_sza_vza_variation.npy'
+ws = r'E:\MISR_AHI_WS\230310\box_plot'
 
 DEGREE_INTERNAL = 1
 
@@ -111,16 +111,20 @@ def box_plot(all_data):
 
     plt.xticks([i for i in range(0, (80-15), 5*int(1/DEGREE_INTERNAL))], numpy.arange(15, 80, 5*int(1/DEGREE_INTERNAL)))
     plt.xlim(5, 37.5)
-    plt.ylim(0.02, 0.375)
-    # plt.ylim(0.13, 0.485)
+    plt.ylim(0.02, 0.375)   # band3
+    # plt.ylim(0.13, 0.485) # band4
     plt.xlabel('SZA (°), VZA ≈ 26°, RAA ≈ 30°', size=18)
-    plt.ylabel('Reflectance', size=18)
+    plt.ylabel('Reflectance on Band3 of AHI', size=18)  # band3
+    # plt.ylabel('Reflectance on Band4 of AHI', size=18)  # band4
     plt.legend(markerscale=2, loc=2, fontsize='x-large')
     plt.show()
 
 
 if __name__ == "__main__":
-    npy_array = numpy.load(deme_npy, allow_pickle=True)
+    band_str = 'band3'
+    # band_str = 'band4'
+    demo_npy = os.path.join(ws, '26_0_' + band_str + '_ref_sza_vza_variation.npy')
+    npy_array = numpy.load(demo_npy, allow_pickle=True)
     print(npy_array)
     # line_plot(npy_array)
     box_plot(npy_array)
