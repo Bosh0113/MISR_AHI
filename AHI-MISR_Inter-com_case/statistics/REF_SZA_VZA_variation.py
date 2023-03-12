@@ -96,8 +96,10 @@ if __name__ == "__main__":
     # folder_l1_list = ['26', '45', '60', '70']
     folder_l1_list = ['26']
     folder_l2_list = ['0']
+    lc_type = '7'   # Open Shrublands
+    # lc_type = '10'   # Grasslands
 
-    ws_folder = os.path.join(WORK_SPACE, 'ref_sza_vza_variation')
+    ws_folder = os.path.join(WORK_SPACE, 'ref_sza_vza_variation_' + lc_type)
     if not os.path.exists(ws_folder):
         os.makedirs(ws_folder)
 
@@ -127,7 +129,7 @@ if __name__ == "__main__":
                     roi_folder_path = os.path.join(folder_l2_path, roi_folder)
                     roi_infos = roi_folder.split('_')
                     roi_lc_idx = roi_infos[1]   # land cover idx
-                    if roi_lc_idx == '7':   # Open Shrublands
+                    if roi_lc_idx == lc_type:
                         ac_record_path = os.path.join(roi_folder_path, 'AHI_AC_PARAMETER')
                         if os.path.exists(ac_record_path):
                             ac_list = os.listdir(ac_record_path)
@@ -198,4 +200,4 @@ if __name__ == "__main__":
                                             v_misr_sr_record[rec_idx] = v_misr_sr_record_sza
                 numpy.save(os.path.join(ws_folder, folder_l1 + '_' + folder_l2 + '_' + band_label + '_ref_sza_vza_variation.npy'), [v_misr_sr_record, v_ahi_toa_record, v_ahi_sr_record])
                 # mapping
-                box_plot(numpy.array([v_misr_sr_record, v_ahi_toa_record, v_ahi_sr_record]))
+                # box_plot(numpy.array([v_misr_sr_record, v_ahi_toa_record, v_ahi_sr_record]))

@@ -2,7 +2,7 @@ import numpy
 import matplotlib.pyplot as plt
 from scipy.stats import linregress
 
-deme_npy = r'E:\MISR_AHI_WS\230310\box_plot\26_0_band3_ref_sza_vza_variation.npy'
+deme_npy = r'E:\MISR_AHI_WS\230310\box_plot\45_0_band3_ref_sza_vza_variation.npy'
 # deme_npy = r'E:\MISR_AHI_WS\230310\box_plot\26_0_band4_ref_sza_vza_variation.npy'
 
 DEGREE_INTERNAL = 1
@@ -87,7 +87,7 @@ def box_plot(all_data):
         y_data = y_zip[y_idx]
         mask_idx = ~numpy.isnan(y_data)
         v_slope, v_offset, v_r, v_p, v_std_err = linregress(x_range[mask_idx], y_data[mask_idx])
-        print(v_slope, v_offset)
+        print(v_slope, v_offset, v_r, v_p, v_std_err)
         y = v_slope*x_range+v_offset
         plt.plot(x_range, y, '--', color=colors_map[y_idx], label=label_list[y_idx], linewidth=0.8, alpha=0.5)
 
@@ -121,5 +121,6 @@ def box_plot(all_data):
 
 if __name__ == "__main__":
     npy_array = numpy.load(deme_npy, allow_pickle=True)
+    print(npy_array)
     # line_plot(npy_array)
     box_plot(npy_array)
