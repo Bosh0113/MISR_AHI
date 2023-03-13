@@ -12,20 +12,24 @@ WORK_SPACE = os.getcwd()
 PIXEL_PAIRS_MAX = 500
 
 
-def identifer(li):
-    result = []
-    for a in li:
-        mean = numpy.nanmean(a)
-        std = numpy.nanstd(a)
-        down = mean - 3 * std
-        up = mean + 3 * std
-        n_a = numpy.where(a < down, numpy.nan, a)
-        n_a = numpy.where(n_a > up, numpy.nan, n_a)
-        result.append(n_a)
+def identifer(data):
+    down,up = numpy.nanpercentile(data,[25,75])
+    IQR = up-down
+    lower_limit = down - 2*IQR
+    upper_limit = up + 2*IQR
+    result = numpy.where(data > upper_limit,numpy.nan, data)
+    result = numpy.where(result < lower_limit,numpy.nan, result)
     return result
 
 
 def mapping_scatter(Y, X, figure_title, band_name, axis_min=0.0, axis_max=1.0):
+    # filter
+    slope_array = list(numpy.array(Y)/numpy.array(X))
+    slope_array_filtered = numpy.array(identifer([slope_array])[0])
+    array1_n = (slope_array_filtered*0+1)*numpy.array(X)
+    array2_n = (slope_array_filtered*0+1)*numpy.array(Y)
+    X = array1_n[~numpy.isnan(array1_n)]
+    Y = array2_n[~numpy.isnan(array2_n)]
 
     mapping_folfer = os.path.join(WORK_SPACE, 'figure_scatter')
     figure_folder = os.path.join(mapping_folfer, str(PIXEL_PAIRS_MAX))

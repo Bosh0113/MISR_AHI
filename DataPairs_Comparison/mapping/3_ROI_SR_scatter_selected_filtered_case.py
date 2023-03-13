@@ -6,8 +6,8 @@ import numpy as np
 import math
 import os
 
-SAVE_FIGURE_FLAG = True
-# SAVE_FIGURE_FLAG = False
+# SAVE_FIGURE_FLAG = True
+SAVE_FIGURE_FLAG = False
 
 WORK_SPACE = r'D:\MISR_AHI_WS\230211\intercom_mapping\0_0_RAA'
 roi_name = '0.0_0'
@@ -58,7 +58,7 @@ WORK_SPACE = r'D:\MISR_AHI_WS\230211\intercom_mapping\45_1_RAA'
 roi_name = '45.6_1'
 selected_times = ['201904240210']   # 110	102909	2	201904240207	201904240210	47.094	47.416	28.888	36.853	35.460	33.698	6.572	3.155	55.033	54.261	177.47
 matched_camera_idx = ['2']
-WORK_SPACE = r'D:\MISR_AHI_WS\230211\intercom_mapping\45_1_Ray'
+WORK_SPACE = r'E:\MISR_AHI_WS\230211\intercom_mapping\45_1_Ray'
 roi_name = '45.6_1'
 selected_times = ['201902190200']   # 110	101977	2	201902190207	201902190200	47.162	47.416	29.344	36.853	60.216	61.043	30.872	24.190	38.110	38.663	175.084
 matched_camera_idx = ['2']
@@ -102,16 +102,13 @@ matched_camera_idx = ['2']
 # matched_camera_idx = ['8']
 
 
-def identifer(li):
-    result = []
-    for a in li:
-        mean = np.nanmean(a)
-        std = np.nanstd(a)
-        down = mean - 3 * std
-        up = mean + 3 * std
-        n_a = np.where(a < down, np.nan, a)
-        n_a = np.where(n_a > up, np.nan, n_a)
-        result.append(n_a)
+def identifer(data):
+    down,up = np.nanpercentile(data,[25,75])
+    IQR = up-down
+    lower_limit = down - 2*IQR
+    upper_limit = up + 2*IQR
+    result = np.where(data > upper_limit,np.nan, data)
+    result = np.where(result < lower_limit,np.nan, result)
     return result
 
 

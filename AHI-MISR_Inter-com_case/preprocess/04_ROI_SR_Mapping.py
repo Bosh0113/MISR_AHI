@@ -100,17 +100,15 @@ def add_right_cax(ax, pad, width):
     return cax
 
 
-def identifer(li):
-    result = []
-    for a in li:
-        mean = numpy.nanmean(a)
-        std = numpy.nanstd(a)
-        down = mean - 3 * std
-        up = mean + 3 * std
-        n_a = numpy.where(a < down, numpy.nan, a)
-        n_a = numpy.where(n_a > up, numpy.nan, n_a)
-        result.append(n_a)
+def identifer(data):
+    down,up = numpy.nanpercentile(data,[25,75])
+    IQR = up-down
+    lower_limit = down - 2*IQR
+    upper_limit = up + 2*IQR
+    result = numpy.where(data > upper_limit,numpy.nan, data)
+    result = numpy.where(result < lower_limit,numpy.nan, result)
     return result
+
 
 
 def mapping_scatter(ahi_arrray, misr_array, figure_title, type, axis_min=0.0, axis_max=0.5):
