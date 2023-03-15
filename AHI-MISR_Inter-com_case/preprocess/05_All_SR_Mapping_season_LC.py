@@ -23,12 +23,12 @@ SEASON_MONTH = {    # [north_start, north_end], [south_start, south_end]
 
 
 def identifer(data):
-    down,up = numpy.nanpercentile(data,[25,75])
+    down, up = numpy.nanpercentile(data, [25, 75])
     IQR = up-down
     lower_limit = down - 2*IQR
     upper_limit = up + 2*IQR
-    result = numpy.where(data > upper_limit,numpy.nan, data)
-    result = numpy.where(result < lower_limit,numpy.nan, result)
+    result = numpy.where(data > upper_limit, numpy.nan, data)
+    result = numpy.where(result < lower_limit, numpy.nan, result)
     return result
 
 
@@ -126,7 +126,7 @@ def mapping_scatter(Y, X, figure_title, band_name, axis_min=0.0, axis_max=1.0):
 if __name__ == "__main__":
 
     # folder_l1_list = ['0', '26', '45', '60', '70']
-    folder_l1_list = ['26', '45']
+    folder_l1_list = ['45']
     folder_l2_list = ['0', '1']
 
     for season_idx in range(len(SEASON_LIST)):

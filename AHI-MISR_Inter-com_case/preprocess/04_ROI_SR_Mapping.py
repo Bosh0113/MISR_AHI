@@ -217,7 +217,11 @@ def record_roi_misr_ahi(roi_name, band_index, misr_orbit, misr_camera_index, ahi
     # print(roi_ahi_sr)
     misr_path = orbit_to_path(misr_orbit)
     # MISR v3 netCDF4
-    misr_nc = netCDF4.Dataset(misr_nc_filename)
+    misr_nc = None
+    try:
+        misr_nc = netCDF4.Dataset(misr_nc_filename)
+    except Exception as e:
+        return [], []
     misr_nc_11 = misr_nc.groups['1.1_KM_PRODUCTS']
     misr_brf_var = misr_nc_11.variables['Bidirectional_Reflectance_Factor']
     misr_brf_scalev3 = misr_brf_var.scale_factor
