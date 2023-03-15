@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 
 WORK_SPACE = os.getcwd()
 
-PIXEL_PAIRS_MAX = 550
+PIXEL_PAIRS_MAX = 500
 
 SEASON_LIST = ["spring", "summer", "autumn", "winter"]
 

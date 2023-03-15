@@ -78,12 +78,12 @@ def display_pts(bots, labels):
 
 
 def identifer(data):
-    down,up = numpy.nanpercentile(data,[25,75])
+    down, up = numpy.nanpercentile(data, [25, 75])
     IQR = up-down
     lower_limit = down - 2*IQR
     upper_limit = up + 2*IQR
-    result = numpy.where(data > upper_limit,numpy.nan, data)
-    result = numpy.where(result < lower_limit,numpy.nan, result)
+    result = numpy.where(data > upper_limit, numpy.nan, data)
+    result = numpy.where(result < lower_limit, numpy.nan, result)
     return result
 
 
@@ -96,7 +96,7 @@ def mapping_scatter(Y, X, figure_title, band_name, axis_min=0.0, axis_max=1.0):
     X = array1_n[~numpy.isnan(array1_n)]
     Y = array2_n[~numpy.isnan(array2_n)]
 
-    mapping_folder = os.path.join(WORK_SPACE, 'month_scatter')
+    mapping_folder = os.path.join(WORK_SPACE, 'month_scatter_LC')
     figure_folder = os.path.join(mapping_folder, str(PIXEL_PAIRS_MAX))
     if not os.path.exists(figure_folder):
         os.makedirs(figure_folder)
@@ -281,7 +281,7 @@ if __name__ == "__main__":
                     figure_title = folder_l1 + '_' + folder_l2 + '_b4' + '_' + str(month_idx) + month + '_' + str(PIXEL_PAIRS_MAX)
                     slope_b4, r_b4, rmse_b4 = mapping_scatter(show_ahi_sr_b4, show_misr_sr_b4, figure_title, 'band4', axis_min=0.0, axis_max=1.0)
                     month_slope_b4[month_idx] = round(slope_b4, 2)
-                    month_r_b4[month_idx] = round(r_b4 ,2)
+                    month_r_b4[month_idx] = round(r_b4, 2)
                     month_rmse_b4[month_idx] = round(rmse_b4, 3)
                 
                 else:
@@ -302,7 +302,7 @@ if __name__ == "__main__":
                         figure_title = folder_l1 + '_' + folder_l2 + '_b4' + '_' + str(month_idx) + month + '_' + str(pairs_no)
                         slope_b4, r_b4, rmse_b4 = mapping_scatter(ahi_SR_band4_pts, misr_SR_band4_pts, figure_title, 'band4', axis_min=0.0, axis_max=1.0)
                         month_slope_b4[month_idx] = round(slope_b4, 2)
-                        month_r_b4[month_idx] = round(r_b4 ,2)
+                        month_r_b4[month_idx] = round(r_b4, 2)
                         month_rmse_b4[month_idx] = round(rmse_b4, 3)
             print('Slope, r, RMSE')
             print(month_slope_b3)

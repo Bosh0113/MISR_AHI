@@ -31,7 +31,7 @@ def mapping_scatter(Y, X, figure_title, band_name, axis_min=0.0, axis_max=1.0):
     X = array1_n[~numpy.isnan(array1_n)]
     Y = array2_n[~numpy.isnan(array2_n)]
 
-    mapping_folfer = os.path.join(WORK_SPACE, 'figure_scatter')
+    mapping_folfer = os.path.join(WORK_SPACE, 'year_scatter_LC')
     figure_folder = os.path.join(mapping_folfer, str(PIXEL_PAIRS_MAX))
     if not os.path.exists(figure_folder):
         os.makedirs(figure_folder)
@@ -185,7 +185,7 @@ if __name__ == "__main__":
                 show_ahi_sr_b4 = ahi_SR_band4_pts[index_array]
                 figure_title = folder_l1 + '_' + folder_l2 + '_b4' + '_' + str(PIXEL_PAIRS_MAX)
                 mapping_scatter(show_ahi_sr_b4, show_misr_sr_b4, figure_title, 'band4', axis_min=0.0, axis_max=1.0)
-            
+
             else:
                 # all pairs mapping
                 pairs_no = len(misr_SR_band3_item_list)
