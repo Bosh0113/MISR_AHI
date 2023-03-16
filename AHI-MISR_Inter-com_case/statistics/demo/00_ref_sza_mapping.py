@@ -3,7 +3,8 @@ import numpy
 import matplotlib.pyplot as plt
 from scipy.stats import linregress
 
-ws = r'E:\MISR_AHI_WS\230310\box_plot'
+ws = r'E:\MISR_AHI_WS\230316\ref_sza_vza_variation_7_random_south'
+# ws = r'E:\MISR_AHI_WS\230316\ref_sza_vza_variation_12_random_south'
 
 DEGREE_INTERNAL = 1
 
@@ -12,7 +13,7 @@ def line_plot(all_data):
     v_misr_sr_record = all_data[0]
     v_ahi_toa_record = all_data[1]
     v_ahi_sr_record = all_data[2]
-    refer_sza_idx = numpy.arange(15, 80, DEGREE_INTERNAL)
+    refer_sza_idx = numpy.arange(0, 90, DEGREE_INTERNAL)
     y_v_ahi_toa = numpy.zeros_like(refer_sza_idx)*1.
     y_v_ahi_sr = numpy.zeros_like(refer_sza_idx)*1.
     y_v_misr_sr = numpy.zeros_like(refer_sza_idx)*1.
@@ -45,7 +46,7 @@ def line_plot(all_data):
 
 def box_plot(all_data):
     fig, axs = plt.subplots()
-    axs.grid(linestyle='--', linewidth=0.3)
+    axs.grid(linestyle='--', linewidth=0.3, axis='y')
 
     colors_map = ['green', 'blue', 'red']
     label_list = ['MISR SR', 'AHI TOA', 'AHI SR']
@@ -114,6 +115,7 @@ def box_plot(all_data):
     plt.ylim(0.02, 0.375)   # band3
     # plt.ylim(0.13, 0.485) # band4
     plt.xlabel('SZA (°), VZA ≈ 26°, RAA ≈ 30°', size=18)
+    # plt.xlabel('SZA (°), VZA ≈ 45°, RAA ≈ 30°', size=18)
     plt.ylabel('Reflectance on Band3 of AHI', size=18)  # band3
     # plt.ylabel('Reflectance on Band4 of AHI', size=18)  # band4
     plt.legend(markerscale=2, loc=2, fontsize='x-large')
@@ -124,6 +126,7 @@ if __name__ == "__main__":
     band_str = 'band3'
     # band_str = 'band4'
     demo_npy = os.path.join(ws, '26_0_' + band_str + '_ref_sza_vza_variation.npy')
+    # demo_npy = os.path.join(ws, '45_0_' + band_str + '_ref_sza_vza_variation.npy')
     npy_array = numpy.load(demo_npy, allow_pickle=True)
     print(npy_array)
     # line_plot(npy_array)

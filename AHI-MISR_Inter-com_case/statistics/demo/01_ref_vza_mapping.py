@@ -3,7 +3,7 @@ import numpy
 import matplotlib.pyplot as plt
 from scipy.stats import linregress
 
-ws = r'E:\MISR_AHI_WS\230310\ref_sza_vza_variation_10'
+ws = r'E:\MISR_AHI_WS\230316\ref_sza_vza_variation_10_random'
 
 DEGREE_INTERNAL = 1
 
@@ -64,7 +64,7 @@ def box_plot(all_data):
 def main():
     o_data = []
     vza_angle = ['26', '45', '60', '70']
-    bands = ['band3', 'band4']
+    # bands = ['band3', 'band4']
     band_str = 'band3'
     # band_str = 'band4'
     for vza_str in vza_angle:
@@ -79,7 +79,7 @@ def main():
         v_count = 0
         for vza_g_idx in range(0, 8, 2):
             pt_vs = o_data[vza_g_idx][sza_idx]
-            if len(pt_vs) > 8: # meaningful count
+            if len(pt_vs) > 10:     # meaningful count
                 v_count += 1
         if v_count < 2:
             for vza_g_idx in range(0, 8, 1):
