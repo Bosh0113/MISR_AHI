@@ -13,8 +13,7 @@ MISR_NC_FOLDER = '/data01/people/beichen/data/MISR4AHI2015070120210630_3'
 
 AHI_RESOLUTION = 0.01
 
-CHECK_SIZE = 0.1
-CLEAR_SKY_PIXEL = (CHECK_SIZE/AHI_RESOLUTION)**2
+CHECK_SIZE = 0.04
 
 
 def BRF_TrueValue(o_value, scale, offset):
@@ -87,7 +86,7 @@ def is_valuable_MISR_BRF(cood_point, band_index, misr_orbit, misr_camera_index, 
 
     # if any cloud-free obs. is existed
     roi_misr_brfv3 = roi_misr_brfv3.flatten()
-    if len(roi_misr_brfv3[roi_misr_brfv3 > 0.0]) > CLEAR_SKY_PIXEL:
+    if len(roi_misr_brfv3[roi_misr_brfv3 == 0.0]) < 1:
         return 1
     return 0
 
