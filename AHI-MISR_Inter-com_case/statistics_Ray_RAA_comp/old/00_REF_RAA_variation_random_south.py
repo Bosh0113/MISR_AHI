@@ -7,7 +7,7 @@ import random
 
 WORK_SPACE = os.getcwd()
 
-DEGREE_INTERNAL = 1
+DEGREE_INTERNAL = 0.5
 PIXEL_PAIRS_MAX = 50
 
 
@@ -83,7 +83,8 @@ if __name__ == "__main__":
                                             roi_raa_array = ac_record['roi_raa']
                                             roi_raa = round(roi_raa_array.mean(), 3)
 
-                                            if roi_sza > 15. and roi_sza < 35.: # SZA≈25°
+                                            # if roi_sza > 15. and roi_sza < 35.: # SZA≈25°
+                                            if roi_sza > 0. and roi_sza < 90.:
                                                 # get v:  MISR-SR AHI-SR
                                                 # AHI-SR MISR-SR
                                                 roi_file_list = os.listdir(roi_folder_path)
