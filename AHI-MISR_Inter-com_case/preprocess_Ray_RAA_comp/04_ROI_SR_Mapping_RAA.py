@@ -19,7 +19,7 @@ ssl._create_default_https_context = ssl._create_unverified_context
 
 WORK_SPACE = os.getcwd()
 MISR_NC_FOLDER = '/disk1/Data/MISR4AHI2015070120210630_3'
-CLOUD_MASK_FOLDER = '/disk2/Data'
+CLOUD_MASK_FOLDER = '/disk2/Data/AHI_CloudMask'
 
 # https://www-pm.larc.nasa.gov/cgi-bin/site/showdoc?mnemonic=SBAF
 # LandCover=* ReferenceSRF=AHI TargetSRF=MISR Units=PseudoScaledRadiance Regression=Linear
@@ -78,7 +78,7 @@ def get_roi_cloudmask_list(cloudmask_fd, roi_ct):
 
 
 def read_cloudmask(date_str):
-    cm_path = CLOUD_MASK_FOLDER + '/cloudmask/{}/AHIcm.v0.{}.dat'.format(date_str[:6], date_str)
+    cm_path = CLOUD_MASK_FOLDER + '/{}/AHIcm.v0.{}.dat'.format(date_str[:6], date_str)
     if not os.path.exists(cm_path):
         print('no file:', cm_path)
     try:

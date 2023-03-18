@@ -114,8 +114,8 @@ def box_plot(all_data):
     plt.xlim(5, 37.5)
     plt.ylim(0.02, 0.375)   # band3
     # plt.ylim(0.13, 0.485) # band4
-    plt.xlabel('SZA (°), VZA≈26°, RAA≈30°', size=18)
-    # plt.xlabel('SZA (°), VZA≈45°, RAA≈30°', size=18)
+    plt.xlabel('SZA (°), VZA≈26°, RAA≈20°', size=18)
+    # plt.xlabel('SZA (°), VZA≈45°, RAA≈20°', size=18)
     plt.ylabel('Reflectance on Band3 of AHI', size=18)  # band3
     # plt.ylabel('Reflectance on Band4 of AHI', size=18)  # band4
     plt.legend(markerscale=2, loc=2, fontsize='x-large')

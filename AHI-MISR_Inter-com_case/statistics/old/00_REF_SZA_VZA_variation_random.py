@@ -3,10 +3,12 @@ import numpy
 import re
 import matplotlib.pyplot as plt
 from scipy.stats import linregress
+import random
 
 WORK_SPACE = os.getcwd()
 
 DEGREE_INTERNAL = 1
+PIXEL_PAIRS_MAX = 50
 
 
 def find_nearest_index(array, value):
@@ -29,7 +31,7 @@ def box_plot(all_data):
                     medianprops=dict(color=colors_map[idx], linewidth=1),
                     whiskerprops=dict(color=colors_map[idx], linewidth=0.5, alpha=0.3),
                     capprops=dict(color=colors_map[idx], linewidth=0.5, alpha=0.3))
-    
+
     v_ahi_toa_record = all_data[0]
     v_ahi_sr_record = all_data[1]
     v_misr_sr_record = all_data[2]
@@ -92,18 +94,31 @@ def box_plot(all_data):
     plt.clf()
 
 
-if __name__ == "__main__":
-    # folder_l1_list = ['26', '45', '60', '70']
-    folder_l1_list = ['26']
-    folder_l2_list = ['0']
-    lc_type = '7'   # Open Shrublands
-    # lc_type = '10'   # Grasslands
+# random
+def array_random_count(o_array):
+    n_array = []
+    for array_item_idx in range(len(o_array)):
+        array_item = o_array[array_item_idx]
+        if len(array_item) > PIXEL_PAIRS_MAX:
+            # random pairs mapping
+            index_array = random.sample([idx for idx in range(len(array_item))], PIXEL_PAIRS_MAX)
+            index_array = numpy.sort(index_array).tolist()
+            array_item = array_item[index_array]
+        n_array.append(array_item)
+    return n_array
 
-    ws_folder = os.path.join(WORK_SPACE, 'ref_sza_vza_variation_' + lc_type)
+
+if __name__ == "__main__":
+    folder_l1_list = ['26']
+    lc_type = '7'   # Open Shrublands
+    # folder_l1_list = ['26', '45', '60', '70']
+    # lc_type = '10'   # Grasslands
+    folder_l2_list = ['0']
+
+    ws_folder = os.path.join(WORK_SPACE, 'ref_sza_vza_variation_' + lc_type + '_random')
     if not os.path.exists(ws_folder):
         os.makedirs(ws_folder)
 
-    record_str = ''
     refer_sza_idx = numpy.arange(15, 80, DEGREE_INTERNAL)
     for folder_l1 in folder_l1_list:
         folder_l1_path = os.path.join(WORK_SPACE, folder_l1)
@@ -155,7 +170,7 @@ if __name__ == "__main__":
                         #                 max_raa = roi_raa
                         #             if roi_raa < min_raa:
                         #                 min_raa = roi_raa
-                                    if roi_raa > 25. or roi_raa < 35.:
+                                    if roi_raa > 0. and roi_raa < 180.:
                                         # get v: AHI-TOA MISR-SR AHI-SR
                                         # AHI-TOA
                                         roi_toa_array = ac_record['roi_ahi_data']
@@ -198,6 +213,11 @@ if __name__ == "__main__":
                                             v_misr_sr_record_sza = v_misr_sr_record[rec_idx]
                                             v_misr_sr_record_sza = numpy.append(v_misr_sr_record_sza, v_misr_sr)
                                             v_misr_sr_record[rec_idx] = v_misr_sr_record_sza
+                # random
+                v_misr_sr_record = array_random_count(v_misr_sr_record)
+                v_ahi_toa_record = array_random_count(v_ahi_toa_record)
+                v_ahi_sr_record = array_random_count(v_ahi_sr_record)
+                # save
                 numpy.save(os.path.join(ws_folder, folder_l1 + '_' + folder_l2 + '_' + band_label + '_ref_sza_vza_variation.npy'), [v_misr_sr_record, v_ahi_toa_record, v_ahi_sr_record])
                 # mapping
                 # box_plot(numpy.array([v_misr_sr_record, v_ahi_toa_record, v_ahi_sr_record]))
