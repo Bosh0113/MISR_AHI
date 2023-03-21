@@ -100,8 +100,7 @@ if __name__ == "__main__":
                                         if roi_raa > 5. and roi_raa < 35.:  # RAA=20±15
                                             # get v: AHI-TOA MISR-SR AHI-SR
                                             # AHI-TOA
-                                            roi_ahi_toa_array = ac_record['ahi_toa2misr']
-                                            roi_misr_toa_array = ac_record['misr_toa']
+                                            roi_toa_array = ac_record['roi_ahi_data']
                                             # AHI-SR MISR-SR
                                             roi_file_list = os.listdir(roi_folder_path)
                                             v_re = obs_time + '_' + band_label + r'_(\d+).npy'
@@ -124,6 +123,9 @@ if __name__ == "__main__":
                                                     mask_array = numpy.zeros_like(roi_misr_sr_array)
                                                     mask_array[roi_misr_sr_array > 0.0] = 1.
                                                     mask_array[mask_array == 0.0] = numpy.NaN
+                                                    
+                                                    roi_ahi_toa_array = numpy.array(v_record['ahi_toa2misr'])
+                                                    roi_misr_toa_array = numpy.array(v_record['misr_toa'])
                                                     roi_ahi_toa_array = roi_ahi_toa_array * mask_array
                                                     roi_ahi_toa = roi_ahi_toa_array.flatten()
                                                     v_ahi_toa = roi_ahi_toa[~numpy.isnan(roi_ahi_toa)]

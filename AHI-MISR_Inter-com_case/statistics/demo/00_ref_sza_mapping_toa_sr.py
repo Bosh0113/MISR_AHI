@@ -3,8 +3,8 @@ import numpy
 import matplotlib.pyplot as plt
 from scipy.stats import linregress
 
-ws = r'E:\MISR_AHI_WS\230316\ref_sza_vza_variation_7_random_south'
-# ws = r'E:\MISR_AHI_WS\230316\ref_sza_vza_variation_12_random_south'
+# ws = r'E:\MISR_AHI_WS\230321\ref_sza_vza_variation_7_random_south_toa_sr'
+ws = r'E:\MISR_AHI_WS\230321\ref_sza_vza_variation_12_random_south_toa_sr'
 
 DEGREE_INTERNAL = 1
 
@@ -48,8 +48,8 @@ def box_plot(all_data):
     fig, axs = plt.subplots()
     axs.grid(linestyle='--', linewidth=0.3, axis='y')
 
-    colors_map = ['green', 'blue', 'red']
-    label_list = ['MISR SR', 'AHI TOA', 'AHI SR']
+    colors_map = ['purple', 'deepskyblue', 'firebrick', 'darkorange']
+    label_list = ['MISR TOA', 'MISR SR', 'AHI TOA', 'AHI SR']
     for idx in range(len(all_data)):
         axs.boxplot(all_data[idx],
                     patch_artist=True,
@@ -58,17 +58,21 @@ def box_plot(all_data):
                     medianprops=dict(color=colors_map[idx], linewidth=1),
                     whiskerprops=dict(color=colors_map[idx], linewidth=0.5, alpha=0.3),
                     capprops=dict(color=colors_map[idx], linewidth=0.5, alpha=0.3))
-    
-    v_misr_sr_record = all_data[0]
-    v_ahi_toa_record = all_data[1]
-    v_ahi_sr_record = all_data[2]
+    v_misr_toa_record = all_data[0]
+    v_misr_sr_record = all_data[1]
+    v_ahi_toa_record = all_data[2]
+    v_ahi_sr_record = all_data[3]
     refer_sza_idx = numpy.arange(15, 80, DEGREE_INTERNAL)
+    y_v_misr_toa = numpy.zeros_like(refer_sza_idx)*1.
+    y_v_misr_sr = numpy.zeros_like(refer_sza_idx)*1.
     y_v_ahi_toa = numpy.zeros_like(refer_sza_idx)*1.
     y_v_ahi_sr = numpy.zeros_like(refer_sza_idx)*1.
-    y_v_misr_sr = numpy.zeros_like(refer_sza_idx)*1.
     for v_item_idx in range(len(v_ahi_toa_record)):
         v_ahi_toa_item = v_ahi_toa_record[v_item_idx]
         if len(v_ahi_toa_item) > 0:
+            v_misr_toa_item = v_misr_toa_record[v_item_idx]
+            v_misr_toa_mean = round(numpy.median(v_misr_toa_item), 3)
+            y_v_misr_toa[v_item_idx] = v_misr_toa_mean
             v_misr_sr_item = v_misr_sr_record[v_item_idx]
             v_misr_sr_mean = round(numpy.median(v_misr_sr_item), 3)
             y_v_misr_sr[v_item_idx] = v_misr_sr_mean
@@ -78,11 +82,12 @@ def box_plot(all_data):
             v_ahi_sr_mean = round(numpy.median(v_ahi_sr_item), 3)
             y_v_ahi_sr[v_item_idx] = v_ahi_sr_mean
 
+    y_v_misr_toa[y_v_misr_toa==0.] = numpy.NaN
     y_v_misr_sr[y_v_misr_sr==0.] = numpy.NaN
     y_v_ahi_toa[y_v_ahi_toa==0.] = numpy.NaN
     y_v_ahi_sr[y_v_ahi_sr==0.] = numpy.NaN
 
-    y_zip = [y_v_misr_sr, y_v_ahi_toa, y_v_ahi_sr]
+    y_zip = [y_v_misr_toa, y_v_misr_sr, y_v_ahi_toa, y_v_ahi_sr]
     x_range = numpy.array([i for i in range((80-15)*int(1/DEGREE_INTERNAL))])
     for y_idx in range(len(y_zip)):
         y_data = y_zip[y_idx]
@@ -90,7 +95,10 @@ def box_plot(all_data):
         v_slope, v_offset, v_r, v_p, v_std_err = linregress(x_range[mask_idx], y_data[mask_idx])
         print(v_slope, v_offset, v_r, v_p, v_std_err)
         y = v_slope*x_range+v_offset
-        plt.plot(x_range, y, '--', color=colors_map[y_idx], label=label_list[y_idx], linewidth=0.8, alpha=0.5)
+        plt.plot(x_range, y, '--', color=colors_map[y_idx], linewidth=0.8, alpha=0.5)
+        # label
+        y_ = [-5 for y_idx in range(len(x_range))]
+        plt.plot(x_range, y_, '-', color=colors_map[y_idx], label=label_list[y_idx], linewidth=2)
 
     axs.minorticks_on()
     x_minor_locator = plt.MultipleLocator(1)
@@ -114,8 +122,8 @@ def box_plot(all_data):
     plt.xlim(5, 37.5)
     plt.ylim(0.02, 0.375)   # band3
     # plt.ylim(0.13, 0.485) # band4
-    plt.xlabel('SZA (°), VZA≈26°, RAA≈20°', size=18)
-    # plt.xlabel('SZA (°), VZA≈45°, RAA≈20°', size=18)
+    # plt.xlabel('SZA (°), VZA≈26°, RAA≈20°', size=18)
+    plt.xlabel('SZA (°), VZA≈45°, RAA≈20°', size=18)
     plt.ylabel('Reflectance on Band3 of AHI', size=18)  # band3
     # plt.ylabel('Reflectance on Band4 of AHI', size=18)  # band4
     plt.legend(markerscale=2, loc=2, fontsize='x-large')
@@ -125,8 +133,8 @@ def box_plot(all_data):
 if __name__ == "__main__":
     band_str = 'band3'
     # band_str = 'band4'
-    demo_npy = os.path.join(ws, '26_0_' + band_str + '_ref_sza_vza_variation.npy')
-    # demo_npy = os.path.join(ws, '45_0_' + band_str + '_ref_sza_vza_variation.npy')
+    # demo_npy = os.path.join(ws, '26_0_' + band_str + '_ref_sza_vza_variation.npy')
+    demo_npy = os.path.join(ws, '45_0_' + band_str + '_ref_sza_vza_variation.npy')
     npy_array = numpy.load(demo_npy, allow_pickle=True)
     print(npy_array)
     # line_plot(npy_array)
