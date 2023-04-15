@@ -3,8 +3,10 @@ import numpy
 import matplotlib.pyplot as plt
 from scipy.stats import linregress
 
-# ws = r'E:\MISR_AHI_WS\230321\ref_sza_vza_variation_7_random_south_toa_sr'
-ws = r'E:\MISR_AHI_WS\230321\ref_sza_vza_variation_12_random_south_toa_sr'
+ws_folder = r'D:\PhD_Workspace\MISR_AHI_WS\230321'
+
+# ws = ws_folder + r'\ref_sza_vza_variation_7_random_south_toa_sr'
+ws = ws_folder + r'\ref_sza_vza_variation_12_random_south_toa_sr'
 
 DEGREE_INTERNAL = 1
 
@@ -45,7 +47,7 @@ def line_plot(all_data):
 
 
 def box_plot(all_data):
-    fig, axs = plt.subplots()
+    fig, axs = plt.subplots(figsize=(8.5,5))
     axs.grid(linestyle='--', linewidth=0.3, axis='y')
 
     colors_map = ['purple', 'deepskyblue', 'firebrick', 'darkorange']
@@ -120,19 +122,28 @@ def box_plot(all_data):
 
     plt.xticks([i for i in range(0, (80-15), 5*int(1/DEGREE_INTERNAL))], numpy.arange(15, 80, 5*int(1/DEGREE_INTERNAL)))
     plt.xlim(5, 37.5)
-    plt.ylim(0.02, 0.375)   # band3
-    # plt.ylim(0.13, 0.485) # band4
+
+    # plt.ylim(0.02, 0.375)   # band3
+    plt.ylim(0.13, 0.485) # band4
+
     # plt.xlabel('SZA (°), VZA≈26°, RAA≈20°', size=18)
     plt.xlabel('SZA (°), VZA≈45°, RAA≈20°', size=18)
-    plt.ylabel('Reflectance on Band3 of AHI', size=18)  # band3
-    # plt.ylabel('Reflectance on Band4 of AHI', size=18)  # band4
+
+    # plt.ylabel('Reflectance on Band3 of AHI', size=18)  # band3
+    plt.ylabel('Reflectance on Band4 of AHI', size=18)  # band4
     plt.legend(markerscale=2, loc=2, fontsize='x-large')
-    plt.show()
+
+    # plt.savefig(ws_folder+'/Ref_SZA_26_b3.png', dpi=600)
+    # plt.savefig(ws_folder+'/Ref_SZA_26_b4.png', dpi=600)
+    # plt.savefig(ws_folder+'/Ref_SZA_45_b3.png', dpi=600)
+    plt.savefig(ws_folder+'/Ref_SZA_45_b4.png', dpi=600)
+
+    # plt.show()
 
 
 if __name__ == "__main__":
-    band_str = 'band3'
-    # band_str = 'band4'
+    # band_str = 'band3'
+    band_str = 'band4'
     # demo_npy = os.path.join(ws, '26_0_' + band_str + '_ref_sza_vza_variation.npy')
     demo_npy = os.path.join(ws, '45_0_' + band_str + '_ref_sza_vza_variation.npy')
     npy_array = numpy.load(demo_npy, allow_pickle=True)

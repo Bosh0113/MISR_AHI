@@ -4,14 +4,14 @@ import random
 import matplotlib
 import matplotlib.pyplot as plt
 
-WORK_SPACE = r'E:\MISR_AHI_WS\230319'
+WORK_SPACE = r'D:\PhD_Workspace\MISR_AHI_WS\230319'
 
 PIXEL_PAIRS_MAX = 500
 MONTH_LABEL = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
 
 def display_pts_b3_b4(slope_list, r_list, rmse_list, match_type):
-
+    plt.figure(figsize=(8,6))
     ax = plt.axes()
     ax.grid(linestyle='--', linewidth=0.3)
     ax.set_title(match_type + '-matches', loc='left', fontstyle='oblique', fontsize='medium')
@@ -56,7 +56,9 @@ def display_pts_b3_b4(slope_list, r_list, rmse_list, match_type):
     plt.xlabel('Month', size=14)
     plt.ylabel('AHI-MISR SR Slope, r & RMSE', size=14)
     plt.legend(markerscale=0.5, loc=10, bbox_to_anchor=[0.5, 0.25], ncol=2)
-    plt.show()
+    # plt.savefig(r'D:\PhD_Workspace\MISR_AHI_WS\230319\VZA26_Ray_month.png', dpi=600)
+    plt.savefig(r'D:\PhD_Workspace\MISR_AHI_WS\230319\VZA26_RAA_month.png', dpi=600)
+    # plt.show()
     plt.clf()
 
 def show_para(mon_para, match_type):
@@ -73,7 +75,7 @@ if __name__ == "__main__":
     ray_month_para = numpy.load(ray_month_para_npy, allow_pickle=True)
     raa_month_para = numpy.load(raa_month_para_npy, allow_pickle=True)
 
-    show_para(ray_month_para, 'Ray')
+    # show_para(ray_month_para, 'Ray')
     show_para(raa_month_para, 'RAA')
 
     

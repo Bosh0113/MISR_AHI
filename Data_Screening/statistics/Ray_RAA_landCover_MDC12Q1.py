@@ -3,7 +3,7 @@ import math
 import numpy as np
 import matplotlib.pyplot as plt
 
-ws = r'E:\MISR_AHI_WS\230308\mapping'
+ws = r'D:\PhD_Workspace\MISR_AHI_WS\230308\mapping'
 
 MCD12Q1_006_10KM_npy = os.path.join(ws, 'MCD12Q1_006_10km.npy')
 ray_matched_record_npy = os.path.join(ws, 'AHI_MISR_Ray-screened_50km.npy')
@@ -44,8 +44,8 @@ def fig_mapping(ray_values, raa_values):
 
     theta_internal = 0.01
     fig, ax = plt.subplots(subplot_kw={'projection': 'polar'})
-    fig.set_size_inches(6, 4)
-    fig.set_dpi(100)
+    fig.set_size_inches(12, 8)
+    # fig.set_dpi(100)
 
     for v_idx in range(len(ray_values)):
         # y-grid line
@@ -110,8 +110,8 @@ def fig_mapping(ray_values, raa_values):
 
     ax.grid(linestyle='--', linewidth=0.6, axis='x')
     ax.yaxis.grid(False)
-
-    plt.show()
+    plt.savefig(r'D:\PhD_Workspace\MISR_AHI_WS\230308\mapping\Land cover distribution of screened areas from two criteria.png', dpi=600)
+    # plt.show()
 
 
 def main():

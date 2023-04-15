@@ -3,7 +3,8 @@ import numpy
 import matplotlib.pyplot as plt
 
 if __name__ == "__main__":
-    csv_filename = r'D:\Work_PhD\MISR_AHI_WS\220627\AHI_MISR_SRF.csv'
+    csv_filename = r'D:\PhD_Workspace\MISR_AHI_WS\220627\AHI_MISR_SRF.csv'
+    plt.figure(figsize=(8,6))
     srf_record = []
     with open(csv_filename, 'r') as f:
         reader = csv.reader(f)
@@ -34,4 +35,5 @@ if __name__ == "__main__":
     plt.ylabel('Relative spectral Response')
     plt.xlim((380.0, 930.0))
     plt.ylim((0.0, 1.05))
-    plt.show()
+    plt.savefig(r'D:\PhD_Workspace\MISR_AHI_WS\220627\ahi_misr_srf.png', dpi=600)
+    # plt.show()

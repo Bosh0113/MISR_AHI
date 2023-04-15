@@ -9,7 +9,7 @@ import seaborn
 degree_count = 5
 
 # MISR_path MISR_orbit camera_idx MISR_roi_time AHI_roi_time MISR_VZA AHI_VZA MISR_VAA AHI_VAA Scattering_Angle(GEO-LEO)
-matched_npy_filename = r'E:\MISR_AHI_WS\230308\mapping\AHI_MISR_Ray-screened_10km.npy'
+matched_npy_filename = r'D:\PhD_Workspace\MISR_AHI_WS\230308\mapping\AHI_MISR_Ray-screened_10km.npy'
 
 
 def find_nearest_index(array, value):
@@ -74,7 +74,7 @@ def kde_mapping(misr_angle_pixel_record, ahi_angle_pixel_record):
     kde_ahi_list = prepare_kde(ahi_angle_pixel_record)
 
     f, ax1 = plt.subplots()
-    f.set_size_inches(6, 4)
+    f.set_size_inches(12, 8)
     f.set_dpi(100)
     ax1.grid(linestyle='--', linewidth=0.6)
     ax1.set_xlabel('VZA (°)', fontsize=18)
@@ -123,7 +123,8 @@ def kde_mapping(misr_angle_pixel_record, ahi_angle_pixel_record):
 
 
     plt.xlim(0, 90)
-    plt.show()
+    plt.savefig(r'D:\PhD_Workspace\MISR_AHI_WS\230308\mapping\Ray_VZA_distribution.png', dpi=600)
+    # plt.show()
 
 
 def main():

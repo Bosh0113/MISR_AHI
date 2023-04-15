@@ -3,8 +3,7 @@ import numpy
 import matplotlib.pyplot as plt
 from matplotlib.ticker import ScalarFormatter
 
-# ws = r'D:\Work_PhD\MISR_AHI_WS\230118'
-ws = r'E:\MISR_AHI_WS\230308\mapping'
+ws = r'D:\PhD_Workspace\MISR_AHI_WS\230308\mapping'
 
 ray_matched_record_npy = os.path.join(ws, 'AHI_MISR_Ray-screened_50km.npy')
 raa_matched_record_npy = os.path.join(ws, 'AHI_MISR_RAA-screened_50km.npy')
@@ -51,7 +50,8 @@ def get_bar_data(bar_record):
 def mapping_double_bar_angle(ray_bar_data, raa_bar_data):
     f, (ax1, ax2) = plt.subplots(2, 1, sharex=True)
     f.subplots_adjust(hspace=0.05)  # adjust space between axes
-    f.set_size_inches(6, 4)
+    # f.set_size_inches(6, 4)
+    f.set_size_inches(12, 8)
     f.set_dpi(100)
 
     bar_width = 0.35
@@ -128,8 +128,9 @@ def mapping_double_bar_angle(ray_bar_data, raa_bar_data):
     ax2.plot([0, 1], [1, 1], transform=ax2.transAxes, **kwargs)
 
     ax1.legend(loc=1, fontsize='large', title='Camera angle of MISR')
+    plt.savefig(ws + '/Screened areas for each camera in different latitude ranges with two screening criteria_broken.png', dpi=600)
     # 2K monitor
-    plt.show()
+    # plt.show()
 
 
 def main():
