@@ -3,7 +3,7 @@ import numpy
 import matplotlib.pyplot as plt
 from scipy.stats import linregress
 
-ws_folder = r'D:\PhD_Workspace\MISR_AHI_WS\230321'
+ws_folder = r'E:\PhD_Workspace\MISR_AHI_WS\230321'
 
 # ws = ws_folder + r'\ref_sza_vza_variation_7_random_south_toa_sr'
 ws = ws_folder + r'\ref_sza_vza_variation_12_random_south_toa_sr'
@@ -38,9 +38,9 @@ def line_plot(all_data):
     # print(y_v_ahi_toa)
     # print(y_v_ahi_sr)
     # print(y_v_misr_sr)
-    axs.plot([i for i in range((80-15)*int(1/DEGREE_INTERNAL))], y_v_misr_sr, label='MISR SR')
+    axs.plot([i for i in range((80-15)*int(1/DEGREE_INTERNAL))], y_v_misr_sr, label='MISR LSR')
     axs.plot([i for i in range((80-15)*int(1/DEGREE_INTERNAL))], y_v_ahi_toa, label='AHI TOA')
-    axs.plot([i for i in range((80-15)*int(1/DEGREE_INTERNAL))], y_v_ahi_sr, label='AHI SR')
+    axs.plot([i for i in range((80-15)*int(1/DEGREE_INTERNAL))], y_v_ahi_sr, label='AHI LSR')
     plt.legend()
     plt.show()
     plt.clf()
@@ -51,7 +51,7 @@ def box_plot(all_data):
     axs.grid(linestyle='--', linewidth=0.3, axis='y')
 
     colors_map = ['purple', 'deepskyblue', 'firebrick', 'darkorange']
-    label_list = ['MISR TOA', 'MISR SR', 'AHI TOA', 'AHI SR']
+    label_list = ['MISR TOA', 'MISR LSR', 'AHI TOA', 'AHI LSR']
     for idx in range(len(all_data)):
         axs.boxplot(all_data[idx],
                     patch_artist=True,
