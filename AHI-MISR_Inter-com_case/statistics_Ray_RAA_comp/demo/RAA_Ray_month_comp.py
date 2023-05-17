@@ -7,7 +7,9 @@ import matplotlib.pyplot as plt
 WORK_SPACE = r'E:\PhD_Workspace\MISR_AHI_WS\230319'
 
 PIXEL_PAIRS_MAX = 500
-MONTH_LABEL = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+# MONTH_LABEL = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+# southern earth
+MONTH_LABEL = ['Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun']
 
 
 def display_pts_b3_b4(slope_list, r_list, rmse_list, match_type):
@@ -56,8 +58,8 @@ def display_pts_b3_b4(slope_list, r_list, rmse_list, match_type):
     plt.xlabel('Month', size=14)
     plt.ylabel('AHI-MISR LSR Slope, r & RMSE', size=14)
     plt.legend(markerscale=0.5, loc=10, bbox_to_anchor=[0.5, 0.25], ncol=2)
-    # plt.savefig(r'E:\PhD_Workspace\MISR_AHI_WS\230502\VZA26_Ray_month.png', dpi=600)
-    plt.savefig(r'E:\PhD_Workspace\MISR_AHI_WS\230502\VZA26_RAA_month.png', dpi=600)
+    plt.savefig(r'E:\PhD_Workspace\MISR_AHI_WS\230502\VZA26_Ray_month.png', dpi=600)
+    # plt.savefig(r'E:\PhD_Workspace\MISR_AHI_WS\230502\VZA26_RAA_month.png', dpi=600)
     # plt.show()
     plt.clf()
 
@@ -76,7 +78,7 @@ if __name__ == "__main__":
     ray_month_para = numpy.load(ray_month_para_npy, allow_pickle=True)
     raa_month_para = numpy.load(raa_month_para_npy, allow_pickle=True)
 
-    # show_para(ray_month_para, 'Ray')
-    show_para(raa_month_para, 'RAA')
+    show_para(ray_month_para, 'Ray')
+    # show_para(raa_month_para, 'RAA')
 
     
