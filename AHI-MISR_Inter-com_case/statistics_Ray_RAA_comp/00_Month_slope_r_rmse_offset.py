@@ -128,8 +128,9 @@ def mapping_scatter(Y, X, figure_title, band_name, axis_min=0.0, axis_max=1.0):
     # print(fig_filename)
     # plt.close(fig)
     # plt.clf()
-    # slope r RMSE
-    return k, r_, rmse
+
+    # slope r RMSE offset
+    return k, r_, rmse, b
 
 
 if __name__ == "__main__":
@@ -145,9 +146,11 @@ if __name__ == "__main__":
             month_slope_b3 = numpy.zeros((12,))
             month_r_b3 = numpy.zeros((12,))
             month_rmse_b3 = numpy.zeros((12,))
+            month_offset_b3 = numpy.zeros((12,))
             month_slope_b4 = numpy.zeros((12,))
             month_r_b4 = numpy.zeros((12,))
             month_rmse_b4 = numpy.zeros((12,))
+            month_offset_b4 = numpy.zeros((12,))
             for month_idx in range(len(MONTH_LABEL)):
                 month = MONTH_LABEL[month_idx]
                 # each png
@@ -221,20 +224,22 @@ if __name__ == "__main__":
                     ahi_SR_band3_pts = numpy.array(ahi_SR_band3_item_list)
                     show_ahi_sr_b3 = ahi_SR_band3_pts[index_array]
                     figure_title = folder_l1 + '_b3' + '_' + str(month_idx) + month + '_' + str(PIXEL_PAIRS_MAX)
-                    slope_b3, r_b3, rmse_b3 = mapping_scatter(show_ahi_sr_b3, show_misr_sr_b3, figure_title, 'band3')
+                    slope_b3, r_b3, rmse_b3, offset_b3 = mapping_scatter(show_ahi_sr_b3, show_misr_sr_b3, figure_title, 'band3')
                     month_slope_b3[month_idx] = round(slope_b3, 2)
                     month_r_b3[month_idx] = round(r_b3, 2)
                     month_rmse_b3[month_idx] = round(rmse_b3, 3)
+                    month_offset_b3[month_idx] = round(offset_b3, 2)
 
                     misr_SR_band4_pts = numpy.array(misr_SR_band4_item_list)
                     show_misr_sr_b4 = misr_SR_band4_pts[index_array]
                     ahi_SR_band4_pts = numpy.array(ahi_SR_band4_item_list)
                     show_ahi_sr_b4 = ahi_SR_band4_pts[index_array]
                     figure_title = folder_l1 + '_b4' + '_' + str(month_idx) + month + '_' + str(PIXEL_PAIRS_MAX)
-                    slope_b4, r_b4, rmse_b4 = mapping_scatter(show_ahi_sr_b4, show_misr_sr_b4, figure_title, 'band4')
+                    slope_b4, r_b4, rmse_b4, offset_b4 = mapping_scatter(show_ahi_sr_b4, show_misr_sr_b4, figure_title, 'band4')
                     month_slope_b4[month_idx] = round(slope_b4, 2)
                     month_r_b4[month_idx] = round(r_b4, 2)
                     month_rmse_b4[month_idx] = round(rmse_b4, 3)
+                    month_offset_b4[month_idx] = round(offset_b4, 2)
                 
                 else:
                     # all pairs mapping
@@ -244,30 +249,35 @@ if __name__ == "__main__":
                         misr_SR_band3_pts = numpy.array(misr_SR_band3_item_list)
                         ahi_SR_band3_pts = numpy.array(ahi_SR_band3_item_list)
                         figure_title = folder_l1 + '_b3' + '_' + str(month_idx) + month + '_' + str(pairs_no)
-                        slope_b3, r_b3, rmse_b3 = mapping_scatter(ahi_SR_band3_pts, misr_SR_band3_pts, figure_title, 'band3')
+                        slope_b3, r_b3, rmse_b3, offset_b3 = mapping_scatter(ahi_SR_band3_pts, misr_SR_band3_pts, figure_title, 'band3')
                         month_slope_b3[month_idx] = round(slope_b3, 2)
                         month_r_b3[month_idx] = round(r_b3, 2)
                         month_rmse_b3[month_idx] = round(rmse_b3, 3)
+                        month_offset_b3[month_idx] = round(offset_b3, 2)
 
                         misr_SR_band4_pts = numpy.array(misr_SR_band4_item_list)
                         ahi_SR_band4_pts = numpy.array(ahi_SR_band4_item_list)
                         figure_title = folder_l1 + '_b4' + '_' + str(month_idx) + month + '_' + str(pairs_no)
-                        slope_b4, r_b4, rmse_b4 = mapping_scatter(ahi_SR_band4_pts, misr_SR_band4_pts, figure_title, 'band4')
+                        slope_b4, r_b4, rmse_b4, offset_b4 = mapping_scatter(ahi_SR_band4_pts, misr_SR_band4_pts, figure_title, 'band4')
                         month_slope_b4[month_idx] = round(slope_b4, 2)
                         month_r_b4[month_idx] = round(r_b4, 2)
                         month_rmse_b4[month_idx] = round(rmse_b4, 3)
-            print('Slope, r, RMSE')
+                        month_offset_b4[month_idx] = round(offset_b4, 2)
+            print('Slope, r, RMSE, Offset')
 
             print(month_slope_b3)
             print(month_r_b3)
             print(month_rmse_b3)
+            print(month_offset_b3)
 
             print(month_slope_b4)
             print(month_r_b4)
             print(month_rmse_b4)
+            print(month_offset_b4)
 
             slope_list = [month_slope_b3, month_slope_b4]
             r_list = [month_r_b3, month_r_b4]
             rmse_list = [month_rmse_b3, month_rmse_b4]
+            offest_list = [month_offset_b3, month_offset_b4]
 
-            numpy.save(os.path.join(WORK_SPACE, folder_l1 + '_' + folder_type + '_slope_r_rmse.npy'), [slope_list, r_list, rmse_list])
+            numpy.save(os.path.join(WORK_SPACE, folder_l1 + '_' + folder_type + '_slope_r_rmse_offset.npy'), [slope_list, r_list, rmse_list, offest_list])

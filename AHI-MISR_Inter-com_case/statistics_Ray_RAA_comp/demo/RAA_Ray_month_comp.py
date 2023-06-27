@@ -4,7 +4,7 @@ import random
 import matplotlib
 import matplotlib.pyplot as plt
 
-WORK_SPACE = r'E:\PhD_Workspace\MISR_AHI_WS\230319'
+WORK_SPACE = '/disk1/workspace/20230620/common_RAA_Ray_VZA1VAA5'
 
 PIXEL_PAIRS_MAX = 500
 # MONTH_LABEL = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
@@ -54,12 +54,12 @@ def display_pts_b3_b4(slope_list, r_list, rmse_list, match_type):
 
     plt.xticks([i for i in range(12)], MONTH_LABEL)
     plt.xlim((-0.5, 11.5))
-    plt.ylim((0.0, 1.05))
+    plt.ylim((0.0, 1.2))
     plt.xlabel('Month', size=14)
     plt.ylabel('AHI-MISR LSR Slope, r & RMSE', size=14)
     plt.legend(markerscale=0.5, loc=10, bbox_to_anchor=[0.5, 0.25], ncol=2)
-    plt.savefig(r'E:\PhD_Workspace\MISR_AHI_WS\230502\VZA26_Ray_month.png', dpi=600)
-    # plt.savefig(r'E:\PhD_Workspace\MISR_AHI_WS\230502\VZA26_RAA_month.png', dpi=600)
+    plt.savefig(WORK_SPACE + '/VZA26_Ray_month.png', dpi=600)
+    # plt.savefig(WORK_SPACE + '/VZA26_RAA_month.png', dpi=600)
     # plt.show()
     plt.clf()
 
@@ -72,8 +72,8 @@ def show_para(mon_para, match_type):
 
 
 if __name__ == "__main__":
-    ray_month_para_npy = os.path.join(WORK_SPACE, '26_Ray_slope_r_rmse.npy')
-    raa_month_para_npy = os.path.join(WORK_SPACE, '26_RAA_slope_r_rmse.npy')
+    ray_month_para_npy = os.path.join(WORK_SPACE, '26_Ray_slope_r_rmse_offset.npy')
+    raa_month_para_npy = os.path.join(WORK_SPACE, '26_RAA_slope_r_rmse_offset.npy')
 
     ray_month_para = numpy.load(ray_month_para_npy, allow_pickle=True)
     raa_month_para = numpy.load(raa_month_para_npy, allow_pickle=True)

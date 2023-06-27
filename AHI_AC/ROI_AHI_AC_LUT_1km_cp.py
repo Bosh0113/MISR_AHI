@@ -259,12 +259,12 @@ if __name__ == "__main__":
                 ahi_saa_path = ''
                 if band_name == 'band3':
                     ahi_saa_filename = ahi_data_time + '.ext.01.fld.geoss.bz2'
-                    ahi_saa_path = '/gridded/FD/V20190123/' + ahi_data_folder1 + '/EXT/' + ahi_saa_filename
+                    ahi_saa_path = '/gridded/FD/V20151105/' + ahi_data_folder1 + '/EXT/' + ahi_saa_filename
                 elif band_name == 'band4':
                     ahi_saa_filename = ahi_data_time + '.vis.03.fld.geoss.bz2'
-                    ahi_saa_path = '/gridded/FD/V20190123/' + ahi_data_folder1 + '/VIS/' + ahi_saa_filename
+                    ahi_saa_path = '/gridded/FD/V20151105/' + ahi_data_folder1 + '/VIS/' + ahi_saa_filename
 
-                ahi_server_path = '/data01/people/beichen/data/AHI_V2019_2017010120191231/hmwr829gr.cr.chiba-u.ac.jp' + ahi_saa_path
+                ahi_server_path = '/nfsdata02/GEO/ORGDATA/H8AHI/hmwr829gr.cr.chiba-u.ac.jp' + ahi_saa_path
 
                 if not os.path.exists(TEMP_FOLDER):
                     os.makedirs(TEMP_FOLDER)
