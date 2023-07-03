@@ -112,7 +112,7 @@ def is_valuable_record(cood_point, misr_path_orbit_camera):
 
 if __name__ == "__main__":
 
-    folder_l1_list = ['0', '26', '45', '60', '70']
+    folder_l1_list = ['26']
     folder_l2_list = ['0', '1']
 
     for folder_l1 in folder_l1_list:

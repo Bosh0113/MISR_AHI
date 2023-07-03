@@ -1,9 +1,9 @@
 import os
 import numpy as np
 
-ws = r'E:\MISR_AHI_WS\230308\mapping'
+ws = '/disk1/workspace/20230628'
 
-raa_matched_record_50km_npy = os.path.join(ws, 'AHI_MISR_RAA-screened_50km.npy')
+raa_matched_record_50km_npy = os.path.join(ws, 'AHI_MISR_RAA-matched_z1a10.npy')
 Ray_RAA_loc_txt = os.path.join(ws, 'Ray_RAA_loc.txt')
 common_loc_npy = os.path.join(ws, 'RAA_Ray_loc_50km.npy')
 

@@ -241,8 +241,10 @@ if __name__ == "__main__":
     FN_1_band3, FN_2_band3, FN_3_band3 = LUT_interpolation(LUT_PATH).LUT_interpolation_band3()
     FN_1_band4, FN_2_band4, FN_3_band4 = LUT_interpolation(LUT_PATH).LUT_interpolation_band4()
     
-    folder_l1_list = ['0', '26', '45']
-    folder_l2_list = ['0', '1']
+    # folder_l1_list = ['0', '26', '45']
+    # folder_l2_list = ['0', '1']
+    folder_l1_list = ['26']
+    folder_l2_list = ['0']
 
     for folder_l1 in folder_l1_list:
         folder_l1_path = os.path.join(WORK_SPACE, folder_l1)
@@ -307,12 +309,12 @@ if __name__ == "__main__":
                                     ahi_saa_path = ''
                                     if band_name == 'band3':
                                         ahi_saa_filename = ahi_data_time + '.ext.01.fld.geoss.bz2'
-                                        ahi_saa_path = '/gridded/FD/V20190123/' + ahi_data_folder1 + '/EXT/' + ahi_saa_filename
+                                        ahi_saa_path = '/gridded/FD/V20151105/' + ahi_data_folder1 + '/EXT/' + ahi_saa_filename
                                     elif band_name == 'band4':
                                         ahi_saa_filename = ahi_data_time + '.vis.03.fld.geoss.bz2'
-                                        ahi_saa_path = '/gridded/FD/V20190123/' + ahi_data_folder1 + '/VIS/' + ahi_saa_filename
+                                        ahi_saa_path = '/gridded/FD/V20151105/' + ahi_data_folder1 + '/VIS/' + ahi_saa_filename
 
-                                    ahi_server_path = '/data01/people/beichen/data/AHI_V2019_2017010120191231/hmwr829gr.cr.chiba-u.ac.jp' + ahi_saa_path
+                                    ahi_server_path = '/nfsdata02/GEO/ORGDATA/H8AHI/hmwr829gr.cr.chiba-u.ac.jp' + ahi_saa_path
 
                                     if not os.path.exists(TEMP_FOLDER):
                                         os.makedirs(TEMP_FOLDER)

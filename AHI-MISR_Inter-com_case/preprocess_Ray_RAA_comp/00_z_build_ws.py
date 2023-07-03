@@ -1,12 +1,12 @@
 import os
 import numpy
 
-base_path = '/data01/people/beichen/workspace/20230308/common_RAA_Ray_VZA2VAA10'
+base_path = '/data01/people/beichen/workspace/20230627/03_Ray_RAA'
 
-MCD12Q1_006_10KM_npy = os.path.join(base_path, 'MCD12Q1_006_10km.npy')
+MCD12Q1_006_10KM_npy = os.path.join(base_path, 'MCD12Q1.006.LC.AHI01km.npy')
 misr_matched_info_npy = os.path.join(base_path, 'RAA_Ray_loc_50km.npy')
 
-LC_SIZE = 0.1
+LC_SIZE = 0.01
 MISR_CAMERA_ANGLE = {
     '0': '70',
     '1': '60',

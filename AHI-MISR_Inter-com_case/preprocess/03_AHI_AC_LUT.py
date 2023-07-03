@@ -9,6 +9,7 @@ import xarray as xr
 import subprocess
 import datetime as dt
 import shutil
+import math
 
 WORK_SPACE = os.getcwd()
 # AC temp workspace
@@ -307,12 +308,12 @@ if __name__ == "__main__":
                                     ahi_saa_path = ''
                                     if band_name == 'band3':
                                         ahi_saa_filename = ahi_data_time + '.ext.01.fld.geoss.bz2'
-                                        ahi_saa_path = '/gridded/FD/V20190123/' + ahi_data_folder1 + '/EXT/' + ahi_saa_filename
+                                        ahi_saa_path = '/gridded/FD/V20151105/' + ahi_data_folder1 + '/EXT/' + ahi_saa_filename
                                     elif band_name == 'band4':
                                         ahi_saa_filename = ahi_data_time + '.vis.03.fld.geoss.bz2'
-                                        ahi_saa_path = '/gridded/FD/V20190123/' + ahi_data_folder1 + '/VIS/' + ahi_saa_filename
+                                        ahi_saa_path = '/gridded/FD/V20151105/' + ahi_data_folder1 + '/VIS/' + ahi_saa_filename
 
-                                    ahi_server_path = '/data01/people/beichen/data/AHI_V2019_2017010120191231/hmwr829gr.cr.chiba-u.ac.jp' + ahi_saa_path
+                                    ahi_server_path = '/nfsdata02/GEO/ORGDATA/H8AHI/hmwr829gr.cr.chiba-u.ac.jp' + ahi_saa_path
 
                                     if not os.path.exists(TEMP_FOLDER):
                                         os.makedirs(TEMP_FOLDER)
@@ -373,9 +374,9 @@ if __name__ == "__main__":
                                                 data = DN2TBB_band3(data)
                                             elif band_name == 'band4':
                                                 data = DN2TBB_band4(data)
-                                            data = data / 100
-
-                                        AHI_data = None
+                                            data = data / 100 
+                                            
+                                        AHI_data_o = None
                                         if band_name == 'band3':
                                             ahi_lats_3 = np.arange(60. - AHI_DATA_RESOLUTION / 2, -60, -AHI_DATA_RESOLUTION)
                                             ahi_lons_3 = np.arange(85. + AHI_DATA_RESOLUTION / 2, 205, AHI_DATA_RESOLUTION)
@@ -389,9 +390,16 @@ if __name__ == "__main__":
                                                 },
                                             )
                                             n_ex_ds = ex_ds.interp(longitude=n_lons, latitude=n_lats, method="linear", kwargs={"fill_value": "extrapolate"})
-                                            AHI_data = n_ex_ds['values']
+                                            AHI_data_o = n_ex_ds['values']
                                         else:
-                                            AHI_data = data[find_nearest_index(ahi_lats, roi_ullat):find_nearest_index(ahi_lats, roi_lrlat) + 1, find_nearest_index(ahi_lons, roi_ullon):find_nearest_index(ahi_lons, roi_lrlon) + 1]
+                                            AHI_data_o = data[find_nearest_index(ahi_lats, roi_ullat):find_nearest_index(ahi_lats, roi_lrlat) + 1, find_nearest_index(ahi_lons, roi_ullon):find_nearest_index(ahi_lons, roi_lrlon) + 1]
+
+                                        # AHI: reflectance=radiance/cos(SZA)
+                                        AHI_data = np.empty_like(AHI_data_o)
+                                        for r_idx in range(len(AHI_SZA)):
+                                            for c_idx in range(len(AHI_SZA[0])):
+                                                a_sza = AHI_SZA[r_idx][c_idx]
+                                                AHI_data[r_idx][c_idx] = AHI_data_o[r_idx][c_idx]/math.cos(math.radians(a_sza))
 
                                         results = None
                                         if band_name == 'band3':

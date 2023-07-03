@@ -25,11 +25,11 @@ AHI_LOCALTIME_START = '08:00:00Z'
 AHI_LOCALTIME_END = '15:59:59Z'
 
 # VZA diff
-DIFF_VZA_THRESHOLD = 2 # degree
+DIFF_VZA_THRESHOLD = 1 # degree
 # RAA diff
 DIFF_RAA_THRESHOLD = 10 # degree
 # time diff
-SZA_TIME_THRESHOLD = 10 * 60  # seconds
+SZA_TIME_THRESHOLD = 5 * 60  # seconds
 
 # data path
 MISR_DATA_FOLDER = '/data01/people/beichen/data/MISR4AHI2015070120210630_3'
@@ -502,7 +502,9 @@ def roi_raa_match(ws, roi_name, cood_point, misr_vza_str):
 
 if __name__ == "__main__":
 
-    folder_l1_list = ['0', '26', '45']
+    # folder_l1_list = ['0', '26', '45']
+    # folder_l2_list = ['0', '1']
+    folder_l1_list = ['26']
     folder_l2_list = ['0', '1']
 
     for folder_l1 in folder_l1_list:

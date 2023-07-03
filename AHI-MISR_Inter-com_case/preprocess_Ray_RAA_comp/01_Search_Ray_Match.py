@@ -20,11 +20,11 @@ AHI_LOCALTIME_START = '08:00:00Z'
 AHI_LOCALTIME_END = '15:59:59Z'
 
 # VZA diff
-DIFF_VZA_THRESHOLD = 2 # degree
+DIFF_VZA_THRESHOLD = 1 # degree
 # VAA diff
 DIFF_VAA_THRESHOLD = 10 # degree
 # time diff
-DIFF_TIME_THRESHOLD = 10 * 60  # seconds
+DIFF_TIME_THRESHOLD = 5 * 60  # seconds
 
 AHI_VZA_BIN = '/data01/people/beichen/data/AHI/VZA/202201010000.sat.zth.fld.4km.bin'
 AHI_VAA_BIN = '/data01/people/beichen/data/AHI/VAA/202201010000.sat.azm.fld.4km.bin'
@@ -316,9 +316,11 @@ def roi_ray_match(ws, roi_name, cood_point, misr_vza_str):
 
 if __name__ == "__main__":
 
-    folder_l1_list = ['0', '26', '45']
+    # folder_l1_list = ['0', '26', '45']
+    # folder_l2_list = ['0', '1']
+    folder_l1_list = ['26']
     folder_l2_list = ['0', '1']
-
+    
     for folder_l1 in folder_l1_list:
         folder_l1_path = os.path.join(WORK_SPACE, folder_l1)
         for folder_l2 in folder_l2_list:

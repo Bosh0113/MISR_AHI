@@ -8,7 +8,9 @@ WORK_SPACE = os.getcwd()
 
 if __name__ == "__main__":
 
-    folder_l1_list = ['0', '26', '45']
+    # folder_l1_list = ['0', '26', '45']
+    # folder_l2_list = ['0', '1']
+    folder_l1_list = ['26']
     folder_l2_list = ['0', '1']
 
     for folder_l1 in folder_l1_list:
