@@ -27,9 +27,9 @@ AHI_LOCALTIME_END = '15:59:59Z'
 # VZA diff
 DIFF_VZA_THRESHOLD = 1 # degree
 # RAA diff
-DIFF_RAA_THRESHOLD = 5 # degree
+DIFF_RAA_THRESHOLD = 10 # degree
 # time diff
-SZA_TIME_THRESHOLD = 10 * 60  # seconds
+SZA_TIME_THRESHOLD = 5 * 60  # seconds
 
 # # angle threshold
 # SCATTERING_ANGLE_THRESHOLD = 175

@@ -9,6 +9,7 @@ import xarray as xr
 import subprocess
 import datetime as dt
 import shutil
+import math
 
 WORK_SPACE = os.getcwd()
 # AC temp workspace
@@ -240,7 +241,7 @@ def find_nearest_index(array, value):
 if __name__ == "__main__":
     FN_1_band3, FN_2_band3, FN_3_band3 = LUT_interpolation(LUT_PATH).LUT_interpolation_band3()
     FN_1_band4, FN_2_band4, FN_3_band4 = LUT_interpolation(LUT_PATH).LUT_interpolation_band4()
-    
+
     # folder_l1_list = ['0', '26', '45']
     # folder_l2_list = ['0', '1']
     folder_l1_list = ['26']
@@ -375,9 +376,9 @@ if __name__ == "__main__":
                                                 data = DN2TBB_band3(data)
                                             elif band_name == 'band4':
                                                 data = DN2TBB_band4(data)
-                                            data = data / 100
-
-                                        AHI_data = None
+                                            data = data / 100 
+                                            
+                                        AHI_data_o = None
                                         if band_name == 'band3':
                                             ahi_lats_3 = np.arange(60. - AHI_DATA_RESOLUTION / 2, -60, -AHI_DATA_RESOLUTION)
                                             ahi_lons_3 = np.arange(85. + AHI_DATA_RESOLUTION / 2, 205, AHI_DATA_RESOLUTION)
@@ -391,9 +392,16 @@ if __name__ == "__main__":
                                                 },
                                             )
                                             n_ex_ds = ex_ds.interp(longitude=n_lons, latitude=n_lats, method="linear", kwargs={"fill_value": "extrapolate"})
-                                            AHI_data = n_ex_ds['values']
+                                            AHI_data_o = n_ex_ds['values']
                                         else:
-                                            AHI_data = data[find_nearest_index(ahi_lats, roi_ullat):find_nearest_index(ahi_lats, roi_lrlat) + 1, find_nearest_index(ahi_lons, roi_ullon):find_nearest_index(ahi_lons, roi_lrlon) + 1]
+                                            AHI_data_o = data[find_nearest_index(ahi_lats, roi_ullat):find_nearest_index(ahi_lats, roi_lrlat) + 1, find_nearest_index(ahi_lons, roi_ullon):find_nearest_index(ahi_lons, roi_lrlon) + 1]
+
+                                        # AHI: reflectance=radiance/cos(SZA)
+                                        AHI_data = np.empty_like(AHI_data_o)
+                                        for r_idx in range(len(AHI_SZA)):
+                                            for c_idx in range(len(AHI_SZA[0])):
+                                                a_sza = AHI_SZA[r_idx][c_idx]
+                                                AHI_data[r_idx][c_idx] = AHI_data_o[r_idx][c_idx]/math.cos(math.radians(a_sza))
 
                                         results = None
                                         if band_name == 'band3':

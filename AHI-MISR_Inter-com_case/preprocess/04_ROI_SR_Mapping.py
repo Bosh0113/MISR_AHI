@@ -101,10 +101,10 @@ def add_right_cax(ax, pad, width):
 
 
 def identifer(data):
-    down,up = numpy.nanpercentile(data,[25,75])
+    down,up = numpy.nanpercentile(data,[0,75])
     IQR = up-down
-    lower_limit = down - 2*IQR
-    upper_limit = up + 2*IQR
+    lower_limit = down - 1.5*IQR
+    upper_limit = up + 1.5*IQR
     result = numpy.where(data > upper_limit,numpy.nan, data)
     result = numpy.where(result < lower_limit,numpy.nan, result)
     return result

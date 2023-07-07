@@ -105,8 +105,8 @@ matched_camera_idx = ['2']
 def identifer(data):
     down,up = np.nanpercentile(data,[25,75])
     IQR = up-down
-    lower_limit = down - 2*IQR
-    upper_limit = up + 2*IQR
+    lower_limit = down - 1.5*IQR
+    upper_limit = up + 1.5*IQR
     result = np.where(data > upper_limit,np.nan, data)
     result = np.where(result < lower_limit,np.nan, result)
     return result
