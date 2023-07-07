@@ -78,10 +78,10 @@ def display_pts(bots, labels):
 
 
 def identifer(data):
-    down,up = numpy.nanpercentile(data,[0,75])
+    down,up = numpy.nanpercentile(data,[25,75])
     IQR = up-down
-    lower_limit = down - 1.5*IQR
-    upper_limit = up + 1.5*IQR
+    lower_limit = down - 2*IQR
+    upper_limit = up + 2*IQR
     result = numpy.where(data > upper_limit,numpy.nan, data)
     result = numpy.where(result < lower_limit,numpy.nan, result)
     return result
@@ -89,10 +89,10 @@ def identifer(data):
 
 def mapping_scatter(Y, X, figure_title, band_name, axis_min=0.0, axis_max=1.0):
     # filter
-    diff_array = abs(numpy.array(Y)-numpy.array(X))/numpy.minimum(abs(numpy.array(X)), abs(numpy.array(Y)))
-    diff_array_filtered = numpy.array(identifer(diff_array))
-    array1_n = (diff_array_filtered*0+1)*numpy.array(X)
-    array2_n = (diff_array_filtered*0+1)*numpy.array(Y)
+    slope_array = list(numpy.array(Y)/numpy.array(X))
+    slope_array_filtered = numpy.array(identifer([slope_array])[0])
+    array1_n = (slope_array_filtered*0+1)*numpy.array(X)
+    array2_n = (slope_array_filtered*0+1)*numpy.array(Y)
     X = array1_n[~numpy.isnan(array1_n)]
     Y = array2_n[~numpy.isnan(array2_n)]
 

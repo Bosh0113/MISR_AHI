@@ -22,44 +22,50 @@ def identifer(data):
     return result
 
 
-def mapping_scatter(Y, X, figure_title, band_name, axis_min=0.0, axis_max=1.0):
+def mapping_scatter(Y, X, figure_title='demo', band_name='band3', axis_min=0.0, axis_max=0.5):
     # filter
-    diff_array = abs(numpy.array(Y)-numpy.array(X))/numpy.minimum(abs(numpy.array(X)), abs(numpy.array(Y)))
+
+    if band_name == 'band3':
+        axis_max = 0.3
+
+    lim_x = numpy.copy(X)
+    lim_y = numpy.copy(Y)
+    lim_x[lim_x > axis_max] = numpy.nan
+    lim_y[lim_y > axis_max] = numpy.nan
+    lim_mask = (lim_x*lim_y)*0+1
+    temp_x = lim_x*lim_mask
+    temp_y = lim_y*lim_mask
+    temp_x = temp_x[~numpy.isnan(temp_x)]
+    temp_y = temp_y[~numpy.isnan(temp_y)]
+    diff_array = abs(numpy.array(temp_y)-numpy.array(temp_x))/abs(numpy.minimum(numpy.array(temp_x), numpy.array(temp_y)))
     diff_array_filtered = numpy.array(identifer(diff_array))
-    array1_n = (diff_array_filtered*0+1)*numpy.array(X)
-    array2_n = (diff_array_filtered*0+1)*numpy.array(Y)
-    X = array1_n[~numpy.isnan(array1_n)]
-    Y = array2_n[~numpy.isnan(array2_n)]
-
-    mapping_folfer = os.path.join(WORK_SPACE, 'year_scatter_LC')
-    figure_folder = os.path.join(mapping_folfer, str(PIXEL_PAIRS_MAX))
-    if not os.path.exists(figure_folder):
-        os.makedirs(figure_folder)
-    fig_filename = os.path.join(figure_folder, figure_title + '.png')
-
-    # if band_name == 'band3':
-    #     axis_max = 0.5
-
+    show_x = (diff_array_filtered*0+1)*temp_x
+    show_y = (diff_array_filtered*0+1)*temp_y
+    X = show_x[~numpy.isnan(show_x)]
+    Y = show_y[~numpy.isnan(show_y)]
     fig = plt.figure(figsize=(4, 4))
     ax1 = fig.add_subplot(111, aspect='equal')
     ax1.grid(linestyle='--', linewidth=0.3)
-
     k, b = numpy.polyfit(X, Y, deg=1)
     rmse = math.sqrt(mean_squared_error(X, Y))
     N = len(X)
-
     x = numpy.arange(axis_min, axis_max + 1)
     y = 1 * x
-
     xx = numpy.arange(axis_min, axis_max + 0.1, 0.05)
     yy = k * xx + b
 
-    g_x, g_y = numpy.mgrid[axis_min:axis_max:500j, axis_min:axis_max:500j]
-    positions = numpy.vstack([g_x.ravel(), g_y.ravel()])
-    values = numpy.vstack([X, Y])
-    kernel = gaussian_kde(values)
-    Z = numpy.reshape(kernel(positions).T, g_x.shape)
+#     g_x, g_y = numpy.mgrid[axis_min:axis_max:500j, axis_min:axis_max:500j]
+#     positions = numpy.vstack([g_x.ravel(), g_y.ravel()])
+#     values = numpy.vstack([X, Y])
+#     kernel = gaussian_kde(values)
+#     Z = numpy.reshape(kernel(positions).T, g_x.shape)
 
+    # Calculate the point density
+    xy = numpy.vstack([X, Y])
+    z = gaussian_kde(xy)(xy)
+    idx = z.argsort()
+    X, Y, z = X[idx], Y[idx], z[idx]
+    ax1.scatter(X, Y, marker='o', c=z, s=10, cmap='jet')
     ax1.minorticks_on()
     # x_major_locator = plt.MultipleLocator(5)
     x_minor_locator = plt.MultipleLocator(0.05)
@@ -67,55 +73,64 @@ def mapping_scatter(Y, X, figure_title, band_name, axis_min=0.0, axis_max=1.0):
     # ax.xaxis.set_major_locator(x_major_locator)
     ax1.yaxis.set_minor_locator(x_minor_locator)
     # ax.yaxis.set_major_locator(x_major_locator)
-
-    ax1.tick_params(axis="y", which='minor', length=5, direction='in', labelsize=8)
-    ax1.tick_params(axis="y", which='major', length=10, direction='in', labelsize=8)
-
-    ax1.tick_params(axis="x", which='minor', length=5, direction='in', labelsize=8)
-    ax1.tick_params(axis="x", which='major', length=10, direction='in', labelsize=8)
-
+    ax1.tick_params(axis="y", which='minor', length=5, direction='in', labelsize=15)
+    ax1.tick_params(axis="y", which='major', length=10, direction='in', labelsize=15)
+    ax1.tick_params(axis="x", which='minor', length=5, direction='in', labelsize=15)
+    ax1.tick_params(axis="x", which='major', length=10, direction='in', labelsize=15)
     ax1.spines['right'].set_color('none')
     ax1.spines['top'].set_color('none')
-
+    ax1.spines['left'].set_linewidth(1)
+    ax1.spines['bottom'].set_linewidth(1)
     ax1.set_xticks(numpy.arange(axis_min, axis_max + 0.1, 0.1))
     ax1.set_yticks(numpy.arange(axis_min + 0.1, axis_max + 0.1, 0.1))
-
     band_label = {
         'band3': 'Band3',
         'band4': 'Band4',
     }
-
-    ax1.set_ylabel("AHI Surface Reflectance " + band_label[band_name], fontsize=12)
-    ax1.set_xlabel("MISR Surface Reflectance " + band_label[band_name], fontsize=12)
-
-    ax1.imshow(numpy.rot90(Z), cmap=plt.cm.gist_earth_r, extent=[axis_min, axis_max, axis_min, axis_max], alpha=0.8, zorder=0)
-    ax1.plot(x, y, color='k', linewidth=1.2, linestyle='-.', zorder=1)
-    ax1.plot(xx, yy, color='r', linewidth=1, linestyle='-', zorder=2)
-    ax1.plot(X, Y, 'k.', markersize=0.5, alpha=0.8, zorder=4)
-
-    text_x = axis_min + (axis_max - axis_min) * 0.07
-    text_y = axis_max - (axis_max - axis_min) * 0.25
-
+    ax1.set_ylabel("AHI LSR", fontsize=15)
+    ax1.set_xlabel("MISR LSR", fontsize=15)
+#     ax1.imshow(numpy.rot90(Z), cmap=plt.cm.gist_earth_r, extent=[axis_min, axis_max, axis_min, axis_max], alpha=0.8, zorder=0)
+#     ax1.plot(X, Y, 'k.', markersize=0.5, alpha=0.8, zorder=4)
+    ax1.plot(x, y, color='k', linewidth=1, linestyle='-', zorder=1)
+    ax1.plot(xx, yy, color='r', linewidth=1, linestyle='-.', zorder=2)
     r_, p = pearsonr(X, Y)
     p_str = '%.3e' % p
-    
     label_str = label_str = 'y = {}x + {}\nRMSE = {}\nr = {}\n'.format(round(k, 2), round(b, 2), round(rmse, 3), round(r_, 2))
     if b < 0:
         label_str = label_str = 'y = {}x - {}\nRMSE = {}\nr = {}\n'.format(round(k, 2), abs(round(b, 2)), round(rmse, 3), round(r_, 2))
-
-    ax1.text(text_x, text_y, s=label_str, fontsize=12)
-
+    text_x = axis_min + (axis_max - axis_min) * 0.07
+    text_y = axis_max - (axis_max - axis_min) * 0.35
+    ax1.text(text_x, text_y, s=label_str, fontsize=18)
+    band_label = band_label[band_name]
+    text_x2 = axis_min + (axis_max - axis_min) * 0.7
+    text_y2 = axis_min + (axis_max - axis_min) * 0.1
+    if band_name == 'band3':
+        ax1.text(text_x2, text_y2, color='red', s=band_label, fontsize=18)
+    else:
+        ax1.text(text_x2, text_y2, color='firebrick', s=band_label, fontsize=18)
     ax1.set_xlim(axis_min, axis_max)
     ax1.set_ylim(axis_min, axis_max)
+
+    mapping_folder = os.path.join(WORK_SPACE, 'year_scatter_LC')
+    figure_folder = os.path.join(mapping_folder, str(PIXEL_PAIRS_MAX))
+    if not os.path.exists(figure_folder):
+        os.makedirs(figure_folder)
+    fig_filename = os.path.join(figure_folder, figure_title + '.png')
     fig.savefig(fig_filename, dpi=1000, bbox_inches='tight')
     print(fig_filename)
     plt.close(fig)
     plt.clf()
 
+    # plt.show()
+    # slope r RMSE
+    return k, r_, rmse
+
 
 if __name__ == "__main__":
 
-    folder_l1_list = ['0', '26', '45', '60', '70']
+    # folder_l1_list = ['0', '26', '45', '60', '70']
+    # folder_l2_list = ['0', '1']
+    folder_l1_list = ['45']
     folder_l2_list = ['0', '1']
 
     for folder_l1 in folder_l1_list:
@@ -177,14 +192,14 @@ if __name__ == "__main__":
                 ahi_SR_band3_pts = numpy.array(ahi_SR_band3_item_list)
                 show_ahi_sr_b3 = ahi_SR_band3_pts[index_array]
                 figure_title = folder_l1 + '_' + folder_l2 + '_b3' + '_' + str(PIXEL_PAIRS_MAX)
-                mapping_scatter(show_ahi_sr_b3, show_misr_sr_b3, figure_title, 'band3', axis_min=0.0, axis_max=1.0)
+                mapping_scatter(show_ahi_sr_b3, show_misr_sr_b3, figure_title, 'band3', axis_min=0.0, axis_max=0.3)
 
                 misr_SR_band4_pts = numpy.array(misr_SR_band4_item_list)
                 show_misr_sr_b4 = misr_SR_band4_pts[index_array]
                 ahi_SR_band4_pts = numpy.array(ahi_SR_band4_item_list)
                 show_ahi_sr_b4 = ahi_SR_band4_pts[index_array]
                 figure_title = folder_l1 + '_' + folder_l2 + '_b4' + '_' + str(PIXEL_PAIRS_MAX)
-                mapping_scatter(show_ahi_sr_b4, show_misr_sr_b4, figure_title, 'band4', axis_min=0.0, axis_max=1.0)
+                mapping_scatter(show_ahi_sr_b4, show_misr_sr_b4, figure_title, 'band4', axis_min=0.0, axis_max=0.5)
 
             else:
                 # all pairs mapping
@@ -194,9 +209,9 @@ if __name__ == "__main__":
                     misr_SR_band3_pts = numpy.array(misr_SR_band3_item_list)
                     ahi_SR_band3_pts = numpy.array(ahi_SR_band3_item_list)
                     figure_title = folder_l1 + '_' + folder_l2 + '_b3' + '_' + str(pairs_no)
-                    mapping_scatter(ahi_SR_band3_pts, misr_SR_band3_pts, figure_title, 'band3', axis_min=0.0, axis_max=1.0)
+                    mapping_scatter(ahi_SR_band3_pts, misr_SR_band3_pts, figure_title, 'band3', axis_min=0.0, axis_max=0.3)
 
                     misr_SR_band4_pts = numpy.array(misr_SR_band4_item_list)
                     ahi_SR_band4_pts = numpy.array(ahi_SR_band4_item_list)
                     figure_title = folder_l1 + '_' + folder_l2 + '_b4' + '_' + str(pairs_no)
-                    mapping_scatter(ahi_SR_band4_pts, misr_SR_band4_pts, figure_title, 'band4', axis_min=0.0, axis_max=1.0)
+                    mapping_scatter(ahi_SR_band4_pts, misr_SR_band4_pts, figure_title, 'band4', axis_min=0.0, axis_max=0.5)
