@@ -273,7 +273,10 @@ def record_roi_misr_ahi(roi_name, band_index, misr_orbit, misr_camera_index, ahi
         mapping(ahi_sr_misr, figure_title)
         # # y=SR(MISR) / x=SR(AHI)
         figure_title = roi_name + '_' + ahi_obs_time + '_band_' + str(band_index + 1) + '_scatter_sr_' + str(misr_camera_index)
-        mapping_scatter(ahi_sr_misr, roi_misr_brfv3, figure_title, 'SR')
+        try:
+            mapping_scatter(ahi_sr_misr, roi_misr_brfv3, figure_title, 'band'+str(band_index + 1))
+        except:
+            pass
 
         # record as npy file
         record_info = [{
@@ -310,8 +313,10 @@ def get_roi_misr_ahi(roi_name, misr_path_orbit_camera, ahi_ac_npy):
 
 if __name__ == "__main__":
     band_names = ['band3', 'band4']
-    folder_l1_list = ['0', '26', '45']
-    folder_l2_list = ['0', '1']
+    # folder_l1_list = ['0', '26', '45']
+    # folder_l2_list = ['0', '1']
+    folder_l1_list = ['26']
+    folder_l2_list = ['0']
 
     for folder_l1 in folder_l1_list:
         folder_l1_path = os.path.join(WORK_SPACE, folder_l1)
