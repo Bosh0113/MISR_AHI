@@ -4,7 +4,7 @@ import random
 import matplotlib
 import matplotlib.pyplot as plt
 
-WORK_SPACE = '/disk1/workspace/20230620/common_RAA_Ray_VZA1VAA5'
+WORK_SPACE = '/disk1/workspace/20230707/03_Ray_RAA'
 
 PIXEL_PAIRS_MAX = 500
 # MONTH_LABEL = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
@@ -54,7 +54,7 @@ def display_pts_b3_b4(slope_list, r_list, rmse_list, match_type):
 
     plt.xticks([i for i in range(12)], MONTH_LABEL)
     plt.xlim((-0.5, 11.5))
-    plt.ylim((0.0, 1.2))
+    plt.ylim((0.0, 1.08))
     plt.xlabel('Month', size=14)
     plt.ylabel('AHI-MISR LSR Slope, r & RMSE', size=14)
     plt.legend(markerscale=0.5, loc=10, bbox_to_anchor=[0.5, 0.25], ncol=2)

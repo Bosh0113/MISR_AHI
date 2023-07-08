@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 
 WORK_SPACE = os.getcwd()
 
-PIXEL_PAIRS_MAX = 300
+PIXEL_PAIRS_MAX = 500
 
 MONTH_LABEL = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
