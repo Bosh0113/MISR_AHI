@@ -9,7 +9,7 @@ import seaborn
 degree_count = 5
 
 # MISR_path MISR_orbit camera_idx MISR_roi_time AHI_roi_time MISR_VZA AHI_VZA MISR_VAA AHI_VAA Scattering_Angle(GEO-LEO)
-matched_npy_filename = r'D:\PhD_Workspace\MISR_AHI_WS\230308\mapping\AHI_MISR_Ray-screened_10km.npy'
+matched_npy_filename = r'D:\PhD_Workspace\MISR_AHI_WS\230628\AHI_MISR_Ray-matched_z1a10.npy'
 
 
 def find_nearest_index(array, value):
@@ -84,8 +84,8 @@ def kde_mapping(misr_angle_pixel_record, ahi_angle_pixel_record):
     ax1.minorticks_on()
     x_major_locator = plt.MultipleLocator(10)
     x_minor_locator = plt.MultipleLocator(1)
-    y1_major_locator = plt.MultipleLocator(500)
-    y1_minor_locator = plt.MultipleLocator(100)
+    y1_major_locator = plt.MultipleLocator(100)
+    y1_minor_locator = plt.MultipleLocator(20)
     ax1.xaxis.set_major_locator(x_major_locator)
     ax1.xaxis.set_minor_locator(x_minor_locator)
     ax1.yaxis.set_major_locator(y1_major_locator)
@@ -100,7 +100,7 @@ def kde_mapping(misr_angle_pixel_record, ahi_angle_pixel_record):
     ax1.tick_params(axis="x", which='minor', length=3, labelsize=10)
     ax1.tick_params(axis="x", which='major', length=5, labelsize=15)
     ax1.set_ylabel('Count of Pixel', fontsize=18)
-    ax1.set_ylim(0, 3000)
+    ax1.set_ylim(0, 900)
     ax1.legend(loc=2, fontsize='large')
 
     ax2 = ax1.twinx()
@@ -123,7 +123,7 @@ def kde_mapping(misr_angle_pixel_record, ahi_angle_pixel_record):
 
 
     plt.xlim(0, 90)
-    plt.savefig(r'D:\PhD_Workspace\MISR_AHI_WS\230308\mapping\Ray_VZA_distribution.png', dpi=600)
+    plt.savefig(r'D:\PhD_Workspace\MISR_AHI_WS\230628\Ray_VZA_distribution.png', dpi=600)
     # plt.show()
 
 
