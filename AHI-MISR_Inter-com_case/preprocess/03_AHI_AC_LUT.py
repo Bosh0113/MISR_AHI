@@ -451,6 +451,8 @@ if __name__ == "__main__":
                                             'roi_vza': AHI_VZA,
                                             'roi_sza': AHI_SZA,
                                             'roi_raa': RAA,
+                                            'roi_vaa': AHI_VAA,
+                                            'roi_saa': AHI_SAA,
                                             'roi_aot': AOT550,
                                             'roi_aero_type': Aerosol_type,
                                             'roi_oz': OZ,
