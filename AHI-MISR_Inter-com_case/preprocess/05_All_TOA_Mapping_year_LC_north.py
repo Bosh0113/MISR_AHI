@@ -4,6 +4,7 @@ import re
 import random
 from scipy.stats import gaussian_kde, pearsonr
 from sklearn.metrics import mean_squared_error, r2_score
+import matplotlib.transforms as mtransforms
 import math
 import matplotlib.pyplot as plt
 
@@ -20,6 +21,15 @@ def identifer(data):
     result = numpy.where(data > upper_limit,numpy.nan, data)
     result = numpy.where(result < lower_limit,numpy.nan, result)
     return result
+
+
+def add_right_cax(ax, pad, width):
+
+    axpos = ax.get_position()
+    caxpos = mtransforms.Bbox.from_extents(axpos.x1 + pad, axpos.y0, axpos.x1 + pad + width, axpos.y1)
+    cax = ax.figure.add_axes(caxpos)
+
+    return cax
 
 
 def mapping_scatter(Y, X, figure_title='demo', band_name='band3', axis_min=0.0, axis_max=0.5):
@@ -65,7 +75,8 @@ def mapping_scatter(Y, X, figure_title='demo', band_name='band3', axis_min=0.0, 
     z = gaussian_kde(xy)(xy)
     idx = z.argsort()
     X, Y, z = X[idx], Y[idx], z[idx]
-    ax1.scatter(X, Y, marker='o', c=z, s=10, cmap='jet')
+    z = (z-numpy.min(z))/(numpy.max(z)-numpy.min(z))*100
+    im = ax1.scatter(X, Y, marker='o', c=z, s=10, cmap='jet')
     ax1.minorticks_on()
     # x_major_locator = plt.MultipleLocator(5)
     x_minor_locator = plt.MultipleLocator(0.05)
@@ -108,6 +119,10 @@ def mapping_scatter(Y, X, figure_title='demo', band_name='band3', axis_min=0.0, 
         ax1.text(text_x2, text_y2, color='red', s=band_label, fontsize=18)
     else:
         ax1.text(text_x2, text_y2, color='firebrick', s=band_label, fontsize=18)
+    
+    cax = add_right_cax(ax1, pad=0.01, width=0.03)
+    cb = fig.colorbar(im, cax=cax)
+
     ax1.set_xlim(axis_min, axis_max)
     ax1.set_ylim(axis_min, axis_max)
 
