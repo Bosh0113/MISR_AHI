@@ -87,8 +87,8 @@ def mapping_scatter(Y, X, figure_title='demo', band_name='band3', axis_min=0.0, 
         'band3': 'Band3',
         'band4': 'Band4',
     }
-    ax1.set_ylabel("AHI LSR", fontsize=15)
-    ax1.set_xlabel("MISR LSR", fontsize=15)
+    ax1.set_ylabel("AHI TOA reflectance", fontsize=15)
+    ax1.set_xlabel("MISR TOA reflectance", fontsize=15)
 #     ax1.imshow(numpy.rot90(Z), cmap=plt.cm.gist_earth_r, extent=[axis_min, axis_max, axis_min, axis_max], alpha=0.8, zorder=0)
 #     ax1.plot(X, Y, 'k.', markersize=0.5, alpha=0.8, zorder=4)
     ax1.plot(x, y, color='k', linewidth=1, linestyle='-', zorder=1)
@@ -111,11 +111,11 @@ def mapping_scatter(Y, X, figure_title='demo', band_name='band3', axis_min=0.0, 
     ax1.set_xlim(axis_min, axis_max)
     ax1.set_ylim(axis_min, axis_max)
 
-    mapping_folder = os.path.join(WORK_SPACE, 'year_scatter_LC')
+    mapping_folder = os.path.join(WORK_SPACE, 'year_scatter_LC_TOA')
     figure_folder = os.path.join(mapping_folder, str(PIXEL_PAIRS_MAX))
     if not os.path.exists(figure_folder):
         os.makedirs(figure_folder)
-    fig_filename = os.path.join(figure_folder, figure_title + '.png')
+    fig_filename = os.path.join(figure_folder, figure_title + '_TOA.png')
     fig.savefig(fig_filename, dpi=1000, bbox_inches='tight')
     print(fig_filename)
     plt.close(fig)
@@ -169,8 +169,8 @@ if __name__ == "__main__":
                                 # camera_idx_str = matchObj.group(3)
                                 SR_npy_path = os.path.join(roi_folder_path, roi_file)
                                 ROI_SR_pair = numpy.load(SR_npy_path, allow_pickle=True)[0]
-                                misr_sr = ROI_SR_pair['misr_v3']
-                                ahi_sr = ROI_SR_pair['ahi_sr2misr']
+                                misr_sr = ROI_SR_pair['misr_toa']
+                                ahi_sr = ROI_SR_pair['ahi_toa2misr']
                                 x_3Darray_np_1d = misr_sr.flatten()
                                 x_3Darray_np_1d = x_3Darray_np_1d[~numpy.isnan(x_3Darray_np_1d)]
                                 y_3Darray_np_1d = ahi_sr.flatten()
