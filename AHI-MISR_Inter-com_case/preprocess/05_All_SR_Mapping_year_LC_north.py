@@ -39,8 +39,12 @@ def mapping_scatter(Y, X, figure_title='demo', band_name='band3', axis_min=0.0, 
     
     lim_x = numpy.copy(X)
     lim_y = numpy.copy(Y)
-    lim_x[lim_x > axis_max] = numpy.nan
-    lim_y[lim_y > axis_max] = numpy.nan
+
+    up4_x = numpy.quantile(lim_x, 0.98, interpolation='higher')
+    up4_y = numpy.quantile(lim_y, 0.98, interpolation='higher')
+    lim_x[lim_x > up4_x] = numpy.nan
+    lim_y[lim_y > up4_y] = numpy.nan
+
     lim_mask = (lim_x*lim_y)*0+1
     temp_x = lim_x*lim_mask
     temp_y = lim_y*lim_mask
@@ -56,7 +60,7 @@ def mapping_scatter(Y, X, figure_title='demo', band_name='band3', axis_min=0.0, 
     Y = show_y[~numpy.isnan(show_y)]
 
     fig = plt.figure(figsize=(4, 4))
-    ax1 = fig.add_subplot(111, aspect='equal')
+    ax1 = fig.add_subplot(111, aspect='equal',facecolor='whitesmoke', alpha=0.1)
     ax1.grid(linestyle='--', linewidth=0.3)
 
     k, b = numpy.polyfit(X, Y, deg=1)
@@ -81,7 +85,7 @@ def mapping_scatter(Y, X, figure_title='demo', band_name='band3', axis_min=0.0, 
     idx = z.argsort()
     X, Y, z = X[idx], Y[idx], z[idx]
     z = (z-numpy.min(z))/(numpy.max(z)-numpy.min(z))*100
-    im = ax1.scatter(X, Y, marker='o', c=z, s=10, cmap='jet')
+    im = ax1.scatter(X, Y, marker='o', c=z, s=8, cmap='turbo')
 
     ax1.minorticks_on()
     # x_major_locator = plt.MultipleLocator(5)
@@ -91,14 +95,14 @@ def mapping_scatter(Y, X, figure_title='demo', band_name='band3', axis_min=0.0, 
     ax1.yaxis.set_minor_locator(x_minor_locator)
     # ax.yaxis.set_major_locator(x_major_locator)
 
-    ax1.tick_params(axis="y", which='minor', length=5, direction='in', labelsize=15)
-    ax1.tick_params(axis="y", which='major', length=10, direction='in', labelsize=15)
+    ax1.tick_params(axis="y", which='minor', length=3, direction='in', labelsize=15)
+    ax1.tick_params(axis="y", which='major', length=5, direction='in', labelsize=15)
 
-    ax1.tick_params(axis="x", which='minor', length=5, direction='in', labelsize=15)
-    ax1.tick_params(axis="x", which='major', length=10, direction='in', labelsize=15)
+    ax1.tick_params(axis="x", which='minor', length=3, direction='in', labelsize=15)
+    ax1.tick_params(axis="x", which='major', length=5, direction='in', labelsize=15)
 
-    ax1.spines['right'].set_color('none')
-    ax1.spines['top'].set_color('none')
+    # ax1.spines['right'].set_color('none')
+    # ax1.spines['top'].set_color('none')
     ax1.spines['left'].set_linewidth(1)
     ax1.spines['bottom'].set_linewidth(1)
 
@@ -143,16 +147,16 @@ def mapping_scatter(Y, X, figure_title='demo', band_name='band3', axis_min=0.0, 
     ax1.set_xlim(axis_min, axis_max)
     ax1.set_ylim(axis_min, axis_max)
     
-#     mapping_folder = os.path.join(WORK_SPACE, 'month_scatter_LC_north')
-#     figure_folder = os.path.join(mapping_folder, str(PIXEL_PAIRS_MAX))
-#     if not os.path.exists(figure_folder):
-#         os.makedirs(figure_folder)
-#     fig_filename = os.path.join(figure_folder, figure_title + '.png')
-#     fig.savefig(fig_filename, dpi=1000, bbox_inches='tight')
-#     print(fig_filename)
-#     plt.close(fig)
-#     plt.clf()
-    plt.show()
+    mapping_folder = os.path.join(WORK_SPACE, 'year_scatter_LC_SR')
+    figure_folder = os.path.join(mapping_folder, str(PIXEL_PAIRS_MAX))
+    if not os.path.exists(figure_folder):
+        os.makedirs(figure_folder)
+    fig_filename = os.path.join(figure_folder, figure_title + '.png')
+    fig.savefig(fig_filename, dpi=1000, bbox_inches='tight')
+    print(fig_filename)
+    plt.close(fig)
+    plt.clf()
+    # plt.show()
     # slope r RMSE
     return k, r_, rmse
 
@@ -234,14 +238,14 @@ if __name__ == "__main__":
                 ahi_SR_band3_pts = numpy.array(ahi_SR_band3_item_list)
                 show_ahi_sr_b3 = ahi_SR_band3_pts[index_array]
                 figure_title = folder_l1 + '_' + folder_l2 + '_b3' + '_' + str(PIXEL_PAIRS_MAX)
-                mapping_scatter(show_ahi_sr_b3, show_misr_sr_b3, figure_title, 'band3', axis_min=0.0, axis_max=0.3)
+                mapping_scatter(show_ahi_sr_b3, show_misr_sr_b3, figure_title, 'band3', axis_min=0.0, axis_max=0.5)
 
                 misr_SR_band4_pts = numpy.array(misr_SR_band4_item_list)
                 show_misr_sr_b4 = misr_SR_band4_pts[index_array]
                 ahi_SR_band4_pts = numpy.array(ahi_SR_band4_item_list)
                 show_ahi_sr_b4 = ahi_SR_band4_pts[index_array]
                 figure_title = folder_l1 + '_' + folder_l2 + '_b4' + '_' + str(PIXEL_PAIRS_MAX)
-                mapping_scatter(show_ahi_sr_b4, show_misr_sr_b4, figure_title, 'band4', axis_min=0.0, axis_max=0.5)
+                mapping_scatter(show_ahi_sr_b4, show_misr_sr_b4, figure_title, 'band4', axis_min=0.0, axis_max=0.8)
 
             else:
                 # all pairs mapping
@@ -251,9 +255,9 @@ if __name__ == "__main__":
                     misr_SR_band3_pts = numpy.array(misr_SR_band3_item_list)
                     ahi_SR_band3_pts = numpy.array(ahi_SR_band3_item_list)
                     figure_title = folder_l1 + '_' + folder_l2 + '_b3' + '_' + str(pairs_no)
-                    mapping_scatter(ahi_SR_band3_pts, misr_SR_band3_pts, figure_title, 'band3', axis_min=0.0, axis_max=0.3)
+                    mapping_scatter(ahi_SR_band3_pts, misr_SR_band3_pts, figure_title, 'band3', axis_min=0.0, axis_max=0.5)
 
                     misr_SR_band4_pts = numpy.array(misr_SR_band4_item_list)
                     ahi_SR_band4_pts = numpy.array(ahi_SR_band4_item_list)
                     figure_title = folder_l1 + '_' + folder_l2 + '_b4' + '_' + str(pairs_no)
-                    mapping_scatter(ahi_SR_band4_pts, misr_SR_band4_pts, figure_title, 'band4', axis_min=0.0, axis_max=0.5)
+                    mapping_scatter(ahi_SR_band4_pts, misr_SR_band4_pts, figure_title, 'band4', axis_min=0.0, axis_max=0.8)

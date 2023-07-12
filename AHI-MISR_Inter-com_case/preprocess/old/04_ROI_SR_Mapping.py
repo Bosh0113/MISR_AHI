@@ -72,7 +72,7 @@ def ahi_sr2misr_sr(ahi_sr_array, AHI2MISR_para):
     offset = AHI2MISR_para[1]
     offset_array = numpy.ones_like(ahi_sr_array)
     offset_array = offset_array * offset
-    return (ahi_sr_array - offset_array) / slope
+    return ahi_sr_array * slope + offset_array
 
 
 def mapping(array, figure_title):
