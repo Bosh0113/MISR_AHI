@@ -3,10 +3,10 @@ import math
 import numpy as np
 import matplotlib.pyplot as plt
 
-ws = r'E:\MISR_AHI_WS\230308\mapping'
+ws = '/disk1/workspace/20230713'
 
-MCD12Q1_006_10KM_npy = os.path.join(ws, 'MCD12Q1_006_10km.npy')
-ray_matched_record_npy = os.path.join(ws, 'AHI_MISR_Ray-screened_10km.npy')
+MCD12Q1_006_10KM_npy = os.path.join(ws, 'MCD12Q1.006.LC.AHI01km.npy')
+ray_matched_record_npy = os.path.join(ws, 'AHI_MISR_Ray-matched_z1a10.npy')
 
 LC_SIZE = 0.1
 

@@ -1,9 +1,9 @@
 import os
 import numpy
 
-ws = r'E:\MISR_AHI_WS\230308\Ray_screen_ScatterAng'
-ray_matched_record_npy = os.path.join(ws, 'AHI_MISR_Ray-screened_10km.npy')
-ray_matched_record_npy_50km = os.path.join(ws, 'AHI_MISR_Ray-screened_50km.npy')
+ws = '/disk1/workspace/20230713'
+ray_matched_record_npy = os.path.join(ws, 'AHI_MISR_Ray-matched_z1a10.npy')
+ray_matched_record_npy_50km = os.path.join(ws, 'AHI_MISR_Ray-matched_z1a10_0.5.npy')
 
 ROI_DISTANCE = 0.5
 if __name__ == "__main__":

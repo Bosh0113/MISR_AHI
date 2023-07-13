@@ -3,10 +3,10 @@ import numpy
 import matplotlib.pyplot as plt
 from matplotlib.ticker import ScalarFormatter
 
-ws = r'D:\PhD_Workspace\MISR_AHI_WS\230308\mapping'
+ws = '/disk1/workspace/20230713'
 
-ray_matched_record_npy = os.path.join(ws, 'AHI_MISR_Ray-screened_50km.npy')
-raa_matched_record_npy = os.path.join(ws, 'AHI_MISR_RAA-screened_50km.npy')
+ray_matched_record_npy = os.path.join(ws, 'AHI_MISR_Ray-matched_z1a10_0.5.npy')
+raa_matched_record_npy = os.path.join(ws, 'AHI_MISR_RAA-matched_z1a10_0.5.npy')
 
 MISR_ANGLE = [0.0, 26.1, 45.6, 60.0, 70.5]
 
@@ -83,13 +83,13 @@ def mapping_double_bar_angle(ray_bar_data, raa_bar_data):
     ax2.minorticks_on()
     x_minor_locator = plt.MultipleLocator(1)
     x_major_locator = plt.MultipleLocator(1)
-    y1_minor_locator = plt.MultipleLocator(20)
-    y1_major_locator = plt.MultipleLocator(100)
-    y2_minor_locator = plt.MultipleLocator(20)
-    y2_major_locator = plt.MultipleLocator(100)
-    x_labels = ['60°N-50°N', '50°N-40°N', '40°N-30°N', '30°N-20°N', '20°N-10°N', '10°N-0°', '0°-10°S', '10°S-20°S', '20°S-30°S', '30°S-40°S', '40°S-50°S', '50°S-60°S']
+    y1_minor_locator = plt.MultipleLocator(10)
+    y1_major_locator = plt.MultipleLocator(50)
+    y2_minor_locator = plt.MultipleLocator(10)
+    y2_major_locator = plt.MultipleLocator(50)
+    x_labels = ['', '60°N-50°N', '50°N-40°N', '40°N-30°N', '30°N-20°N', '20°N-10°N', '10°N-0°', '0°-10°S', '10°S-20°S', '20°S-30°S', '30°S-40°S', '40°S-50°S', '50°S-60°S']
 
-    ax2.set_xticks(x_array, x_labels)
+    ax2.set_xticklabels(x_labels)
     ax2.tick_params(axis='x', rotation=20)
     ax2.xaxis.set_minor_locator(x_minor_locator)
     ax2.xaxis.set_major_locator(x_major_locator)
@@ -105,20 +105,20 @@ def mapping_double_bar_angle(ray_bar_data, raa_bar_data):
     ax2.tick_params(axis="y", which='minor', length=3, labelsize=10)
     ax2.tick_params(axis="y", which='major', length=5, labelsize=15)
 
-    ax1.ticklabel_format(style='sci', scilimits=(0, 0), axis='y')
-    sf1 = ScalarFormatter(useMathText=True)
-    sf1.set_powerlimits((0, 0))
-    ax1.yaxis.set_major_formatter(sf1)
-    ax1.yaxis.get_offset_text().set(size=15)
+    # ax1.ticklabel_format(style='sci', scilimits=(0, 0), axis='y')
+    # sf1 = ScalarFormatter(useMathText=True)
+    # sf1.set_powerlimits((0, 0))
+    # ax1.yaxis.set_major_formatter(sf1)
+    # ax1.yaxis.get_offset_text().set(size=15)
 
     ax1.set_ylabel('Count of Pixel', fontsize=18)
     ax1.yaxis.set_label_coords(0.08, 0.5, transform=f.transFigure)
 
-    ax1.set_ylim(910, 1600)
-    ax2.set_ylim(0, 620)
+    ax1.set_ylim(315, 580)
+    ax2.set_ylim(0, 205)
     # hide the spines between ax and ax2
-    ax1.spines.bottom.set_visible(False)
-    ax2.spines.top.set_visible(False)
+    ax1.spines['bottom'].set_color('none')
+    ax2.spines['top'].set_color('none')
     ax1.xaxis.tick_top()
     ax1.tick_params(labeltop=False)  # don't put tick labels at the top
     ax2.xaxis.tick_bottom()

@@ -3,12 +3,12 @@ import math
 import numpy as np
 import matplotlib.pyplot as plt
 
-ws = r'D:\MISR_AHI_WS\230217'
+ws = '/disk1/workspace/20230713'
 
-MCD12Q1_006_10KM_npy = os.path.join(ws, 'MCD12Q1_006_10km.npy')
-ray_matched_record_npy = os.path.join(ws, 'Ray_MODIS_land_lonlat_10km.npy')
+MCD12Q1_006_10KM_npy = os.path.join(ws, 'MCD12Q1.006.LC.AHI01km.npy')
+ray_matched_record_npy = os.path.join(ws, 'Ray_MODIS_VZA1VAA10_loc.npy')
 
-LC_SIZE = 0.1
+LC_SIZE = 0.01
 
 
 def get_tab_data(lc_map, matched_record):
@@ -32,17 +32,20 @@ def tab_show(ray_values):
     ]
     
     for idx in range(len(ray_values)):
-        if ray_values[idx] > 0.0:
-            print(lc_labels[idx], int(ray_values[idx]))
-    # Water 517
-    # Evergreen Broadleaf Forest 8383
-    # Woody Savannas 2836
-    # Savannas 321
-    # Grasslands 57
-    # Permanent Wetlands 294
-    # Croplands 386
-    # Urban and Built-Up 100
-    # Cropland/Natual Vegation 639
+        print(lc_labels[idx], int(ray_values[idx]))
+        # if ray_values[idx] > 0.0:
+        #     print(lc_labels[idx], int(ray_values[idx]))
+    # Water 152
+    # Evergreen Needleleaf Forest 1
+    # Evergreen Broadleaf Forest 3259
+    # Deciduous Broadleaf Forest 15
+    # Woody Savannas 1413
+    # Savannas 315
+    # Grasslands 182
+    # Permanent Wetlands 218
+    # Croplands 534
+    # Urban and Built-Up 107
+    # Cropland/Natual Vegation 225
     # Barren 2
 
 

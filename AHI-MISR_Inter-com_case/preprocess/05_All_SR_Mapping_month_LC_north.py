@@ -91,13 +91,17 @@ def identifer(data):
 def mapping_scatter(Y, X, figure_title='demo', band_name='band3', axis_min=0.0, axis_max=0.5):
     # filter
 
-    if band_name == 'band3':
-        axis_max = 0.3
+    # if band_name == 'band3':
+    #     axis_max = 0.3
 
     lim_x = numpy.copy(X)
     lim_y = numpy.copy(Y)
-    lim_x[lim_x > axis_max] = numpy.nan
-    lim_y[lim_y > axis_max] = numpy.nan
+
+    up4_x = numpy.quantile(lim_x, 0.98, interpolation='higher')
+    up4_y = numpy.quantile(lim_y, 0.98, interpolation='higher')
+    lim_x[lim_x > up4_x] = numpy.nan
+    lim_y[lim_y > up4_y] = numpy.nan
+
     lim_mask = (lim_x*lim_y)*0+1
     temp_x = lim_x*lim_mask
     temp_y = lim_y*lim_mask
@@ -190,7 +194,7 @@ def mapping_scatter(Y, X, figure_title='demo', band_name='band3', axis_min=0.0, 
 
     # plt.show()
     # slope r RMSE
-    return k, r_, rmse, b
+    return k, r_, rmse
 
 
 if __name__ == "__main__":
@@ -286,7 +290,7 @@ if __name__ == "__main__":
                     ahi_SR_band3_pts = numpy.array(ahi_SR_band3_item_list)
                     show_ahi_sr_b3 = ahi_SR_band3_pts[index_array]
                     figure_title = folder_l1 + '_' + folder_l2 + '_b3' + '_' + str(month_idx) + month + '_' + str(PIXEL_PAIRS_MAX)
-                    slope_b3, r_b3, rmse_b3 = mapping_scatter(show_ahi_sr_b3, show_misr_sr_b3, figure_title, 'band3', axis_min=0.0, axis_max=0.3)
+                    slope_b3, r_b3, rmse_b3 = mapping_scatter(show_ahi_sr_b3, show_misr_sr_b3, figure_title, 'band3', axis_min=0.0, axis_max=0.5)
                     month_slope_b3[month_idx] = round(slope_b3, 2)
                     month_r_b3[month_idx] = round(r_b3, 2)
                     month_rmse_b3[month_idx] = round(rmse_b3, 3)
@@ -296,7 +300,7 @@ if __name__ == "__main__":
                     ahi_SR_band4_pts = numpy.array(ahi_SR_band4_item_list)
                     show_ahi_sr_b4 = ahi_SR_band4_pts[index_array]
                     figure_title = folder_l1 + '_' + folder_l2 + '_b4' + '_' + str(month_idx) + month + '_' + str(PIXEL_PAIRS_MAX)
-                    slope_b4, r_b4, rmse_b4 = mapping_scatter(show_ahi_sr_b4, show_misr_sr_b4, figure_title, 'band4', axis_min=0.0, axis_max=0.7)
+                    slope_b4, r_b4, rmse_b4 = mapping_scatter(show_ahi_sr_b4, show_misr_sr_b4, figure_title, 'band4', axis_min=0.0, axis_max=0.8)
                     month_slope_b4[month_idx] = round(slope_b4, 2)
                     month_r_b4[month_idx] = round(r_b4, 2)
                     month_rmse_b4[month_idx] = round(rmse_b4, 3)
@@ -309,7 +313,7 @@ if __name__ == "__main__":
                         misr_SR_band3_pts = numpy.array(misr_SR_band3_item_list)
                         ahi_SR_band3_pts = numpy.array(ahi_SR_band3_item_list)
                         figure_title = folder_l1 + '_' + folder_l2 + '_b3' + '_' + str(month_idx) + month + '_' + str(pairs_no)
-                        slope_b3, r_b3, rmse_b3 = mapping_scatter(ahi_SR_band3_pts, misr_SR_band3_pts, figure_title, 'band3', axis_min=0.0, axis_max=0.3)
+                        slope_b3, r_b3, rmse_b3 = mapping_scatter(ahi_SR_band3_pts, misr_SR_band3_pts, figure_title, 'band3', axis_min=0.0, axis_max=0.5)
                         month_slope_b3[month_idx] = round(slope_b3, 2)
                         month_r_b3[month_idx] = round(r_b3, 2)
                         month_rmse_b3[month_idx] = round(rmse_b3, 3)
@@ -317,7 +321,7 @@ if __name__ == "__main__":
                         misr_SR_band4_pts = numpy.array(misr_SR_band4_item_list)
                         ahi_SR_band4_pts = numpy.array(ahi_SR_band4_item_list)
                         figure_title = folder_l1 + '_' + folder_l2 + '_b4' + '_' + str(month_idx) + month + '_' + str(pairs_no)
-                        slope_b4, r_b4, rmse_b4 = mapping_scatter(ahi_SR_band4_pts, misr_SR_band4_pts, figure_title, 'band4', axis_min=0.0, axis_max=0.7)
+                        slope_b4, r_b4, rmse_b4 = mapping_scatter(ahi_SR_band4_pts, misr_SR_band4_pts, figure_title, 'band4', axis_min=0.0, axis_max=0.8)
                         month_slope_b4[month_idx] = round(slope_b4, 2)
                         month_r_b4[month_idx] = round(r_b4, 2)
                         month_rmse_b4[month_idx] = round(rmse_b4, 3)

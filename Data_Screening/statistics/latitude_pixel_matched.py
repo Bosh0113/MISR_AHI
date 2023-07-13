@@ -2,7 +2,7 @@ import numpy
 import matplotlib.pyplot as plt
 
 # MISR_path MISR_orbit camera_idx MISR_roi_time AHI_roi_time MISR_VZA AHI_VZA MISR_VAA AHI_VAA Scattering_Angle(GEO-LEO)
-matched_npy_filename = r'E:\MISR_AHI_WS\230308\mapping\AHI_MISR_Ray-screened_10km.npy'
+matched_npy_filename = '/disk1/workspace/20230628/AHI_MISR_Ray-matched_z1a10.npy'
 
 
 def pixel_count(matched_info):

@@ -3,10 +3,10 @@ import numpy
 import matplotlib.pyplot as plt
 from matplotlib.ticker import ScalarFormatter
 
-ws = r'E:\MISR_AHI_WS\230308\mapping'
+ws = '/disk1/workspace/20230713'
 
-ray_matched_record_npy = os.path.join(ws, 'AHI_MISR_Ray-screened_50km.npy')
-raa_matched_record_npy = os.path.join(ws, 'AHI_MISR_RAA-screened_50km.npy')
+ray_matched_record_npy = os.path.join(ws, 'AHI_MISR_Ray-matched_z1a10_0.5.npy')
+raa_matched_record_npy = os.path.join(ws, 'AHI_MISR_RAA-matched_z1a10_0.5.npy')
 
 MISR_ANGLE = [0.0, 26.1, 45.6, 60.0, 70.5]
 
@@ -80,8 +80,8 @@ def mapping_double_bar_angle(ray_bar_data, raa_bar_data):
     x_major_locator = plt.MultipleLocator(1)
     y1_minor_locator = plt.MultipleLocator(20)
     y1_major_locator = plt.MultipleLocator(100)
-    x_labels = ['60°N-50°N', '50°N-40°N', '40°N-30°N', '30°N-20°N', '20°N-10°N', '10°N-0°', '0°-10°S', '10°S-20°S', '20°S-30°S', '30°S-40°S', '40°S-50°S', '50°S-60°S']
-    ax1.set_xticks(x_array, x_labels)
+    x_labels = ['', '60°N-50°N', '50°N-40°N', '40°N-30°N', '30°N-20°N', '20°N-10°N', '10°N-0°', '0°-10°S', '10°S-20°S', '20°S-30°S', '30°S-40°S', '40°S-50°S', '50°S-60°S']
+    ax1.set_xticklabels(x_labels)
     ax1.tick_params(axis='x', rotation=20)
     ax1.xaxis.set_minor_locator(x_minor_locator)
     ax1.xaxis.set_major_locator(x_major_locator)
@@ -97,7 +97,7 @@ def mapping_double_bar_angle(ray_bar_data, raa_bar_data):
     ax1.tick_params(axis="x", which='minor', length=3, labelsize=10)
     ax1.tick_params(axis="x", which='major', length=5, labelsize=10)
     ax1.set_ylabel('Count of Pixel', fontsize=18)
-    ax1.set_ylim(0, 1600)
+    ax1.set_ylim(0, 585)
     ax1.legend(loc=1, fontsize='large', title='Camera angle of MISR')
     # 2K monitor
     plt.show()
