@@ -111,10 +111,10 @@ def mapping_double_bar_angle(ray_bar_data, raa_bar_data):
     # ax1.yaxis.set_major_formatter(sf1)
     # ax1.yaxis.get_offset_text().set(size=15)
 
-    ax1.set_ylabel('Count of Pixel', fontsize=18)
+    ax1.set_ylabel('Count of Locations', fontsize=18)
     ax1.yaxis.set_label_coords(0.08, 0.5, transform=f.transFigure)
 
-    ax1.set_ylim(315, 580)
+    ax1.set_ylim(295, 580)
     ax2.set_ylim(0, 205)
     # hide the spines between ax and ax2
     ax1.spines['bottom'].set_color('none')
@@ -128,7 +128,7 @@ def mapping_double_bar_angle(ray_bar_data, raa_bar_data):
     ax2.plot([0, 1], [1, 1], transform=ax2.transAxes, **kwargs)
 
     ax1.legend(loc=1, fontsize='large', title='Camera angle of MISR')
-    plt.savefig(ws + '/Screened areas for each camera in different latitude ranges with two screening criteria_broken.png', dpi=600)
+    plt.savefig(ws + '/Matched areas for each camera in different latitude ranges with two screening criteria_broken.png', dpi=600)
     # 2K monitor
     # plt.show()
 
