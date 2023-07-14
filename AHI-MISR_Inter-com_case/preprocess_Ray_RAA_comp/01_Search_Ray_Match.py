@@ -13,7 +13,7 @@ WORK_SPACE = os.getcwd()
 ROI_SIZE = 0.02
 MISR_CAMERA_INDEX = {'0': [4], '26': [3, 5], '45': [2, 6], '60': [1, 7], '70': [0, 8]}
 
-START_TIME = '2017-01-01T00:00:00Z'
+START_TIME = '2018-01-01T00:00:00Z'
 END_TIME = '2019-12-31T23:59:59Z'
 # daytime range
 AHI_LOCALTIME_START = '08:00:00Z'
