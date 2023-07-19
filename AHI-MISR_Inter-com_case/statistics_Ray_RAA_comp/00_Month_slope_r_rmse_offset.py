@@ -106,49 +106,50 @@ if __name__ == "__main__":
                         roi_infos = roi_folder.split('_')
                         roi_lat = float(roi_infos[2])
                         
-                        is_south_roi = 0
+                        # is_south_roi = 0
                         if roi_lat < 0:
-                            is_south_roi = 1
+                            # is_south_roi = 1
 
-                        roi_folder_path = os.path.join(folder_l2_path, roi_folder)
-                        roi_file_list = os.listdir(roi_folder_path)
-                        roi_misr_SR_band3_list = []
-                        roi_ahi_SR_band3_list = []
-                        roi_misr_SR_band4_list = []
-                        roi_ahi_SR_band4_list = []
-                        for roi_file in roi_file_list:
-                            matchObj = re.search(r'(\d+)_band(\d+)_(\d+).npy', str(roi_file))
-                            if matchObj:
-                                ahi_time_str = matchObj.group(1)
-                                band_str = matchObj.group(2)
-                                # camera_idx_str = matchObj.group(3)
+                            roi_folder_path = os.path.join(folder_l2_path, roi_folder)
+                            roi_file_list = os.listdir(roi_folder_path)
+                            roi_misr_SR_band3_list = []
+                            roi_ahi_SR_band3_list = []
+                            roi_misr_SR_band4_list = []
+                            roi_ahi_SR_band4_list = []
+                            for roi_file in roi_file_list:
+                                matchObj = re.search(r'(\d+)_band(\d+)_(\d+).npy', str(roi_file))
+                                if matchObj:
+                                    ahi_time_str = matchObj.group(1)
+                                    band_str = matchObj.group(2)
+                                    # camera_idx_str = matchObj.group(3)
 
-                                obs_month = ahi_time_str[4:6]
-                                if is_south_roi:
+                                    obs_month = ahi_time_str[4:6]
+                                    # if is_south_roi:
+                                    #     obs_month = MONTH_SOUTH2NORTH[obs_month]
                                     obs_month = MONTH_SOUTH2NORTH[obs_month]
-                                obs_month_idx = int(obs_month) - 1
+                                    obs_month_idx = int(obs_month) - 1
 
-                                if obs_month_idx == month_idx:
-                                    SR_npy_path = os.path.join(roi_folder_path, roi_file)
-                                    ROI_SR_pair = numpy.load(SR_npy_path, allow_pickle=True)[0]
-                                    misr_sr = ROI_SR_pair['misr_v3']
-                                    ahi_sr = ROI_SR_pair['ahi_sr2misr']
-                                    x_3Darray_np_1d = misr_sr.flatten()
-                                    x_3Darray_np_1d = x_3Darray_np_1d[~numpy.isnan(x_3Darray_np_1d)]
-                                    y_3Darray_np_1d = ahi_sr.flatten()
-                                    y_3Darray_np_1d = y_3Darray_np_1d[~numpy.isnan(y_3Darray_np_1d)]
-                                    if band_str == '3':
-                                        roi_misr_SR_band3_list.extend(x_3Darray_np_1d)
-                                        roi_ahi_SR_band3_list.extend(y_3Darray_np_1d)
-                                    if band_str == '4':
-                                        roi_misr_SR_band4_list.extend(x_3Darray_np_1d)
-                                        roi_ahi_SR_band4_list.extend(y_3Darray_np_1d)
-                                # keep pixel count same
-                                if len(roi_misr_SR_band3_list) == len(roi_misr_SR_band4_list):
-                                    misr_SR_band3_item_list.extend(roi_misr_SR_band3_list)
-                                    ahi_SR_band3_item_list.extend(roi_ahi_SR_band3_list)
-                                    misr_SR_band4_item_list.extend(roi_misr_SR_band4_list)
-                                    ahi_SR_band4_item_list.extend(roi_ahi_SR_band4_list)
+                                    if obs_month_idx == month_idx:
+                                        SR_npy_path = os.path.join(roi_folder_path, roi_file)
+                                        ROI_SR_pair = numpy.load(SR_npy_path, allow_pickle=True)[0]
+                                        misr_sr = ROI_SR_pair['misr_v3']
+                                        ahi_sr = ROI_SR_pair['ahi_sr2misr']
+                                        x_3Darray_np_1d = misr_sr.flatten()
+                                        x_3Darray_np_1d = x_3Darray_np_1d[~numpy.isnan(x_3Darray_np_1d)]
+                                        y_3Darray_np_1d = ahi_sr.flatten()
+                                        y_3Darray_np_1d = y_3Darray_np_1d[~numpy.isnan(y_3Darray_np_1d)]
+                                        if band_str == '3':
+                                            roi_misr_SR_band3_list.extend(x_3Darray_np_1d)
+                                            roi_ahi_SR_band3_list.extend(y_3Darray_np_1d)
+                                        if band_str == '4':
+                                            roi_misr_SR_band4_list.extend(x_3Darray_np_1d)
+                                            roi_ahi_SR_band4_list.extend(y_3Darray_np_1d)
+                                    # keep pixel count same
+                                    if len(roi_misr_SR_band3_list) == len(roi_misr_SR_band4_list):
+                                        misr_SR_band3_item_list.extend(roi_misr_SR_band3_list)
+                                        ahi_SR_band3_item_list.extend(roi_ahi_SR_band3_list)
+                                        misr_SR_band4_item_list.extend(roi_misr_SR_band4_list)
+                                        ahi_SR_band4_item_list.extend(roi_ahi_SR_band4_list)
 
                 print('Random NO.:', PIXEL_PAIRS_MAX)
                 print(folder_l1)
