@@ -8,7 +8,7 @@ ws = '/disk1/workspace/20230713'
 MCD12Q1_006_10KM_npy = os.path.join(ws, 'MCD12Q1.006.LC.AHI01km.npy')
 ray_matched_record_npy = os.path.join(ws, 'AHI_MISR_Ray-matched_z1a10.npy')
 
-LC_SIZE = 0.1
+LC_SIZE = 0.01
 
 
 def get_tab_data(lc_map, matched_record):

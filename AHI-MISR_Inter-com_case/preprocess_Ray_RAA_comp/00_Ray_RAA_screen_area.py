@@ -1,11 +1,11 @@
 import os
 import numpy as np
 
-ws = '/disk1/workspace/20230628'
+ws = '/disk1/workspace/20230724'
 
-raa_matched_record_50km_npy = os.path.join(ws, 'AHI_MISR_RAA-matched_z1a10.npy')
+raa_matched_record_50km_npy = os.path.join(ws, 'MISR_matched_record_10km_30S40S.npy')
 Ray_RAA_loc_txt = os.path.join(ws, 'Ray_RAA_loc.txt')
-common_loc_npy = os.path.join(ws, 'RAA_Ray_loc_50km.npy')
+common_loc_npy = os.path.join(ws, 'RAA_Ray_loc_10km.npy')
 
 
 # get side of VAA-to-SAA (SAA as refer)
