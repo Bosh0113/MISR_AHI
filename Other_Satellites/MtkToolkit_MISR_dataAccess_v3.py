@@ -45,12 +45,11 @@ def download_MISR_MIL2ASLS03_NC(folder, path, orbit):
 
 if __name__ == "__main__":
     start = time.perf_counter()
-    # storage_folder = r'E:\Data_PhD\MISR4AHI'
-    storage_folder = '/data/beichen/data/MISR4AHI1521_3'
-    ahi_r = MtkRegion(60, 85, -60, -155)
-    start_t = '2015-07-01T00:00:00Z'
-    end_t = '2021-07-01T23:59:59Z'
-    pathList = ahi_r.path_list
+    storage_folder = '/data01/people/beichen/data/MISR4Globe201701_02'
+    globe_r = MtkRegion(60, -180, -60, 180)
+    start_t = '2017-01-01T00:00:00Z'
+    end_t = '2017-01-31T23:59:59Z'
+    pathList = globe_r.path_list
     for path in pathList:
         orbits = path_time_range_to_orbit_list(path, start_t, end_t)
         for orbit in orbits:
