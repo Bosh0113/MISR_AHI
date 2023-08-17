@@ -13,6 +13,9 @@ WORK_SPACE = os.getcwd()
 ROI_SIZE = 0.04
 MISR_CAMERA_INDEX = {'0.0': [4], '26.1': [3, 5], '45.6': [2, 6], '60.0': [1, 7], '70.5': [0, 8]}
 
+MISR_CAMERA_VZA_NAME = ['DfZenith', 'CfZenith', 'BfZenith', 'AfZenith', 'AnZenith', 'AaZenith', 'BaZenith', 'CaZenith', 'DaZenith']
+MISR_CAMERA_VAA_NAME = ['DfAzimuth', 'CfAzimuth', 'BfAzimuth', 'AfAzimuth', 'AnAzimuth', 'AaAzimuth', 'BaAzimuth', 'CaAzimuth', 'DaAzimuth']
+
 START_TIME = '2017-01-01T00:00:00Z'
 END_TIME = '2017-01-31T23:59:59Z'
 # daytime range
@@ -26,14 +29,15 @@ DIFF_VAA_THRESHOLD = 10 # degree
 # time diff
 DIFF_TIME_THRESHOLD = 5 * 60  # seconds
 
-MISR_DATA_FOLDER = '/data01/people/beichen/data/MISR4AHI2015070120210630_3'
-AHI_VZA_BIN = WORK_SPACE + '/MTG_VZA.npy'
-AHI_VAA_BIN = WORK_SPACE + '/MTG_VAA.npy'
+MISR_SR_DATA_FOLDER = '/data01/people/beichen/data/MISR4Globe201701_02'
+MISR_GEO_DATA_FOLDER = '/data01/people/beichen/data/MISR4Globe_GEO_201701_02'
+AHI_VZA_BIN = WORK_SPACE + '/FD_VZA.npy'
+AHI_VAA_BIN = WORK_SPACE + '/FD_VAA.npy'
 
-GRO_OBS_COND_TXT = 'MISR_MTG_RAY_MATCH_RECORD_50km.txt'
+GRO_OBS_COND_TXT = 'MISR_GEO_RAY_MATCH_RECORD_50km.txt'
 
 
-def re_download_MISR_MIL2ASLS03_NC(folder, path, orbit):
+def re_download_MISR_MIB2GEOP_3_HDF(folder, path, orbit):
     time_range = orbit_to_time_range(orbit)
     for orbit_time in time_range:
         matchObj = re.search(r'(\d+)-(\d+)-(\d+)T', str(orbit_time))
@@ -42,37 +46,57 @@ def re_download_MISR_MIL2ASLS03_NC(folder, path, orbit):
         dd = matchObj.group(3)
 
         t = str(yy) + '.' + str(mm) + '.' + str(dd)
-        P = 'P' + (3 - len(str(path))) * '0' + str(path)
-        O_ = 'O' + (6 - len(str(orbit))) * '0' + str(orbit)
-        F = 'F' + '08'
-        v = '0023'
-        base_url = 'https://opendap.larc.nasa.gov/opendap/MISR/MIL2ASLS.003'
-        filename = 'MISR_AM1_AS_LAND_' + P + '_' + O_ + '_' + F + '_' + v + '.nc'
+        P = 'P' + (3-len(str(path)))*'0' + str(path)
+        O_ = 'O' + (6-len(str(orbit)))*'0' + str(orbit)
+        F = 'F' + '03'
+        v = '0013'
+        base_url = 'https://opendap.larc.nasa.gov/opendap/MISR/MIB2GEOP.002'
+        filename = 'MISR_AM1_GP_GMP_' + P + '_' + O_ + '_' + F + '_' + v + '.hdf'
 
         download_url = base_url + '/' + t + '/' + filename
         storage_path = folder + '/' + filename
 
-        try:
-            urllib.request.urlretrieve(download_url, filename=storage_path)
-        except Exception as e:
-            print('Error: ' + download_url)
-            print(e)
+        if os.path.exists(storage_path):
+            try:
+                m_file = MtkFile(storage_path)
+            except Exception as e:
+                print('Error: ' + download_url)
+                print(e)
+                urllib.request.urlretrieve(download_url, filename=storage_path)
+        else:
+            try:
+                urllib.request.urlretrieve(download_url, filename=storage_path)
+            except Exception as e:
+                print('Error: ' + download_url)
+                print(e)
 
 
-def get_misr_filename(orbit):
+def get_misr_geo_filename(orbit):
+    path = orbit_to_path(orbit)
+    P = 'P' + (3-len(str(path)))*'0' + str(path)
+    O_ = 'O' + (6-len(str(orbit)))*'0' + str(orbit)
+    F = 'F' + '03'
+    v = '0013'
+    misr_geo_filename = 'MISR_AM1_GP_GMP_' + P + '_' + O_ + '_' + F + '_' + v + '.hdf'
+    misr_hdf_filename = MISR_GEO_DATA_FOLDER + '/' + misr_geo_filename
+
+    return misr_hdf_filename
+
+
+def get_misr_time_filename(orbit):
     path = orbit_to_path(orbit)
     P = 'P' + (3 - len(str(path))) * '0' + str(path)
     O_ = 'O' + (6 - len(str(orbit))) * '0' + str(orbit)
     F = 'F' + '08'
     v = '0023'
     misr_v3_nc_file = 'MISR_AM1_AS_LAND_' + P + '_' + O_ + '_' + F + '_' + v + '.nc'
-    misr_nc_filename = MISR_DATA_FOLDER + '/' + misr_v3_nc_file
+    misr_nc_filename = MISR_SR_DATA_FOLDER + '/' + misr_v3_nc_file
 
     return misr_nc_filename
 
 
 def get_misr_obs_angle(roi_extent, orbit, camera_idx):
-    misr_filename = get_misr_filename(orbit)
+    misr_filename = get_misr_geo_filename(orbit)
     roi_r = MtkRegion(roi_extent[0], roi_extent[1], roi_extent[2], roi_extent[3])
     if os.path.exists(misr_filename):
         m_file = None
@@ -86,11 +110,11 @@ def get_misr_obs_angle(roi_extent, orbit, camera_idx):
                 path = orbit_to_path(orbit)
                 misr_v3_nc_file = misr_filename.split('/')[(len(misr_filename.split('/')))]
                 print('re-download:', misr_v3_nc_file)
-                re_download_MISR_MIL2ASLS03_NC(MISR_DATA_FOLDER, path, orbit)
-        m_grid = m_file.grid('4.4_KM_PRODUCTS')
+                re_download_MISR_MIB2GEOP_3_HDF(MISR_GEO_DATA_FOLDER, path, orbit)
+        m_grid = m_file.grid('GeometricParameters')
         # MISR VZA
         roi_misr_vza = 0.0
-        vza_field = m_grid.field('GEOMETRY/View_Zenith_Angle[' + str(camera_idx) + ']')
+        vza_field = m_grid.field(MISR_CAMERA_VZA_NAME[camera_idx])
         f_vza_data = vza_field.read(roi_r).data()
         f_vza_data = numpy.array(f_vza_data)
         # in single array
@@ -103,7 +127,7 @@ def get_misr_obs_angle(roi_extent, orbit, camera_idx):
             return None, None
         # MISR VAA
         roi_misr_vaa = 0.0
-        vaa_field = m_grid.field('GEOMETRY/View_Azimuth_Angle[' + str(camera_idx) + ']')
+        vaa_field = m_grid.field(MISR_CAMERA_VAA_NAME[camera_idx])
         f_vaa_data = vaa_field.read(roi_r).data()
         f_vaa_data = numpy.array(f_vaa_data)
         roi_misr_vaa_list = f_vaa_data.flatten()
@@ -197,7 +221,7 @@ def main():
     matched_record = []
     misr_ray_matched_npy_filename = os.path.join(WORK_SPACE, 'MISR_matched_record_50km.npy')
 
-    point_locations_npy_filename = os.path.join(WORK_SPACE, 'MTG_50km_onland_lonlat.npy')
+    point_locations_npy_filename = os.path.join(WORK_SPACE, 'FD_50km_onland_lonlat.npy')
     search_cood = numpy.load(point_locations_npy_filename, allow_pickle=True)
     for cood_point_idx in tqdm(range(len(search_cood)), desc='Location', leave=False):
         cood_point = search_cood[cood_point_idx]
@@ -235,7 +259,7 @@ def main():
                                     # get AHI data with MISR Obs time
                                     roi_blocks = roi_r.block_range(path)
                                     block_no = roi_blocks[0]
-                                    misr_nc_filename = get_misr_filename(orbit)
+                                    misr_nc_filename = get_misr_time_filename(orbit)
                                     misr_nc = netCDF4.Dataset(misr_nc_filename)
                                     misr_nc_44 = misr_nc.groups['4.4_KM_PRODUCTS']
                                     misr_block_var = misr_nc_44.variables['Block_Number']

@@ -26,7 +26,7 @@ DIFF_VAA_THRESHOLD = 10 # degree
 # time diff
 DIFF_TIME_THRESHOLD = 5 * 60  # seconds
 
-MISR_DATA_FOLDER = '/data01/people/beichen/data/MISR4AHI2015070120210630_3'
+MISR_DATA_FOLDER = '/data01/people/beichen/data/MISR4Globe201701_02'
 AHI_VZA_BIN = WORK_SPACE + '/AGRI_VZA.npy'
 AHI_VAA_BIN = WORK_SPACE + '/AGRI_VAA.npy'
 
