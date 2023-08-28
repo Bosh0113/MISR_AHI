@@ -7,7 +7,7 @@ import random
 
 WORK_SPACE = os.getcwd()
 
-DEGREE_INTERNAL = 0.5
+DEGREE_INTERNAL = 1
 PIXEL_PAIRS_MAX = 50
 
 
@@ -104,7 +104,7 @@ if __name__ == "__main__":
                                                         v_misr_sr = roi_misr_sr[~numpy.isnan(roi_misr_sr)]
                                                         break
 
-                                                rec_idx = find_nearest_index(refer_raa_idx, roi_sza)
+                                                rec_idx = find_nearest_index(refer_raa_idx, roi_raa)
                                                 # Value y
                                                 if (v_ahi_sr is not None) and (v_misr_sr is not None):
                                                     v_ahi_sr_record_sza = v_ahi_sr_record[rec_idx]
