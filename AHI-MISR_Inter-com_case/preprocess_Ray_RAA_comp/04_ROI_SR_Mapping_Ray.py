@@ -7,6 +7,7 @@ import random
 import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MultipleLocator
+from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error, r2_score
 import matplotlib.transforms as mtransforms
 from scipy.stats import gaussian_kde, pearsonr
@@ -134,13 +135,25 @@ def mapping_scatter(Y, X, figure_title='demo', band_name='band3', axis_min=0.0, 
     fig = plt.figure(figsize=(4, 4))
     ax1 = fig.add_subplot(111, aspect='equal')
     ax1.grid(linestyle='--', linewidth=0.3)
-    k, b = numpy.polyfit(X, Y, deg=1)
-    rmse = math.sqrt(mean_squared_error(X, Y))
+
+    model = LinearRegression()
+    x = X.reshape(-1, 1)
+    model.fit(x, Y)
+    y_pred = model.predict(x)
+    xx = numpy.arange(axis_min, axis_max + 0.1, 0.05)
+    k = model.coef_[0]
+    b = model.intercept_
+    yy = k * xx + b
+
+    # rmse = math.sqrt(mean_squared_error(X, Y))
+    rmse = math.sqrt(mean_squared_error(Y, y_pred))
+    bias = numpy.mean(y_pred - Y)
+    print('bias:', bias)
+
     N = len(X)
     x = numpy.arange(axis_min, axis_max + 1)
     y = 1 * x
     xx = numpy.arange(axis_min, axis_max + 0.1, 0.05)
-    yy = k * xx + b
 
 #     g_x, g_y = numpy.mgrid[axis_min:axis_max:500j, axis_min:axis_max:500j]
 #     positions = numpy.vstack([g_x.ravel(), g_y.ravel()])

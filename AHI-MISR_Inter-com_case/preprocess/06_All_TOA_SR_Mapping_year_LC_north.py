@@ -3,7 +3,6 @@ import numpy
 import re
 import random
 from scipy.stats import gaussian_kde, pearsonr
-from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error, r2_score
 import matplotlib.transforms as mtransforms
 import math
@@ -33,7 +32,7 @@ def add_right_cax(ax, pad, width):
     return cax
 
 
-def mapping_scatter(Y, X, figure_title='demo', band_name='band3', axis_min=0.0, axis_max=0.5):
+def mapping_scatter(Y, X, type_flag, figure_title='demo', band_name='band3', axis_min=0.0, axis_max=0.5):
     # filter    
 #     if band_name == 'band3':
 #         axis_max = 0.3
@@ -64,23 +63,15 @@ def mapping_scatter(Y, X, figure_title='demo', band_name='band3', axis_min=0.0, 
     ax1 = fig.add_subplot(111, aspect='equal',facecolor='whitesmoke', alpha=0.1)
     ax1.grid(linestyle='--', linewidth=0.3)
 
-    model = LinearRegression()
-    x = X.reshape(-1, 1)
-    model.fit(x, Y)
-    y_pred = model.predict(x)
-    xx = numpy.arange(axis_min, axis_max + 0.1, 0.05)
-    k = model.coef_[0]
-    b = model.intercept_
-    yy = k * xx + b
-
-    # rmse = math.sqrt(mean_squared_error(X, Y))
-    rmse = math.sqrt(mean_squared_error(Y, y_pred))
-    bias = numpy.mean(y_pred - Y)
-    print('bias:', bias)
-
+    k, b = numpy.polyfit(X, Y, deg=1)
+    rmse = math.sqrt(mean_squared_error(X, Y))
     N = len(X)
+
     x = numpy.arange(axis_min, axis_max + 1)
     y = 1 * x
+
+    xx = numpy.arange(axis_min, axis_max + 0.1, 0.05)
+    yy = k * xx + b
 
 #     g_x, g_y = numpy.mgrid[axis_min:axis_max:500j, axis_min:axis_max:500j]
 #     positions = numpy.vstack([g_x.ravel(), g_y.ravel()])
@@ -122,9 +113,12 @@ def mapping_scatter(Y, X, figure_title='demo', band_name='band3', axis_min=0.0, 
         'band3': 'Band3',
         'band4': 'Band4',
     }
-
-    ax1.set_ylabel("AHI LSR", fontsize=15)
-    ax1.set_xlabel("MISR LSR", fontsize=15)
+    if type_flag == 'LSR':
+        ax1.set_ylabel("AHI LSR", fontsize=15)
+        ax1.set_xlabel("MISR LSR", fontsize=15)
+    elif type_flag == 'TOA':
+        ax1.set_ylabel("AHI TOA reflectance", fontsize=15)
+        ax1.set_xlabel("MISR TOA reflectance", fontsize=15)
 
 #     ax1.imshow(numpy.rot90(Z), cmap=plt.cm.gist_earth_r, extent=[axis_min, axis_max, axis_min, axis_max], alpha=0.8, zorder=0)
 #     ax1.plot(X, Y, 'k.', markersize=0.5, alpha=0.8, zorder=4)
@@ -156,11 +150,14 @@ def mapping_scatter(Y, X, figure_title='demo', band_name='band3', axis_min=0.0, 
     ax1.set_xlim(axis_min, axis_max)
     ax1.set_ylim(axis_min, axis_max)
     
-    mapping_folder = os.path.join(WORK_SPACE, 'year_scatter_LC_SR')
+    mapping_folder = os.path.join(WORK_SPACE, 'year_scatter_LC_TOA_SR')
     figure_folder = os.path.join(mapping_folder, str(PIXEL_PAIRS_MAX))
     if not os.path.exists(figure_folder):
         os.makedirs(figure_folder)
-    fig_filename = os.path.join(figure_folder, figure_title + '.png')
+    if type_flag == 'LSR':
+        fig_filename = os.path.join(figure_folder, figure_title + '_SR.png')
+    elif type_flag == 'TOA':
+        fig_filename = os.path.join(figure_folder, figure_title + '_TOA.png')
     fig.savefig(fig_filename, dpi=1000, bbox_inches='tight')
     print(fig_filename)
     plt.close(fig)
@@ -176,8 +173,7 @@ if __name__ == "__main__":
     # folder_l2_list = ['0', '1']
     folder_l1_list = ['45']
     folder_l2_list = ['0', '1']
-    lc_type = ['10', '2']
-    month_idxs = [4, 5, 6, 7]
+    lc_type = ['12', '4']
 
     for folder_l1 in folder_l1_list:
         folder_l1_path = os.path.join(WORK_SPACE, folder_l1)
@@ -185,8 +181,14 @@ if __name__ == "__main__":
             # each png
             misr_SR_band3_item_list = []
             ahi_SR_band3_item_list = []
+            misr_TOA_band3_item_list = []
+            ahi_TOA_band3_item_list = []
+
             misr_SR_band4_item_list = []
             ahi_SR_band4_item_list = []
+            misr_TOA_band4_item_list = []
+            ahi_TOA_band4_item_list = []
+
             folder_l2_path = os.path.join(folder_l1_path, folder_l2)
             roi_folder_list = os.listdir(folder_l2_path)
             for roi_folder in roi_folder_list:
@@ -195,42 +197,65 @@ if __name__ == "__main__":
                 folder_l2_idx = int(folder_l2)
                 obj_lc = lc_type[folder_l2_idx]
                 if roi_lc == obj_lc:
-                    roi_lat = float(roi_infos[2])
-                    if roi_lat < 0:   # only south
+                    roi_lat = float(roi_infos[2])                    
+                    is_south_roi = 0
+                    if roi_lat < 0:
+                        is_south_roi = 1
+                    if not is_south_roi:    # only north
                         roi_folder_path = os.path.join(folder_l2_path, roi_folder)
                         roi_file_list = os.listdir(roi_folder_path)
+
                         roi_misr_SR_band3_list = []
                         roi_ahi_SR_band3_list = []
+                        roi_misr_TOA_band3_list = []
+                        roi_ahi_TOA_band3_list = []
+
                         roi_misr_SR_band4_list = []
                         roi_ahi_SR_band4_list = []
+                        roi_misr_TOA_band4_list = []
+                        roi_ahi_TOA_band4_list = []
+
                         for roi_file in roi_file_list:
                             matchObj = re.search(r'(\d+)_band(\d+)_(\d+).npy', str(roi_file))
                             if matchObj:
-                                ahi_time_str = matchObj.group(1)
-                                month_idx = int(ahi_time_str[4:6])-1
-                                if month_idx in month_idxs:
-                                    band_str = matchObj.group(2)
-                                    # camera_idx_str = matchObj.group(3)
-                                    SR_npy_path = os.path.join(roi_folder_path, roi_file)
-                                    ROI_SR_pair = numpy.load(SR_npy_path, allow_pickle=True)[0]
-                                    misr_sr = ROI_SR_pair['misr_v3']
-                                    ahi_sr = ROI_SR_pair['ahi_sr2misr']
-                                    x_3Darray_np_1d = misr_sr.flatten()
-                                    x_3Darray_np_1d = x_3Darray_np_1d[~numpy.isnan(x_3Darray_np_1d)]
-                                    y_3Darray_np_1d = ahi_sr.flatten()
-                                    y_3Darray_np_1d = y_3Darray_np_1d[~numpy.isnan(y_3Darray_np_1d)]
-                                    if band_str == '3':
-                                        roi_misr_SR_band3_list.extend(x_3Darray_np_1d)
-                                        roi_ahi_SR_band3_list.extend(y_3Darray_np_1d)
-                                    if band_str == '4':
-                                        roi_misr_SR_band4_list.extend(x_3Darray_np_1d)
-                                        roi_ahi_SR_band4_list.extend(y_3Darray_np_1d)
+                                # ahi_time_str = matchObj.group(1)
+                                band_str = matchObj.group(2)
+                                # camera_idx_str = matchObj.group(3)
+                                SR_npy_path = os.path.join(roi_folder_path, roi_file)
+                                ROI_SR_pair = numpy.load(SR_npy_path, allow_pickle=True)[0]
+                                misr_sr = ROI_SR_pair['misr_v3']
+                                ahi_sr = ROI_SR_pair['ahi_sr2misr']
+                                misr_toa = ROI_SR_pair['misr_toa']
+                                ahi_toa = ROI_SR_pair['ahi_toa2misr']
+                                misr_sr_1d = misr_sr.flatten()
+                                ahi_sr_1d = ahi_sr.flatten()
+                                misr_toa_1d = misr_toa.flatten()
+                                ahi_toa_1d = ahi_toa.flatten()
+                                nan_indices = numpy.isnan(misr_sr_1d) | numpy.isnan(ahi_sr_1d) | numpy.isnan(misr_toa_1d) | numpy.isnan(ahi_toa_1d)
+                                misr_sr_1d = misr_sr_1d[~nan_indices]
+                                ahi_sr_1d = ahi_sr_1d[~nan_indices]
+                                misr_toa_1d = misr_toa_1d[~nan_indices]
+                                ahi_toa_1d = ahi_toa_1d[~nan_indices]
+                                if band_str == '3':
+                                    roi_misr_SR_band3_list.extend(misr_sr_1d)
+                                    roi_ahi_SR_band3_list.extend(ahi_sr_1d)
+                                    roi_misr_TOA_band3_list.extend(misr_toa_1d)
+                                    roi_ahi_TOA_band3_list.extend(ahi_toa_1d)
+                                if band_str == '4':
+                                    roi_misr_SR_band4_list.extend(misr_sr_1d)
+                                    roi_ahi_SR_band4_list.extend(ahi_sr_1d)
+                                    roi_misr_TOA_band4_list.extend(misr_toa_1d)
+                                    roi_ahi_TOA_band4_list.extend(ahi_toa_1d)
                         # keep pixel count same
                         if len(roi_misr_SR_band3_list) == len(roi_misr_SR_band4_list):
                             misr_SR_band3_item_list.extend(roi_misr_SR_band3_list)
                             ahi_SR_band3_item_list.extend(roi_ahi_SR_band3_list)
                             misr_SR_band4_item_list.extend(roi_misr_SR_band4_list)
                             ahi_SR_band4_item_list.extend(roi_ahi_SR_band4_list)
+                            misr_TOA_band3_item_list.extend(roi_misr_TOA_band3_list)
+                            ahi_TOA_band3_item_list.extend(roi_ahi_TOA_band3_list)
+                            misr_TOA_band4_item_list.extend(roi_misr_TOA_band4_list)
+                            ahi_TOA_band4_item_list.extend(roi_ahi_TOA_band4_list)
 
             print('Random NO.:', PIXEL_PAIRS_MAX)
             print(folder_l1, folder_l2)
@@ -247,26 +272,25 @@ if __name__ == "__main__":
                 ahi_SR_band3_pts = numpy.array(ahi_SR_band3_item_list)
                 show_ahi_sr_b3 = ahi_SR_band3_pts[index_array]
                 figure_title = folder_l1 + '_' + folder_l2 + '_b3' + '_' + str(PIXEL_PAIRS_MAX)
-                mapping_scatter(show_ahi_sr_b3, show_misr_sr_b3, figure_title, 'band3', axis_min=0.0, axis_max=0.5)
+                mapping_scatter(show_ahi_sr_b3, show_misr_sr_b3, 'LSR', figure_title, 'band3', axis_min=0.0, axis_max=0.5)
 
                 misr_SR_band4_pts = numpy.array(misr_SR_band4_item_list)
                 show_misr_sr_b4 = misr_SR_band4_pts[index_array]
                 ahi_SR_band4_pts = numpy.array(ahi_SR_band4_item_list)
                 show_ahi_sr_b4 = ahi_SR_band4_pts[index_array]
                 figure_title = folder_l1 + '_' + folder_l2 + '_b4' + '_' + str(PIXEL_PAIRS_MAX)
-                mapping_scatter(show_ahi_sr_b4, show_misr_sr_b4, figure_title, 'band4', axis_min=0.0, axis_max=0.8)
+                mapping_scatter(show_ahi_sr_b4, show_misr_sr_b4, 'LSR', figure_title, 'band4', axis_min=0.0, axis_max=0.8)
 
-            else:
-                # all pairs mapping
-                pairs_no = len(misr_SR_band3_item_list)
-                if pairs_no > 3:
+                misr_TOA_band3_pts = numpy.array(misr_TOA_band3_item_list)
+                show_misr_toa_b3 = misr_TOA_band3_pts[index_array]
+                ahi_TOA_band3_pts = numpy.array(ahi_TOA_band3_item_list)
+                show_ahi_toa_b3 = ahi_TOA_band3_pts[index_array]
+                figure_title = folder_l1 + '_' + folder_l2 + '_b3' + '_' + str(PIXEL_PAIRS_MAX)
+                mapping_scatter(show_ahi_toa_b3, show_misr_toa_b3, 'TOA', figure_title, 'band3', axis_min=0.0, axis_max=0.5)
 
-                    misr_SR_band3_pts = numpy.array(misr_SR_band3_item_list)
-                    ahi_SR_band3_pts = numpy.array(ahi_SR_band3_item_list)
-                    figure_title = folder_l1 + '_' + folder_l2 + '_b3' + '_' + str(pairs_no)
-                    mapping_scatter(ahi_SR_band3_pts, misr_SR_band3_pts, figure_title, 'band3', axis_min=0.0, axis_max=0.5)
-
-                    misr_SR_band4_pts = numpy.array(misr_SR_band4_item_list)
-                    ahi_SR_band4_pts = numpy.array(ahi_SR_band4_item_list)
-                    figure_title = folder_l1 + '_' + folder_l2 + '_b4' + '_' + str(pairs_no)
-                    mapping_scatter(ahi_SR_band4_pts, misr_SR_band4_pts, figure_title, 'band4', axis_min=0.0, axis_max=0.8)
+                misr_TOA_band4_pts = numpy.array(misr_TOA_band4_item_list)
+                show_misr_toa_b4 = misr_TOA_band4_pts[index_array]
+                ahi_TOA_band4_pts = numpy.array(ahi_TOA_band4_item_list)
+                show_ahi_toa_b4 = ahi_TOA_band4_pts[index_array]
+                figure_title = folder_l1 + '_' + folder_l2 + '_b4' + '_' + str(PIXEL_PAIRS_MAX)
+                mapping_scatter(show_ahi_toa_b4, show_misr_toa_b4, 'TOA', figure_title, 'band4', axis_min=0.0, axis_max=0.8)

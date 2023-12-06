@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 
 WORK_SPACE = os.getcwd()
 
-PIXEL_PAIRS_MAX = 1000
+PIXEL_PAIRS_MAX = 700
 
 
 def identifer(data):
@@ -156,7 +156,7 @@ def mapping_scatter(Y, X, figure_title='demo', band_name='band3', axis_min=0.0, 
     ax1.set_xlim(axis_min, axis_max)
     ax1.set_ylim(axis_min, axis_max)
     
-    mapping_folder = os.path.join(WORK_SPACE, 'year_scatter_LC_SR')
+    mapping_folder = os.path.join(WORK_SPACE, 'year_scatter_LC_SR_ve')
     figure_folder = os.path.join(mapping_folder, str(PIXEL_PAIRS_MAX))
     if not os.path.exists(figure_folder):
         os.makedirs(figure_folder)
@@ -176,8 +176,7 @@ if __name__ == "__main__":
     # folder_l2_list = ['0', '1']
     folder_l1_list = ['45']
     folder_l2_list = ['0', '1']
-    lc_type = ['10', '2']
-    month_idxs = [4, 5, 6, 7]
+    lc_type = ['12', '4']
 
     for folder_l1 in folder_l1_list:
         folder_l1_path = os.path.join(WORK_SPACE, folder_l1)
@@ -195,8 +194,11 @@ if __name__ == "__main__":
                 folder_l2_idx = int(folder_l2)
                 obj_lc = lc_type[folder_l2_idx]
                 if roi_lc == obj_lc:
-                    roi_lat = float(roi_infos[2])
-                    if roi_lat < 0:   # only south
+                    roi_lat = float(roi_infos[2])                    
+                    is_south_roi = 0
+                    if roi_lat < 0:
+                        is_south_roi = 1
+                    if not is_south_roi:    # only north
                         roi_folder_path = os.path.join(folder_l2_path, roi_folder)
                         roi_file_list = os.listdir(roi_folder_path)
                         roi_misr_SR_band3_list = []
@@ -207,8 +209,8 @@ if __name__ == "__main__":
                             matchObj = re.search(r'(\d+)_band(\d+)_(\d+).npy', str(roi_file))
                             if matchObj:
                                 ahi_time_str = matchObj.group(1)
-                                month_idx = int(ahi_time_str[4:6])-1
-                                if month_idx in month_idxs:
+                                obs_month = int(ahi_time_str[4:6])
+                                if obs_month >= 5 and obs_month <= 11: # May -> Nov.
                                     band_str = matchObj.group(2)
                                     # camera_idx_str = matchObj.group(3)
                                     SR_npy_path = os.path.join(roi_folder_path, roi_file)

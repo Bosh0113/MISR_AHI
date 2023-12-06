@@ -9,6 +9,7 @@ import numpy
 import re
 import random
 from scipy.stats import gaussian_kde, pearsonr
+from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error, r2_score
 import math
 import matplotlib.pyplot as plt
@@ -77,9 +78,13 @@ def mapping_scatter(Y, X, figure_title='demo', band_name='band3', axis_min=0.0, 
 #     plt.ylim(0, 0.5)
 #     plt.show()
     
-    
-    k, b = numpy.polyfit(X, Y, deg=1)
-    rmse = math.sqrt(mean_squared_error(X, Y))
+    model = LinearRegression()
+    x = X.reshape(-1, 1)
+    model.fit(x, Y)
+    y_pred = model.predict(x)
+    k = model.coef_[0]
+    b = model.intercept_
+    rmse = math.sqrt(mean_squared_error(Y, y_pred))
     r_, p = pearsonr(X, Y)
 
     # slope r RMSE
